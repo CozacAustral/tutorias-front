@@ -44,7 +44,7 @@ const SideBar = () => {
           </Box>
           <Flex direction="column" as="ul" listStyleType="none" p={0}>
             <Box as="li" mb="1rem">
-              <Link href="/Administradores" passHref>
+              <Link href="/Administradores" passHref style={{textDecoration: "none"}}>
                 <Box
                   display="flex"
                   alignItems="center"
@@ -53,10 +53,9 @@ const SideBar = () => {
                   color={isActiveLink('/Administradores') ? "white" : "#fff3e9"}
                   borderRadius="10px"
                   transition="background-color 0.1s ease-in-out"
-                  _hover={{ bg: "#318AE4", color: "white" }}
+                  _hover={{ bg: "#318AE4", color: "white", textDecoration: "none" }}
                   justifyContent={collapsed ? "center" : "flex-start"}
-                  textDecoration="none"
-                >
+                  >
                   <Image
                     src='/icons/Administradores-icon.svg'
                     width={30}
@@ -69,7 +68,7 @@ const SideBar = () => {
               </Link>
             </Box>
             <Box as="li" mb="1rem">
-              <Link href="/Tutores" passHref>
+              <Link href="/Tutores" passHref style={{textDecoration: "none"}}>
                 <Box
                   display="flex"
                   alignItems="center"
@@ -78,10 +77,10 @@ const SideBar = () => {
                   color={isActiveLink('/Tutores') ? "white" : "#fff3e9"}
                   borderRadius="10px"
                   transition="background-color 0.1s ease-in-out"
-                  _hover={{ bg: "#318AE4", color: "white" }}
-                  justifyContent={collapsed ? "center" : "flex-start"}
-                  textDecoration="none"
-                >
+                  _hover={{ bg: "#318AE4", color: "white", textDecoration:"none" }}
+                  justifyContent={collapsed ? "center" : "flex-start"}  
+                  textDecorationLine="none"
+                  >
                   <Image
                     src='/icons/tutors-icon.svg'
                     width={30}
@@ -94,7 +93,7 @@ const SideBar = () => {
               </Link>
             </Box>
             <Box as="li" mb="1rem">
-              <Link href="/Alumnos" passHref>
+              <Link href="/Alumnos" passHref style={{textDecoration: "none"}}>
                 <Box
                   display="flex"
                   alignItems="center"
@@ -119,7 +118,7 @@ const SideBar = () => {
               </Link>
             </Box>
             <Box as="li" mb="1rem">
-              <Link href="/Reuniones" passHref>
+              <Link href="/Reuniones" passHref style={{textDecoration: "none"}}>
                 <Box
                   display="flex"
                   alignItems="center"
@@ -130,7 +129,7 @@ const SideBar = () => {
                   transition="background-color 0.1s ease-in-out"
                   _hover={{ bg: "#318AE4", color: "white" }}
                   justifyContent={collapsed ? "center" : "flex-start"}
-                  textDecoration="none"
+                  outline="none"
                 >
                   <Image
                     src='/icons/Reuniones-icon.svg'
@@ -147,17 +146,19 @@ const SideBar = () => {
         </Box>
         <Box className="container_toggle_sidebar_button" mb="1rem">
           <IconButton
-            colorScheme="blue"
             color="white"
             bg="#318AE4"
+            boxSize="50px"
+            fontSize="20px"
             icon={collapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
             onClick={toggleSidebar}
             aria-label="Toggle SideBar"
             borderRadius="50%"
+            border="none"
           />
         </Box>
       </Flex>
-      <Box ml={collapsed ? "6.5rem" : "17rem"} width="100%" p="4">
+      <Box ml={collapsed ? "6.5rem" : "17rem"}  >
       </Box>
     </Flex>
   );
