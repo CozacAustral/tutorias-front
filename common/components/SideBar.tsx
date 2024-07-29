@@ -1,21 +1,20 @@
-'use client';
-import { useState } from 'react';
+"use client";
+import { useState } from "react";
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import { ArrowForwardIcon, ArrowBackIcon } from "@chakra-ui/icons";
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 
-const SideBar = () => {
-  const [collapsed, setCollapsed] = useState(true);
-  const router = useRouter();
-  const currentPath = router.pathname;
+const SideBar: React.FC = () => {
+  const [collapsed, setCollapsed] = useState<boolean>(true);
+  const currentPath = usePathname();
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
   };
 
-  const isActiveLink = (href) => currentPath === href;
+  const isActiveLink = (href: string): boolean => currentPath === href;
 
   return (
     <Flex>
@@ -33,73 +32,95 @@ const SideBar = () => {
         zIndex="1"
       >
         <Box w="100%">
-          <Box display="flex" alignItems="center" justifyContent="center" py="1rem" mb="1rem">
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            py="1rem"
+            mb="1rem"
+          >
             <Image
-              src={collapsed ? "/images/collapsedaustral.png" : "/images/image%20austral.png"}
+              src={
+                collapsed
+                  ? "/images/collapsedaustral.png"
+                  : "/images/image%20austral.png"
+              }
               width={collapsed ? 75.52 : 200}
               height={collapsed ? 90.54 : 75}
-              alt='logo'
+              alt="logo"
               priority
             />
           </Box>
           <Flex direction="column" as="ul" listStyleType="none" p={0}>
             <Box as="li" mb="1rem">
-              <Link href="/Administradores" passHref style={{textDecoration: "none"}}>
+              <Link
+                href="/Administradores"
+                passHref
+                style={{ textDecoration: "none" }}
+              >
                 <Box
                   display="flex"
                   alignItems="center"
                   p="0.8rem 1rem"
-                  bg={isActiveLink('/Administradores') ? "#318AE4" : "#14218D"}
-                  color={isActiveLink('/Administradores') ? "white" : "#fff3e9"}
+                  bg={isActiveLink("/Administradores") ? "#318AE4" : "#14218D"}
+                  color={isActiveLink("/Administradores") ? "white" : "#fff3e9"}
                   borderRadius="10px"
                   transition="background-color 0.1s ease-in-out"
-                  _hover={{ bg: "#318AE4", color: "white", textDecoration: "none" }}
+                  _hover={{
+                    bg: "#318AE4",
+                    color: "white",
+                    textDecoration: "none",
+                  }}
                   justifyContent={collapsed ? "center" : "flex-start"}
-                  >
+                >
                   <Image
-                    src='/icons/Administradores-icon.svg'
+                    src="/icons/Administradores-icon.svg"
                     width={30}
                     height={30}
-                    alt=''
-                    priority={true}
+                    alt=""
+                    priority
                   />
                   {!collapsed && <Text ml="0.5rem">Administradores</Text>}
                 </Box>
               </Link>
             </Box>
             <Box as="li" mb="1rem">
-              <Link href="/Tutores" passHref style={{textDecoration: "none"}}>
+              <Link href="/Tutores" passHref style={{ textDecoration: "none" }}>
                 <Box
                   display="flex"
                   alignItems="center"
                   p="0.8rem 1rem"
-                  bg={isActiveLink('/Tutores') ? "#318AE4" : "#14218D"}
-                  color={isActiveLink('/Tutores') ? "white" : "#fff3e9"}
+                  bg={isActiveLink("/Tutores") ? "#318AE4" : "#14218D"}
+                  color={isActiveLink("/Tutores") ? "white" : "#fff3e9"}
                   borderRadius="10px"
                   transition="background-color 0.1s ease-in-out"
-                  _hover={{ bg: "#318AE4", color: "white", textDecoration:"none" }}
-                  justifyContent={collapsed ? "center" : "flex-start"}  
+                  _hover={{
+                    bg: "#318AE4",
+                    color: "white",
+                    textDecoration: "none",
+                  }}
+                  justifyContent={collapsed ? "center" : "flex-start"}
                   textDecorationLine="none"
-                  >
+                >
                   <Image
-                    src='/icons/tutors-icon.svg'
+                    src="/icons/tutors-icon.svg"
                     width={30}
                     height={30}
-                    alt=''
-                    priority={true}
+                    alt=""
+                    priority
                   />
                   {!collapsed && <Text ml="0.5rem">Tutores</Text>}
                 </Box>
               </Link>
             </Box>
             <Box as="li" mb="1rem">
-              <Link href="/Alumnos" passHref style={{textDecoration: "none"}}>
+              <Link href="/Alumnos" passHref style={{ textDecoration: "none" }}>
                 <Box
                   display="flex"
                   alignItems="center"
                   p="0.8rem 1rem"
-                  bg={isActiveLink('/Alumnos') ? "#318AE4" : "#14218D"}
-                  color={isActiveLink('/Alumnos') ? "white" : "#fff3e9"}
+                  bg={isActiveLink("/Alumnos") ? "#318AE4" : "#14218D"}
+                  color={isActiveLink("/Alumnos") ? "white" : "#fff3e9"}
                   borderRadius="10px"
                   transition="background-color 0.1s ease-in-out"
                   _hover={{ bg: "#318AE4", color: "white" }}
@@ -107,24 +128,28 @@ const SideBar = () => {
                   textDecoration="none"
                 >
                   <Image
-                    src='/icons/student-icon.svg'
+                    src="/icons/student-icon.svg"
                     width={30}
                     height={30}
-                    alt=''
-                    priority={true}
+                    alt=""
+                    priority
                   />
                   {!collapsed && <Text ml="0.5rem">Alumnos</Text>}
                 </Box>
               </Link>
             </Box>
             <Box as="li" mb="1rem">
-              <Link href="/Reuniones" passHref style={{textDecoration: "none"}}>
+              <Link
+                href="/Reuniones"
+                passHref
+                style={{ textDecoration: "none" }}
+              >
                 <Box
                   display="flex"
                   alignItems="center"
                   p="0.8rem 1rem"
-                  bg={isActiveLink('/Reuniones') ? "#318AE4" : "#14218D"}
-                  color={isActiveLink('/Reuniones') ? "white" : "#fff3e9"}
+                  bg={isActiveLink("/Reuniones") ? "#318AE4" : "#14218D"}
+                  color={isActiveLink("/Reuniones") ? "white" : "#fff3e9"}
                   borderRadius="10px"
                   transition="background-color 0.1s ease-in-out"
                   _hover={{ bg: "#318AE4", color: "white" }}
@@ -132,11 +157,11 @@ const SideBar = () => {
                   outline="none"
                 >
                   <Image
-                    src='/icons/Reuniones-icon.svg'
+                    src="/icons/Reuniones-icon.svg"
                     width={30}
                     height={30}
-                    alt=''
-                    priority={true}
+                    alt=""
+                    priority
                   />
                   {!collapsed && <Text ml="0.5rem">Reuniones</Text>}
                 </Box>
@@ -158,8 +183,7 @@ const SideBar = () => {
           />
         </Box>
       </Flex>
-      <Box ml={collapsed ? "6.5rem" : "17rem"}  >
-      </Box>
+      <Box ml={collapsed ? "6.5rem" : "17rem"}></Box>
     </Flex>
   );
 };
