@@ -1,9 +1,11 @@
-import React from 'react'
+import { Box } from "@chakra-ui/react"
 
 const Tutores = () => {
   return (
-    <div>Tutores</div>
-  )
+    <Box >
+      Tutores
+    </Box>
+    )
 }
 
 export default Tutores

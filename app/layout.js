@@ -1,18 +1,22 @@
-import SideBar from '../common/components/SideBar.jsx';
-import '../styles/globals.css'
+'use client'
+import '../styles/globals.css';
+import SideBar from '../common/components/SideBar';
+import { usePathname } from 'next/navigation';
 
-
-const Layout = ( { children }) => {
+const Layout = ({ children }) => {
+  const pathname = usePathname();
   return (
-    <html>
-      <body>
-      <div className='container'>
-        <SideBar/>
-        {children}
-      </div>
+    <html lang="es">
+      <body >
+        <div className="container">
+          {pathname !=='/Login' && <SideBar/>}
+          <main className="content">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
-  )
-}
+  );
+};
 
 export default Layout;
