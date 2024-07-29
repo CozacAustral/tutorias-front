@@ -65,44 +65,50 @@ const LoginForm = () => {
             <Stack
               spacing={4}
               p='1rem'
-              backgroundColor='#FFF3E9'
+              backgroundColor='#FCF5F9'
               borderRadius="10px"
-              height="auto"
+              height="300px"
               w="538px"
               alignItems="center"
             >
               <Image
                 src='/images/Image-Login-Photoroom.png'
                 alt='Image-login'
-                width="500px"
+                width="450px"
                 h="112px"
                 objectFit='contain'
               />
               {error && <Text color="red.500">{error}</Text>}
               {success && <Text color="green.500">{success}</Text>}
               <FormControl>
-                <InputGroup>
+                <Input
+                borderRadius="3px"
+                border="none"
+                outline="none"
+                h="35px"
+                w='290px'
+                type='email'
+                placeholder='Email'
+                backgroundColor="#D4CBCB"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                paddingLeft="1rem"
+                />
+                </FormControl>
+                <FormControl>
                   <Input
-                    variant='filled'
-                    type='email'
-                    placeholder='Email'
-                    size='md'
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                  borderRadius="3px"
+                  border="none"
+                  outline="none"
+                  h="35px"
+                  w='290px'
+                  backgroundColor="#D4CBCB"
+                  type='password'
+                  placeholder='Contraseña'
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  paddingLeft="1rem"
                   />
-                </InputGroup>
-              </FormControl>
-              <FormControl>
-                <InputGroup>
-                  <Input
-                    variant='filled'
-                    type='password'
-                    placeholder='Contraseña'
-                    size='md'
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </InputGroup>
               </FormControl>
               <Button
                 borderRadius="5px"
