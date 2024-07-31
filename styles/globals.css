@@ -1,27 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
 * {
-    padding: 0;
-    margin: 0.5;
-    box-sizing: border-box;
-    font-family: "Montserrat", sans-serif;
+  padding: 0;
+  margin: 0.5;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
 }
 
-html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 .container {
-    display: flex;
-    flex-direction: row;
-    position: relative;
-    gap: 2rem;
-    height: 100vh; }
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  gap: 2rem;
+  height: 100vh;
+}
 
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  max-height: 100vh;
+  width: 100%;
+}
+.content {
+  width: 100%;
+  max-width: 1200px; /* Ajusta el ancho máximo del contenido */
+  margin-top: 2rem;
+}
 /* .sidebar {
     width: 17rem;
     height: 100vh;
@@ -56,7 +71,6 @@ html, body {
     height: auto; 
 } */
 
-
 /* .sidebar_list {
     list-style: none;
 }
@@ -68,7 +82,6 @@ html, body {
     position: fixed; 
     bottom: 20px;
 } */
-
 
 /* .toggle_sidebar_button {
     background-color: #007bff;
@@ -86,7 +99,6 @@ html, body {
     font-size: 16px;
 }
  */
-
 
 /* .toggle_sidebar_button:hover {
     background-color: #0056b3;
@@ -127,5 +139,3 @@ html, body {
 .dives{
     background-color: #9747FF;
 } */
-
-
