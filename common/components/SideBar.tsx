@@ -17,7 +17,7 @@ const SideBar: React.FC = () => {
   const isActiveLink = (href: string): boolean => currentPath === href;
 
   return (
-    <Flex>
+    <Flex mr={collapsed ? 100 : 0}>
       <Flex
         direction="column"
         align="center"

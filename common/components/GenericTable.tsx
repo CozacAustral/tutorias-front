@@ -3,7 +3,7 @@ import {
   DeleteIcon,
   EditIcon,
   Search2Icon,
-  SearchIcon,
+  SmallAddIcon,
   TriangleDownIcon,
 } from "@chakra-ui/icons";
 import {
@@ -24,10 +24,11 @@ import {
   TableContainer,
   Tbody,
   Td,
-  Tfoot,
   Th,
   Thead,
   Tr,
+  Text,
+  Button,
 } from "@chakra-ui/react";
 import React from "react";
 import { DataRow } from "../data/data";
@@ -36,17 +37,42 @@ interface GenericTableProps {
   data: DataRow[];
   caption: string;
 }
+
 const GenericTable: React.FC<GenericTableProps> = ({ data, caption }) => {
   return (
     <ChakraProvider>
-      <Flex justifyContent="center" alignItems="center" minHeight="100vh">
-        <Box width="100%" maxWidth="1200px">
+      <Flex
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+        flexDirection="column"
+        mt="-20"
+      >
+        <Box width="100%" maxWidth="1200px" mb={4}>
+          <Text
+            fontSize="6xl"
+            color="black"
+            marginLeft="-25"
+            marginTop="-30"
+            marginBottom="3"
+          >
+            {caption}
+          </Text>
+        </Box>
+        <Box
+          width="100%"
+          maxWidth="1200px"
+          backgroundColor="white"
+          borderRadius="20px"
+          p={4}
+          mt="-25"
+        >
           <Flex mb={4} width="100%">
             <InputGroup width="30%" mr={2}>
               <InputLeftElement pointerEvents="none">
                 <Search2Icon color="black" />
               </InputLeftElement>
-              <Input placeholder="search" />
+              <Input placeholder="Buscar" />
             </InputGroup>
             <Menu>
               <MenuButton as={InputGroup} width="30%" mr={2}>
@@ -56,20 +82,30 @@ const GenericTable: React.FC<GenericTableProps> = ({ data, caption }) => {
                 </InputRightElement>
               </MenuButton>
               <MenuList>
-                <MenuItem>Option 1</MenuItem>
-                <MenuItem>Option 2</MenuItem>
+                <MenuItem>Opción 1</MenuItem>
+                <MenuItem>Opción 2</MenuItem>
               </MenuList>
             </Menu>
+            <Button ml={350}>
+              <SmallAddIcon />
+            </Button>
           </Flex>
           <TableContainer>
             <Table variant="simple" size="lg">
-              <TableCaption>{caption}</TableCaption>
               <Thead>
                 <Tr>
-                  <Th>Apellido/s</Th>
-                  <Th>Nombre</Th>
-                  <Th>Correo</Th>
-                  <Th>Departamento</Th>
+                  <Th fontWeight={600} color="#B5B7C0">
+                    Apellido/s
+                  </Th>
+                  <Th fontWeight={600} color="#B5B7C0">
+                    Nombre
+                  </Th>
+                  <Th fontWeight={600} color="#B5B7C0">
+                    Correo
+                  </Th>
+                  <Th fontWeight={600} color="#B5B7C0">
+                    Departamento
+                  </Th>
                   <Th></Th>
                 </Tr>
               </Thead>
@@ -83,13 +119,13 @@ const GenericTable: React.FC<GenericTableProps> = ({ data, caption }) => {
                     <Td>
                       <Flex justifyContent="center">
                         <IconButton
-                          icon={<EditIcon boxSize={5} />} // Ajusta el tamaño del ícono
+                          icon={<EditIcon boxSize={5} />}
                           aria-label="Edit"
                           mr={6}
-                          backgroundColor="white" // Espacio a la derecha
+                          backgroundColor="white"
                         />
                         <IconButton
-                          icon={<DeleteIcon boxSize={5} />} // Ajusta el tamaño del ícono
+                          icon={<DeleteIcon boxSize={5} />}
                           aria-label="Delete"
                           backgroundColor="white"
                         />
