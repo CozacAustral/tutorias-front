@@ -1,25 +1,23 @@
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
-
 * {
   padding: 0;
   margin: 0.5;
   box-sizing: border-box;
   font-family: "Montserrat", sans-serif;
+  font-size: medium;
 }
-
-html,
-body {
-  width: 100%;
+html, body {
   height: 100%;
   margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
 }
+
 .container {
   display: flex;
-  flex-direction: row;
-  position: relative;
-  gap: 2rem;
   height: 100vh;
+  width: 100vw;
+}
+
+.content {
+  flex: 1;
+  overflow-y: hidden;
+  overflow-x: hidden;
 }
