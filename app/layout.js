@@ -1,16 +1,15 @@
-'use client';
+'use client'
 import '../styles/globals.css';
 import SideBar from '../common/components/SideBar';
 import { usePathname } from 'next/navigation';
 
-export default function Layout({ children }) {
+const Layout = ({ children }) => {
   const pathname = usePathname();
-
   return (
     <html lang="es">
-      <body>
+      <body >
         <div className="container">
-          {pathname !== '/Login' && <SideBar />}
+          {pathname !=='/Login' && <SideBar/>}
           <main className="content">
             {children}
           </main>
@@ -18,4 +17,6 @@ export default function Layout({ children }) {
       </body>
     </html>
   );
-}
+};
+
+export default Layout;
