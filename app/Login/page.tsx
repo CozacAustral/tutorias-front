@@ -3,7 +3,6 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Flex, Stack, Box, Image, FormControl, Link, Input, Button, Text, FormHelperText } from '@chakra-ui/react';
-
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +39,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
 
   return (
     <Flex
@@ -126,7 +126,8 @@ const Login = () => {
         </Box>
       </Stack>
     </Flex>
-  );
-};
 
-export default Login;
+  )
+}
+
+export default Login

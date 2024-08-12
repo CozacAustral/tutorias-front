@@ -18,7 +18,6 @@ html, body {
 
 .content {
   flex: 1;
-  /* padding: 1rem; */
   overflow-y: hidden;
   overflow-x: hidden;
 }

@@ -4,9 +4,11 @@ import AuthContextProvider from "./contexts/AuthContext";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
+    <AuthContextProvider>
     <ChakraProvider >
       <Component {...pageProps} />
     </ChakraProvider>
+    </AuthContextProvider>
   );
 }
 
