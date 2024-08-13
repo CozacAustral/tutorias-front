@@ -2,7 +2,8 @@
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Flex, Stack, Box, Image, FormControl, Link, Input, Button, Text, FormHelperText } from '@chakra-ui/react';
+import { Flex, Stack, Box, Image, FormControl, Link, Input, Button, Text, FormHelperText, Container } from '@chakra-ui/react';
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,7 +12,7 @@ const Login = () => {
 
   const router = useRouter();
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
 
@@ -40,9 +41,8 @@ const Login = () => {
     }
   };
 
-
   return (
-    <Flex
+    <Container
       width="100vw"
       h="100vh"
       backgroundImage={'/images/image_158.png'}
@@ -85,7 +85,7 @@ const Login = () => {
                   w='292px'
                   type='email'
                   placeholder='Email'
-                  backgroundColor="#D4CBCB"
+                  backgroundColor="#D9D9D9"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   paddingLeft="1.5rem"
@@ -125,9 +125,8 @@ const Login = () => {
           </form>
         </Box>
       </Stack>
-    </Flex>
-
-  )
+    </Container>
+  );
 }
 
-export default Login
+export default Login;

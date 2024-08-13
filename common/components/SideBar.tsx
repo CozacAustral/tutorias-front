@@ -5,7 +5,7 @@ import { ArrowForwardIcon, ArrowBackIcon, ExternalLinkIcon } from "@chakra-ui/ic
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import jwtDecode from 'jsonwebtoken/decode';
+const jwt = require('jsonwebtoken');
 import  Cookies from 'js-cookie';
 
 const SideBar = () => {
@@ -18,7 +18,7 @@ const SideBar = () => {
     const token = Cookies.get('authTokens'); // Usa el nombre correcto de la cookie
     if (token) {
       try {
-        const decodedToken = jwtDecode(token);
+        const decodedToken = jwt.decode(token)
         // console.log('Decoded Token:', decodedToken); 
         setRole(decodedToken.role); 
         // console.log('Role:', decodedToken.role);
@@ -34,10 +34,10 @@ const SideBar = () => {
     setCollapsed(!collapsed);
   };
 
-  const isActiveLink = (href) => {
+  const isActiveLink = (href: string): boolean => {
     return pathname === href;
   };
-
+  
   const handleLogout = () => {
     Cookies.remove('authTokens', { path: '/' });
     router.push('/Login');
