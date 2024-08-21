@@ -49,7 +49,7 @@ const SideBar = () => {
       <Flex
         direction="column"
         align="center"
-        bg="#14218D"
+        bg="primary"
         width={collapsed ? "6.5rem" : "17rem"}
         transition="width 0.3s ease-in-out"
         justifyContent="space-between"
@@ -62,7 +62,7 @@ const SideBar = () => {
         <Box w="100%">
           <Box display="flex" alignItems="center" justifyContent="center" py="1rem" mb="1rem">
             <Image
-              src={collapsed ? "/images/collapsedaustral.png" : "/images/image%20austral.png"}
+              src={collapsed ? "/images/collapsedaustral.png" : "/images/australsidebar.png"}
               width={collapsed ? 75.52 : 200}
               height={collapsed ? 90.54 : 75}
               alt='logo'
@@ -94,7 +94,6 @@ const SideBar = () => {
               </Link>
             </Box>
 
-            {/* Link "Reuniones" */}
             <Box as="li" mb="1rem">
               <Link href="/Reuniones" passHref style={{ textDecoration: "none" }}>
                 <Flex
@@ -119,7 +118,6 @@ const SideBar = () => {
               </Link>
             </Box>
 
-            {/* Links específicos para Admin (role: 1) */}
             {role === 1 && (
               <>
                 <Box as="li" mb="1rem">

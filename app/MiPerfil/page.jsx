@@ -1,9 +1,11 @@
-import React from 'react'
+import { Heading, Box } from '@chakra-ui/react'
 
 const MiPerfil = () => {
   return (
-    <div>MiPerfil</div>
-  )
+    <Box>
+      este es el Mi Perfil
+    </Box>
+    )
 }
 
 export default MiPerfil
