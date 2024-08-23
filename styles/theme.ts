@@ -3,16 +3,11 @@ import { extendTheme } from "@chakra-ui/react";
 
 const customTheme = extendTheme({
     colors:{
-        primary: "#318AE4", //color principal
-
-
-        secondary:{
-            white:"#FFFFFF",
-            100:"#318AE4",
-            200:"#6FC7FF",
-            300:"#C3E6FF",
-            400:"#FFF3E9"
-        }
+        primary: '#172187', //color principal
+        secondary:'#318ae4',
+        red: '#e53e3e',
+        light_gray: '#D9D9D9',
+        softPink: '#FCF5F9',
     }
 });
 

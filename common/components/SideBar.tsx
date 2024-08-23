@@ -75,7 +75,7 @@ const SideBar = () => {
                 <Flex
                   align="center"
                   p="0.5rem"
-                  bg={isActiveLink('/MiPerfil') ? "#318AE4" : "#14218D"}
+                  bg={isActiveLink('/MiPerfil') ? "secondary" : "primary"}
                   color={isActiveLink('/MiPerfil') ? "white" : "#fff3e9"}
                   borderRadius="10px"
                   transition="background-color 0.1s ease-in-out"
@@ -99,11 +99,11 @@ const SideBar = () => {
                 <Flex
                   align="center"
                   p="0.5rem"
-                  bg={isActiveLink('/Reuniones') ? "#318AE4" : "#14218D"}
+                  bg={isActiveLink('/Reuniones') ? "secondary" : "primary"}
                   color={isActiveLink('/Reuniones') ? "white" : "#fff3e9"}
                   borderRadius="6px"
                   transition="background-color 0.1s ease-in-out"
-                  _hover={{ bg: "#318AE4", color: "white" }}
+                  _hover={{ bg: "secondary", color: "white" }}
                   justifyContent={collapsed ? "center" : "flex-start"}
                 >
                   <Image
@@ -125,11 +125,11 @@ const SideBar = () => {
                     <Flex
                       align="center"
                       p="0.5rem"
-                      bg={isActiveLink('/Administradores') ? "#318AE4" : "#14218D"}
+                      bg={isActiveLink('/Administradores') ? "secondary" : "primary"}
                       color={isActiveLink('/Administradores') ? "white" : "#fff3e9"}
                       borderRadius="10px"
                       transition="background-color 0.1s ease-in-out"
-                      _hover={{ bg: "#318AE4", color: "white" }}
+                      _hover={{ bg: "secondary", color: "white" }}
                       justifyContent={collapsed ? "center" : "flex-start"}
                     >
                       <Image
@@ -149,7 +149,7 @@ const SideBar = () => {
                     <Flex
                       align="center"
                       p="0.5rem"
-                      bg={isActiveLink('/Tutores') ? "#318AE4" : "#14218D"}
+                      bg={isActiveLink('/Tutores') ? "secondary" : "primary"}
                       color={isActiveLink('/Tutores') ? "white" : "#fff3e9"}
                       borderRadius="10px"
                       transition="background-color 0.1s ease-in-out"
@@ -177,11 +177,11 @@ const SideBar = () => {
                   <Flex
                     align="center"
                     p="0.5rem"
-                    bg={isActiveLink('/Alumnos') ? "#318AE4" : "#14218D"}
+                    bg={isActiveLink('/Alumnos') ? "secondary" : "primary"}
                     color={isActiveLink('/Alumnos') ? "white" : "#fff3e9"}
                     borderRadius="6px"
                     transition="background-color 0.1s ease-in-out"
-                    _hover={{ bg: "#318AE4", color: "white" }}
+                    _hover={{ bg: "secondary", color: "white" }}
                     justifyContent={collapsed ? "center" : "flex-start"}
                   >
                     <Image
@@ -201,7 +201,7 @@ const SideBar = () => {
         <Box mb="1rem" display="flex" flexDirection="column" alignItems="center" pb="1rem">
           <IconButton
             color="white"
-            bg="#318AE4"
+            bg="secondary"
             boxSize="50px"
             fontSize="20px"
             icon={collapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
@@ -213,7 +213,7 @@ const SideBar = () => {
           />
           <IconButton
             color="white"
-            bg="#e53e3e"
+            bg="red"
             boxSize="50px"
             fontSize="20px"
             icon={<ExternalLinkIcon />}

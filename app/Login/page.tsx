@@ -1,8 +1,8 @@
 'use client'
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Stack, Box, Image, FormControl, Link, Input, Button, Text, FormHelperText, Container, InputGroup, InputRightElement } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { Stack, Box, Image, FormControl, Link, Input, Button, Text, FormHelperText, Container } from '@chakra-ui/react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -30,7 +30,7 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        Cookies.set('authTokens', data.accessToken, { expires: 7 }); // Guarda el token en cookies
+        Cookies.set('authTokens', data.accessToken, { expires: 7 });
         setError('');
         router.push('/'); // Redirige al usuario al dashboard
       } else {
@@ -45,7 +45,7 @@ const Login = () => {
 
   return (
     <Container
-      width="100vw"
+      maxW="100vw"
       h="100vh"
       backgroundImage={'/images/LoginBackground.png'}
       backgroundSize="cover"
@@ -56,67 +56,61 @@ const Login = () => {
       alignItems="center"
     >
       <Box
-        backgroundColor='#FCF5F9'
-        p='1rem'
+        textAlign="center"
+        backgroundColor="softPink"
+        p={6}
         borderRadius="10px"
         shadow="md"
-        w={{ base: "90%", sm: "70%", md: "50%", lg: "40%" }}
+        width={{ base: "90%", sm: "70%", md: "50%", lg: "40%" }}
       >
         <form onSubmit={handleSubmit}>
-          <Stack
-            spacing={4}
-            p='1rem'
-            borderRadius="10px"
-            alignItems="center"
-          >
+          <Stack spacing={4} alignItems="center">
             <Image
-              src='/images/LoginFormImage.png'
-              alt='Image-login'
-              width="450px"
-              h="112px"
-              objectFit='contain'
+              src="/images/LoginFormImage.png"
+              alt="Image-login"
+              width="100%"
+              maxWidth="450px"
+              height="auto"
+              objectFit="contain"
             />
+            
             {error && <Text color="red.500" textAlign="center">{error}</Text>}
             
-            <FormControl>
+            <FormControl width="100%" maxW="400px">
               <Input
                 borderRadius="3px"
-                border="none"
-                outline="none"
                 h="42px"
-                w='350px'
-                type='email'
-                placeholder='Email'
-                backgroundColor="#D9D9D9"
+                backgroundColor="light_gray"
+                type="email"
+                placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 paddingLeft="1.5rem"
+                width="100%"
               />
             </FormControl>
             
-            <FormControl>
-                <Input
-                  borderRadius="3px"
-                  border="none"
-                  outline="none"
-                  h="42px"
-                  w='350px'
-                  backgroundColor="#D9D9D9"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder='Contraseña'
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  paddingLeft="1.5rem"
-                />
+            <FormControl width="100%" maxW="400px">
+              <Input
+                borderRadius="3px"
+                h="42px"
+                backgroundColor="light_gray"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                paddingLeft="1.5rem"
+                width="100%"
+              />
             </FormControl>
             
             <Button
               borderRadius="5px"
               type="submit"
-              backgroundColor="#172187"
+              backgroundColor="primary"
               color="white"
               width="100%"
-              maxW='300px'
+              maxW="300px"
               height="42px"
               mt={4}
               isLoading={isLoading}
@@ -126,7 +120,10 @@ const Login = () => {
             
             <FormControl>
               <FormHelperText textAlign="center" mt={4}>
-                <Link>Si olvidaste tu contraseña, recupérala aquí</Link>
+                Si olvidaste tu contraseña, recupérala{' '}
+                <Link href="" color="primary" fontWeight="bold">
+                  aquí
+                </Link>
               </FormHelperText>
             </FormControl>
           </Stack>
@@ -134,6 +131,6 @@ const Login = () => {
       </Box>
     </Container>
   );
-}
+};
 
 export default Login;
