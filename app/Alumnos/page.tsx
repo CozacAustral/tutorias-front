@@ -1,9 +1,9 @@
-import React from 'react'
+import React from "react";
+import StudentsTable from "../../common/components/StudentsTable";
+import { data } from "../../common/Data/StudentsData";
 
 const Alumnos = () => {
-  return (
-    <div>Alumnos</div>
-  )
-}
+  return <StudentsTable data={data} caption="Alumnos" />;
+};
 
-export default Alumnos
+export default Alumnos;

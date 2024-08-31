@@ -1,0 +1,171 @@
+export interface DataRow {
+  last_name: string;
+  name: string;
+  cellphone_number: number;
+  mail: string;
+  career: string;
+}
+
+export const data: DataRow[] = [
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Tecnicatura en Programación",
+  },
+  {
+    last_name: "Peralta",
+    name: "Juan",
+    cellphone_number: 12456789,
+    mail: "juan@gmail.com",
+    career: "Ciencia de Datos",
+  },
+  {
+    last_name: "Perez",
+    name: "Jose",
+    cellphone_number: 12456789,
+    mail: "jose@gmail.com",
+    career: "Administración de Empresa",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+  {
+    last_name: "Doe",
+    name: "Jhon",
+    cellphone_number: 12456789,
+    mail: "jhon@gmail.com",
+    career: "Negocio Digital",
+  },
+];
