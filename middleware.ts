@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
 
     const authTokens = request.cookies.get('authTokens')?.value;
 
-    const protectedRoutes = ['/Tutores', '/Alumnos', '/Administradores'];
+    const protectedRoutes = ['/Tutores', '/Alumnos', '/Administradores', '/MiPerfil'];
     if (protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route)) && !authTokens) {
         const response = NextResponse.redirect(new URL('/Login', request.url));
         response.cookies.delete('authTokens'); 
@@ -21,5 +21,5 @@ export function middleware(request: NextRequest) {
 
 
 export const config = {
-    matcher: ['/Tutores/:path*', '/Alumnos/:path*', '/Administradores/:path*', '/Login'],
+    matcher: ['/Tutores/:path*', '/Alumnos/:path*', '/Administradores/:path*', '/Login', '/MiPerfil/:path*'],
 };

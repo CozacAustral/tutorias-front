@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { Stack, Box, Image, FormControl, Link, Input, Button, Text, FormHelperText, Container } from '@chakra-ui/react';
+import {  login } from '../../utils/api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,35 +15,21 @@ const Login = () => {
   const router = useRouter();
   const handleClick = () => setShowPassword(!showPassword);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:3000/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Cookies.set('authTokens', data.accessToken, { expires: 7 });
-        setError('');
-        router.push('/'); // Redirige al usuario al dashboard
-      } else {
-        setError(data.message || 'Error en la autenticación');
-      }
+      const data = await login(email, password);
+      Cookies.set('authTokens', data.accessToken, { expires: 7 });
+      setError('');
+      router.push('/'); // Redirige al usuario al dashboard
     } catch (error) {
       setError('Error en la autenticación');
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <Container
       maxW="100vw"
@@ -108,7 +95,7 @@ const Login = () => {
               borderRadius="5px"
               type="submit"
               backgroundColor="primary"
-              color="white"
+              color='white'
               width="100%"
               maxW="300px"
               height="42px"
