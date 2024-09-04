@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { Stack, Box, Image, FormControl, Link, Input, Button, Text, FormHelperText, Container } from '@chakra-ui/react';
-import {  login } from '../../utils/api';
+import {  login } from './api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
