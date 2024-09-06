@@ -1,7 +1,22 @@
-import React from "react";
+import { redirect } from 'next/navigation';
+import { Container } from '@chakra-ui/react';
 
-const Page = () => {
-  return <div>Bienvenido a la pagina principal</div>;
-};
+export default function Page() {
+  const isAuthenticated = true;
 
-export default Page;
+  if (!isAuthenticated) {
+    redirect('/Login');
+  }
+
+  return (
+    <Container
+      width="100vw"
+      height="100vh"
+      backgroundImage="url('/images/imagedashboard.png')"
+      backgroundSize="contain"
+      backgroundPosition="center"
+      backgroundRepeat="no-repeat"
+    >
+    </Container>
+  );
+}
