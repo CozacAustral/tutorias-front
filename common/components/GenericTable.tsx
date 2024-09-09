@@ -1,26 +1,10 @@
 "use client";
-import {
-  DeleteIcon,
-  EditIcon,
-  Search2Icon,
-  SmallAddIcon,
-  TriangleDownIcon,
-} from "@chakra-ui/icons";
+import React, { useState } from "react";
 import {
   Box,
   ChakraProvider,
   Flex,
-  IconButton,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  InputRightElement,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Table,
-  TableCaption,
   TableContainer,
   Tbody,
   Td,
@@ -29,16 +13,31 @@ import {
   Tr,
   Text,
   Button,
+  InputGroup,
+  InputLeftElement,
+  InputRightElement,
+  Input,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
 } from "@chakra-ui/react";
-import React from "react";
-import { DataRow } from "../data/data";
+import { SmallAddIcon, Search2Icon, TriangleDownIcon } from "@chakra-ui/icons";
 
-interface GenericTableProps {
-  data: DataRow[];
+interface GenericTableProps<T> {
+  data: T[]; // Permitir que los datos sean de cualquier tipo
   caption: string;
+  TableHeader: string[];
+  renderRow: (row: T) => React.ReactNode; // Método para renderizar filas
 }
 
-const GenericTable: React.FC<GenericTableProps> = ({ data, caption }) => {
+const GenericTable = <T,>({
+  data,
+  caption,
+  TableHeader,
+  renderRow,
+}: GenericTableProps<T>) => {
   return (
     <ChakraProvider>
       <Flex
@@ -61,7 +60,7 @@ const GenericTable: React.FC<GenericTableProps> = ({ data, caption }) => {
         </Box>
         <Box
           width="100%"
-          maxWidth="1200px"
+          maxWidth="1210px"
           backgroundColor="white"
           borderRadius="20px"
           p={4}
@@ -82,58 +81,45 @@ const GenericTable: React.FC<GenericTableProps> = ({ data, caption }) => {
                 </InputRightElement>
               </MenuButton>
               <MenuList>
-                <MenuItem>Opción 1</MenuItem>
-                <MenuItem>Opción 2</MenuItem>
+                <MenuItem>De la A - Z</MenuItem>
+                <MenuItem>De la Z - A</MenuItem>
               </MenuList>
             </Menu>
-            <Button ml={350}>
+            <Menu>
+              <MenuButton as={InputGroup} width="30%" mr={2}>
+                <Input placeholder="Filtrar por..." readOnly />
+                <InputRightElement pointerEvents="none">
+                  <TriangleDownIcon color="black" />
+                </InputRightElement>
+              </MenuButton>
+              <MenuList>
+                <MenuItem>Carrera</MenuItem>
+                <MenuItem>Año de Ingreso</MenuItem>
+              </MenuList>
+            </Menu>
+
+            <Button ml={"auto"}>
               <SmallAddIcon />
             </Button>
           </Flex>
           <TableContainer>
-            <Table variant="simple" size="lg">
+            <Table
+              variant="simple"
+              size="lg"
+              overflowX={"hidden"}
+              overflowY={"hidden"}
+            >
               <Thead>
                 <Tr>
-                  <Th fontWeight={600} color="#B5B7C0">
-                    Apellido/s
-                  </Th>
-                  <Th fontWeight={600} color="#B5B7C0">
-                    Nombre
-                  </Th>
-                  <Th fontWeight={600} color="#B5B7C0">
-                    Correo
-                  </Th>
-                  <Th fontWeight={600} color="#B5B7C0">
-                    Departamento
-                  </Th>
+                  {TableHeader.map((header, index) => (
+                    <Th key={index} fontWeight={600} color="#B5B7C0">
+                      {header}
+                    </Th>
+                  ))}
                   <Th></Th>
                 </Tr>
               </Thead>
-              <Tbody>
-                {data.map((row, index) => (
-                  <Tr key={index}>
-                    <Td>{row.last_name}</Td>
-                    <Td>{row.name}</Td>
-                    <Td>{row.mail}</Td>
-                    <Td>{row.department}</Td>
-                    <Td>
-                      <Flex justifyContent="center">
-                        <IconButton
-                          icon={<EditIcon boxSize={5} />}
-                          aria-label="Edit"
-                          mr={6}
-                          backgroundColor="white"
-                        />
-                        <IconButton
-                          icon={<DeleteIcon boxSize={5} />}
-                          aria-label="Delete"
-                          backgroundColor="white"
-                        />
-                      </Flex>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
+              <Tbody>{data.map((row, index) => renderRow(row))}</Tbody>
             </Table>
           </TableContainer>
         </Box>
