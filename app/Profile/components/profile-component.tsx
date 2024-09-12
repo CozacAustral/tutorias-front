@@ -68,17 +68,15 @@ const ProfileComponent = () => {
   };
 
   useEffect(() => {
-    const token = Cookies.get('authTokens'); 
-    if (token) {
-      try {
+    const token = Cookies.get('authTokens');
+    if(!token) return console.log('No token found')
+
+      try{
         const decodedToken = jwt.decode(token);
-        setRole(decodedToken.role); 
-      } catch (error) {
-        console.error('Error decoding token:', error);
+        setRole(decodedToken.role);
+      }catch (error) {
+        console.error('Error al decodificar el token:',error )
       }
-    } else {
-      console.log('No token found');
-    }
   }, []);
 
   return (
