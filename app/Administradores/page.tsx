@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/GenericTable";
 
-import { useQueries } from "@tanstack/react-query";
 import { IconButton, Td, Tr } from "@chakra-ui/react";
 import { EditIcon } from "@chakra-ui/icons";
 import { User, UserService } from "../../services/AdminService";
@@ -40,7 +39,13 @@ const Administradores: React.FC = () => {
         <IconButton
           icon={<EditIcon boxSize={5} />}
           aria-label="Edit"
+          mr={5}
           backgroundColor="white"
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
         />
       </Td>
     </Tr>

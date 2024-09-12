@@ -10,7 +10,13 @@ const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const TableHeader = ["Nombre", "Apellido", "Correo", "Carrera"];
+  const TableHeader = [
+    "Nombre",
+    "Apellido",
+    "Num. Celular",
+    "Correo",
+    "Carrera/s",
+  ];
 
   useEffect(() => {
     async function fetchStudents() {
@@ -28,23 +34,41 @@ const Estudiantes: React.FC = () => {
     <Tr key={student.id}>
       <Td>{student.name}</Td>
       <Td>{student.lastName}</Td>
+      <Td>{student.role}</Td>
       <Td>{student.email}</Td>
       <Td>{student.role}</Td>
       <Td>
         <IconButton
           icon={<ViewIcon boxSize={5} />}
-          aria-label="Edit"
+          aria-label="View"
           backgroundColor="white"
+          mr={5}
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
         />
         <IconButton
           icon={<EditIcon boxSize={5} />}
-          aria-label="View"
+          aria-label="Edit"
+          mr={5}
           backgroundColor="white"
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
         />
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
           aria-label="Delete"
           backgroundColor="white"
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
         />
       </Td>
     </Tr>
