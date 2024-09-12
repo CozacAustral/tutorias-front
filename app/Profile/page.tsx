@@ -1,6 +1,6 @@
 'use client'
 import { Flex, Heading } from '@chakra-ui/react';
-import ProfileComponent from '../../common/components/ProfileComponent'
+import ProfileComponent from './components/profile-component'
 
 const Profile = () => {
   return (
