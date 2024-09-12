@@ -75,7 +75,6 @@ const Estudiantes: React.FC = () => {
   );
 
   return (
-
     <>
       {error && <p>{error}</p>}
       {students ? (

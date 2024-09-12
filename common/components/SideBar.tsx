@@ -48,7 +48,7 @@ const SideBar = () => {
   };
 
   return (
-    <Flex direction="row" height="100vh">
+    <Flex>
       <Flex
         direction="column"
         align="center"

@@ -21,3 +21,14 @@ body {
   gap: 2rem;
   height: 100vh;
 }
+
+.sidebar {
+  width: 17rem;
+  height: 100vh;
+  background-color: #14218d;
+  padding: 1rem;
+  transition: width 0.5s ease-in-out;
+  display: flexbox;
+  flex-direction: column;
+  justify-content: space-between;
+}
