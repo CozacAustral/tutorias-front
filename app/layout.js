@@ -14,7 +14,7 @@ import '../styles/globals.css';
         <ChakraProvider theme={customTheme}>
           <div className="container">
             {pathname !== '/Login' && <SideBar />}
-            <main className="content">
+            <main className="content" bg='paleGray'>
               {children}
             </main>
           </div>
