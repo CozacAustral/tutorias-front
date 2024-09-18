@@ -44,8 +44,9 @@ const GenericTable = <T,>({
         justifyContent="center"
         alignItems="center"
         minHeight="100vh"
+        width="100%" // Asegura que el contenedor ocupe el ancho completo
         flexDirection="column"
-        mt="-20"
+        mt={0} // Elimina márgenes negativos que pueden causar desplazamientos
       >
         <Box width="100%" maxWidth="1200px" mb={4}>
           <Text

@@ -265,9 +265,6 @@ const SideBar = () => {
           />
         </Box>
       </Flex>
-      <Box ml={collapsed ? "6.5rem" : "17rem"} flex="1" p="4" height="100vh">
-        {}
-      </Box>
     </Flex>
   );
 };

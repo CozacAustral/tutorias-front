@@ -41,11 +41,13 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
   return (
     <Container
       maxW="100vw"
       h="100vh"
-      backgroundImage={"/images/LoginBackground.png"}
+      p={0}
+      backgroundImage="/images/LoginBackground.png"
       backgroundSize="cover"
       backgroundPosition="center"
       backgroundRepeat="no-repeat"
@@ -60,6 +62,7 @@ const Login = () => {
         borderRadius="10px"
         shadow="md"
         width={{ base: "90%", sm: "70%", md: "50%", lg: "40%" }}
+        maxW="500px"
       >
         <form onSubmit={handleSubmit}>
           <Stack spacing={4} alignItems="center">
@@ -78,7 +81,7 @@ const Login = () => {
               </Text>
             )}
 
-            <FormControl width="100%" maxW="400px">
+            <FormControl width="100%">
               <Input
                 borderRadius="3px"
                 h="42px"
@@ -92,7 +95,7 @@ const Login = () => {
               />
             </FormControl>
 
-            <FormControl width="100%" maxW="400px">
+            <FormControl width="100%">
               <Input
                 borderRadius="3px"
                 h="42px"
