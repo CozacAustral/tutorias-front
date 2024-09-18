@@ -84,16 +84,12 @@ const SideBar = () => {
           </Box>
           <Flex direction="column" as="ul" listStyleType="none" p={0}>
             <Box as="li" mb="1rem">
-              <Link
-                href="/MiPerfil"
-                passHref
-                style={{ textDecoration: "none" }}
-              >
+              <Link href="/Profile" passHref style={{ textDecoration: "none" }}>
                 <Flex
                   align="center"
                   p="0.5rem"
-                  bg={isActiveLink("/MiPerfil") ? "secondary" : "primary"}
-                  color={isActiveLink("/MiPerfil") ? "white" : "#fff3e9"}
+                  bg={isActiveLink("/Profile") ? "secondary" : "primary"}
+                  color={isActiveLink("/Profile") ? "white" : "#fff3e9"}
                   borderRadius="10px"
                   transition="background-color 0.1s ease-in-out"
                   _hover={{ bg: "#318AE4", color: "white" }}

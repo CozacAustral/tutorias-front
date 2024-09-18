@@ -16,7 +16,6 @@ export const UserService = {
     try {
       const response = await axios.get<User[]>(API_URL);
       const users = response.data; // `axios` automáticamente maneja la conversión a JSON
-      console.log(users);
       return users;
     } catch (error) {
       console.error("Failed to fetch users:", error);

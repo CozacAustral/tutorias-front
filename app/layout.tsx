@@ -1,4 +1,8 @@
+"use client";
+import { ChakraProvider } from "@chakra-ui/react";
+import customTheme from "../styles/theme";
 import SideBar from "../common/components/SideBar";
+import { usePathname } from "next/navigation";
 import "../styles/globals.css";
 
 type LayoutProps = {
@@ -6,13 +10,17 @@ type LayoutProps = {
 };
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const pathname = usePathname();
+
   return (
-    <html>
+    <html lang="es">
       <body>
-        <div className="container">
-          <SideBar />
-          <div className="content">{children}</div>
-        </div>
+        <ChakraProvider theme={customTheme}>
+          <div className="container">
+            {pathname !== "/Login" && <SideBar />}
+            <main className="content">{children}</main>
+          </div>
+        </ChakraProvider>
       </body>
     </html>
   );
