@@ -15,6 +15,11 @@ const Layout = ({ children }) => {
           <div className="container">
             {pathname !== "/Login" && <SideBar />}
             <main className="content">{children}</main>
+
+            {pathname !== "/Login" && <SideBar />}
+            <main className="content" bg="paleGray">
+              {children}
+            </main>
           </div>
         </ChakraProvider>
       </body>

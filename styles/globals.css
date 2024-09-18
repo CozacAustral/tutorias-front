@@ -18,7 +18,9 @@ body {
   display: flex;
   flex-direction: row;
   position: relative;
+
   gap: 2rem;
+
   height: 100vh;
 }
 
