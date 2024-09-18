@@ -15,7 +15,7 @@ export const UserService = {
   async fetchAllUsers(): Promise<User[]> {
     try {
       const response = await axios.get<User[]>(API_URL);
-      const users = response.data; // `axios` automáticamente maneja la conversión a JSON
+      const users = response.data;
       return users;
     } catch (error) {
       console.error("Failed to fetch users:", error);

@@ -8,9 +8,6 @@ import { EditIcon } from "@chakra-ui/icons";
 import { User, UserService } from "../../services/AdminService";
 
 const Administradores: React.FC = () => {
-  // const { data, isError } = useQueries(["users"], async () =>
-  //   UserService.fetchAllUsers()
-  // );
   const [users, setUsers] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
