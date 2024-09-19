@@ -6,17 +6,11 @@ import { IconButton, Td, Tr } from "@chakra-ui/react";
 import { User, UserService } from "../../services/AdminService";
 import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 
-const Estudiantes: React.FC = () => {
+const Tutores: React.FC = () => {
   const [students, setStudents] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const TableHeader = [
-    "Nombre",
-    "Apellido",
-    "Num. Celular",
-    "Correo",
-    "Carrera/s",
-  ];
+  const TableHeader = ["Apellido", "Nombre", "Correo", "Area"];
 
   useEffect(() => {
     async function fetchStudents() {
@@ -30,25 +24,13 @@ const Estudiantes: React.FC = () => {
     fetchStudents();
   }, []);
 
-  const renderStudentRow = (student: User) => (
-    <Tr key={student.id}>
-      <Td>{student.name}</Td>
-      <Td>{student.lastName}</Td>
-      <Td>{student.role}</Td>
-      <Td>{student.email}</Td>
-      <Td>{student.role}</Td>
+  const renderStudentRow = (tutor: User) => (
+    <Tr key={tutor.id}>
+      <Td>{tutor.name}</Td>
+      <Td>{tutor.lastName}</Td>
+      <Td>{tutor.email}</Td>
+      <Td>{tutor.role}</Td>
       <Td>
-        <IconButton
-          icon={<ViewIcon boxSize={5} />}
-          aria-label="View"
-          backgroundColor="white"
-          mr={5}
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-        />
         <IconButton
           icon={<EditIcon boxSize={5} />}
           aria-label="Edit"
@@ -81,7 +63,7 @@ const Estudiantes: React.FC = () => {
         <GenericTable
           data={students}
           TableHeader={TableHeader}
-          caption="Estudiantes"
+          caption="Tutores"
           renderRow={renderStudentRow}
         />
       ) : (
@@ -91,4 +73,4 @@ const Estudiantes: React.FC = () => {
   );
 };
 
-export default Estudiantes;
+export default Tutores;

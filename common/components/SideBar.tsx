@@ -1,32 +1,36 @@
-'use client';
-import { useState, useEffect } from 'react';
+"use client";
+import { useState, useEffect } from "react";
 import { Box, Flex, IconButton, Text, Button } from "@chakra-ui/react";
-import { ArrowForwardIcon, ArrowBackIcon, ExternalLinkIcon } from "@chakra-ui/icons";
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-const jwt = require('jsonwebtoken');
-import  Cookies from 'js-cookie';
+import {
+  ArrowForwardIcon,
+  ArrowBackIcon,
+  ExternalLinkIcon,
+} from "@chakra-ui/icons";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+const jwt = require("jsonwebtoken");
+import Cookies from "js-cookie";
 
 const SideBar = () => {
   const [collapsed, setCollapsed] = useState(true);
   const [role, setRole] = useState(null);
   const pathname = usePathname();
-  const router = useRouter(); 
+  const router = useRouter();
 
   useEffect(() => {
-    const token = Cookies.get('authTokens'); // Usa el nombre correcto de la cookie
+    const token = Cookies.get("authTokens"); // Usa el nombre correcto de la cookie
     if (token) {
       try {
-        const decodedToken = jwt.decode(token)
-        // console.log('Decoded Token:', decodedToken); 
-        setRole(decodedToken.role); 
+        const decodedToken = jwt.decode(token);
+        // console.log('Decoded Token:', decodedToken);
+        setRole(decodedToken.role);
         // console.log('Role:', decodedToken.role);
       } catch (error) {
-        console.error('Error decoding token:', error);
+        console.error("Error decoding token:", error);
       }
     } else {
-      console.log('No token found');
+      console.log("No token found");
     }
   }, []);
 
@@ -37,15 +41,14 @@ const SideBar = () => {
   const isActiveLink = (href: string): boolean => {
     return pathname === href;
   };
-  
-  const handleLogout = () => {
-    Cookies.remove('authTokens', { path: '/' });
-    router.push('/Login');
-      };
 
+  const handleLogout = () => {
+    Cookies.remove("authTokens", { path: "/" });
+    router.push("/Login");
+  };
 
   return (
-    <Flex direction="row" height="100vh">
+    <Flex>
       <Flex
         direction="column"
         align="center"
@@ -60,33 +63,43 @@ const SideBar = () => {
         zIndex="1"
       >
         <Box w="100%">
-          <Box display="flex" alignItems="center" justifyContent="center" py="1rem" mb="1rem">
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            py="1rem"
+            mb="1rem"
+          >
             <Image
-              src={collapsed ? "/images/collapsedaustral.png" : "/images/australsidebar.png"}
+              src={
+                collapsed
+                  ? "/images/collapsedaustral.png"
+                  : "/images/australsidebar.png"
+              }
               width={collapsed ? 75.52 : 200}
               height={collapsed ? 90.54 : 75}
-              alt='logo'
+              alt="logo"
               priority
             />
           </Box>
           <Flex direction="column" as="ul" listStyleType="none" p={0}>
             <Box as="li" mb="1rem">
-              <Link href="/Profile" passHref style={{ textDecoration:"none" }}>
+              <Link href="/Profile" passHref style={{ textDecoration: "none" }}>
                 <Flex
                   align="center"
                   p="0.5rem"
-                  bg={isActiveLink('/Profile') ? "secondary" : "primary"}
-                  color={isActiveLink('/Profile') ? "white" : "#fff3e9"}
+                  bg={isActiveLink("/Profile") ? "secondary" : "primary"}
+                  color={isActiveLink("/Profile") ? "white" : "#fff3e9"}
                   borderRadius="10px"
                   transition="background-color 0.1s ease-in-out"
                   _hover={{ bg: "#318AE4", color: "white" }}
                   justifyContent={collapsed ? "center" : "flex-start"}
                 >
                   <Image
-                    src='/icons/MyProfile.svg'
+                    src="/icons/MyProfile.svg"
                     width={30}
                     height={30}
-                    alt=''
+                    alt=""
                     priority
                   />
                   {!collapsed && <Text ml="0.5rem">Mi Perfil</Text>}
@@ -95,22 +108,26 @@ const SideBar = () => {
             </Box>
 
             <Box as="li" mb="1rem">
-              <Link href="/Reuniones" passHref style={{ textDecoration: "none" }}>
+              <Link
+                href="/Reuniones"
+                passHref
+                style={{ textDecoration: "none" }}
+              >
                 <Flex
                   align="center"
                   p="0.5rem"
-                  bg={isActiveLink('/Reuniones') ? "secondary" : "primary"}
-                  color={isActiveLink('/Reuniones') ? "white" : "#fff3e9"}
+                  bg={isActiveLink("/Reuniones") ? "secondary" : "primary"}
+                  color={isActiveLink("/Reuniones") ? "white" : "#fff3e9"}
                   borderRadius="6px"
                   transition="background-color 0.1s ease-in-out"
                   _hover={{ bg: "secondary", color: "white" }}
                   justifyContent={collapsed ? "center" : "flex-start"}
                 >
                   <Image
-                    src='/icons/Reuniones-icon.svg'
+                    src="/icons/Reuniones-icon.svg"
                     width={30}
                     height={30}
-                    alt=''
+                    alt=""
                     priority
                   />
                   {!collapsed && <Text ml="0.5rem">Reuniones</Text>}
@@ -121,22 +138,32 @@ const SideBar = () => {
             {role === 1 && (
               <>
                 <Box as="li" mb="1rem">
-                  <Link href="/Administradores" passHref style={{ textDecoration: "none" }}>
+                  <Link
+                    href="/Administradores"
+                    passHref
+                    style={{ textDecoration: "none" }}
+                  >
                     <Flex
                       align="center"
                       p="0.5rem"
-                      bg={isActiveLink('/Administradores') ? "secondary" : "primary"}
-                      color={isActiveLink('/Administradores') ? "white" : "#fff3e9"}
+                      bg={
+                        isActiveLink("/Administradores")
+                          ? "secondary"
+                          : "primary"
+                      }
+                      color={
+                        isActiveLink("/Administradores") ? "white" : "#fff3e9"
+                      }
                       borderRadius="10px"
                       transition="background-color 0.1s ease-in-out"
                       _hover={{ bg: "secondary", color: "white" }}
                       justifyContent={collapsed ? "center" : "flex-start"}
                     >
                       <Image
-                        src='/icons/Administradores-icon.svg'
+                        src="/icons/Administradores-icon.svg"
                         width={30}
                         height={30}
-                        alt=''
+                        alt=""
                         priority
                       />
                       {!collapsed && <Text ml="0.5rem">Administradores</Text>}
@@ -145,22 +172,26 @@ const SideBar = () => {
                 </Box>
 
                 <Box as="li" mb="1rem">
-                  <Link href="/Tutores" passHref style={{ textDecoration: "none" }}>
+                  <Link
+                    href="/Tutores"
+                    passHref
+                    style={{ textDecoration: "none" }}
+                  >
                     <Flex
                       align="center"
                       p="0.5rem"
-                      bg={isActiveLink('/Tutores') ? "secondary" : "primary"}
-                      color={isActiveLink('/Tutores') ? "white" : "#fff3e9"}
+                      bg={isActiveLink("/Tutores") ? "secondary" : "primary"}
+                      color={isActiveLink("/Tutores") ? "white" : "#fff3e9"}
                       borderRadius="10px"
                       transition="background-color 0.1s ease-in-out"
                       _hover={{ bg: "#318AE4", color: "white" }}
                       justifyContent={collapsed ? "center" : "flex-start"}
                     >
                       <Image
-                        src='/icons/tutors-icon.svg'
+                        src="/icons/tutors-icon.svg"
                         width={30}
                         height={30}
-                        alt=''
+                        alt=""
                         priority
                       />
                       {!collapsed && <Text ml="0.5rem">Tutores</Text>}
@@ -173,22 +204,26 @@ const SideBar = () => {
             {/* Link "Alumnos" solo para Admin y Tutor (role: 1 o 2) */}
             {(role === 1 || role === 2) && (
               <Box as="li" mb="1rem">
-                <Link href="/Alumnos" passHref style={{ textDecoration: "none" }}>
+                <Link
+                  href="/Alumnos"
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
                   <Flex
                     align="center"
                     p="0.5rem"
-                    bg={isActiveLink('/Alumnos') ? "secondary" : "primary"}
-                    color={isActiveLink('/Alumnos') ? "white" : "#fff3e9"}
+                    bg={isActiveLink("/Alumnos") ? "secondary" : "primary"}
+                    color={isActiveLink("/Alumnos") ? "white" : "#fff3e9"}
                     borderRadius="6px"
                     transition="background-color 0.1s ease-in-out"
                     _hover={{ bg: "secondary", color: "white" }}
                     justifyContent={collapsed ? "center" : "flex-start"}
                   >
                     <Image
-                      src='/icons/student-icon.svg'
+                      src="/icons/student-icon.svg"
                       width={30}
                       height={30}
-                      alt=''
+                      alt=""
                       priority
                     />
                     {!collapsed && <Text ml="0.5rem">Alumnos</Text>}
@@ -198,7 +233,13 @@ const SideBar = () => {
             )}
           </Flex>
         </Box>
-        <Box mb="1rem" display="flex" flexDirection="column" alignItems="center" pb="1rem">
+        <Box
+          mb="1rem"
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          pb="1rem"
+        >
           <IconButton
             color="white"
             bg="secondary"
@@ -209,10 +250,10 @@ const SideBar = () => {
             aria-label="Toggle SideBar"
             borderRadius="50%"
             border="none"
-            mb="1rem" 
+            mb="1rem"
           />
           <IconButton
-            color='white'
+            color="white"
             bg="red"
             boxSize="50px"
             fontSize="20px"
@@ -224,14 +265,6 @@ const SideBar = () => {
           />
         </Box>
       </Flex>
-      <Box
-        ml={collapsed ? "6.5rem" : "17rem"}
-        flex="1"
-        p="4"
-        height="100vh"
-      >
-        {}
-      </Box>
     </Flex>
   );
 };

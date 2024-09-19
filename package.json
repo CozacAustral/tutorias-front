@@ -15,14 +15,14 @@
     "@emotion/styled": "^11.13.0",
     "@types/react-dom": "^18.3.0",
     "axios": "^1.7.7",
-    "framer-motion": "^11.3.28",
+    "framer-motion": "^11.3.2",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
-    "jwt-decode": "^4.0.0",
     "next": "^14.2.5",
     "react": "^18",
     "react-dom": "^18",
-    "tutorias-front": "file:"
+    "tutorias-front": "file:",
+    "typescript": "^5.5.4"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",

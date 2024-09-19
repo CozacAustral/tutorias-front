@@ -1,11 +1,11 @@
-import { redirect } from 'next/navigation';
-import { Container } from '@chakra-ui/react';
+import { redirect } from "next/navigation";
+import { Container } from "@chakra-ui/react";
 
 export default function Page() {
   const isAuthenticated = true;
 
   if (!isAuthenticated) {
-    redirect('/Login');
+    redirect("/Login");
   }
 
   return (
@@ -16,7 +16,6 @@ export default function Page() {
       backgroundSize="contain"
       backgroundPosition="center"
       backgroundRepeat="no-repeat"
-    >
-    </Container>
+    ></Container>
   );
 }
