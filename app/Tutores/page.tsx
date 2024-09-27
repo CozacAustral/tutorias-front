@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import GenericTable from "../../common/components/GenericTable";
+import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
-import { User, UserService } from "../../services/AdminService";
+import { User, UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon} from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
