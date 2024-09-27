@@ -1,28 +1,130 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import GenericTable from "../../common/components/GenericTable";
-
-import { IconButton, Td, Tr } from "@chakra-ui/react";
-import { User, UserService } from "../../services/AdminService";
-import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
+import GenericTable from "../../common/components/generic-table";
+import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
+import { User, UserService } from "../../services/admin-service";
+import { DeleteIcon, EditIcon} from "@chakra-ui/icons";
+import EditModal from "../../common/components/modals/edit-modal";
+import DeleteModal from "../../common/components/modals/detele-modal";
 
 const Tutores: React.FC = () => {
-  const [students, setStudents] = useState<User[] | null>(null);
+  const [tutors, setTutors] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTutor, setSelectedTutor] = useState<User | null>(null);
+  const toast = useToast();
 
-  const TableHeader = ["Apellido", "Nombre", "Correo", "Area"];
+  const {
+        isOpen: isEditModalOpen,
+        onOpen: openEditModal,
+        onClose: closeEditModal,
+      } = useDisclosure();
+      const {
+        isOpen: isDeleteModalOpen,
+        onOpen: openDeleteModal,
+        onClose: closeDeleteModal,
+      } = useDisclosure();
+      const [formData, setFormData] = useState({
+        name: " ",
+        lastname: " ",
+        email: " ",
+      });
+
+
+
+
+  const TableHeader = ["Apellido", "Nombre", "Correo", "Departamento"];
 
   useEffect(() => {
     async function fetchStudents() {
       try {
         const data = await UserService.fetchAllUsers();
-        setStudents(data);
+        setTutors(data);
       } catch (err) {
         setError("Failed to load students");
       }
     }
     fetchStudents();
   }, []);
+  
+  const handleDeleteClick = (user: User) => {
+        setSelectedTutor(user);
+        openDeleteModal();
+      };
+    
+      const handleEditClick = (user: User) => {
+        setSelectedTutor(user);
+        setFormData({
+          name: user.name,
+          lastname: user.lastName,
+          email: user.email,
+        });
+        openEditModal();
+      };
+    
+      const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+      };
+      
+      const handleEditConfirm = async () => {
+        if (selectedTutor) {
+          try {
+            await UserService.updateTutor(selectedTutor.id, formData);
+            setTutors(
+              tutors?.map((user) =>
+                user.id === selectedTutor.id ? { ...user, ...formData } : user
+          ) || []
+        );
+        toast({
+          title: "Tutor actualizado.",
+          description: "El tutor ha sido actualizado con éxito.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        closeEditModal();
+      } catch (err) {
+        toast({
+          title: "Error al actualizar tutor.",
+          description: "Hubo un error al intentar actualizar al tutor.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (selectedTutor) {
+      try {
+        await UserService.deleteTutor(selectedTutor.id);
+        setTutors(
+          tutors?.filter((user) => user.id !== selectedTutor.id) || []
+        );
+        toast({
+          title: "Tutor eliminado.",
+          description: "El tutor ha sido eliminado correctamente.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        closeDeleteModal();
+      } catch (err) {
+        toast({
+          title: "Error al eliminar tutor.",
+          description: "Hubo un error al intentar eliminar al tutor.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+    
 
   const renderStudentRow = (tutor: User) => (
     <Tr key={tutor.id}>
@@ -41,6 +143,7 @@ const Tutores: React.FC = () => {
             backgroundColor: "#318AE4",
             color: "White",
           }}
+          onClick={() => handleEditClick(tutor)}
         />
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
@@ -51,6 +154,7 @@ const Tutores: React.FC = () => {
             backgroundColor: "#318AE4",
             color: "White",
           }}
+          onClick={() => handleDeleteClick(tutor)}
         />
       </Td>
     </Tr>
@@ -59,9 +163,9 @@ const Tutores: React.FC = () => {
   return (
     <>
       {error && <p>{error}</p>}
-      {students ? (
+      {tutors ? (
         <GenericTable
-          data={students}
+          data={tutors}
           TableHeader={TableHeader}
           caption="Tutores"
           renderRow={renderStudentRow}
@@ -69,6 +173,23 @@ const Tutores: React.FC = () => {
       ) : (
         <p>Loading...</p>
       )}
+      <EditModal
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        onConfirm={handleEditConfirm}
+        formData={formData}
+        onInputChange={handleInputChange}
+        title="Editar Tutor"
+        entityName="tutor"
+      />
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onDelete={handleDeleteConfirm}
+        entityName="tutor"
+        entityDetails={`${selectedTutor?.name} ${selectedTutor?.lastName}`}
+      />
     </>
   );
 };

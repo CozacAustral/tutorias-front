@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
 
   const protectedRoutes = [
     "/Tutores",
-    "/Alumnos",
+    "/alumnos",
     "/Administradores",
     "/MiPerfil",
   ];
@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/Tutores/:path*",
-    "/Alumnos/:path*",
+    "/alumnos/:path*",
     "/Administradores/:path*",
     "/Login",
     "/MiPerfil/:path*",

@@ -20,6 +20,7 @@ import {
   ModalBody,
   ModalFooter,
   useToast,
+  
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -55,7 +56,6 @@ const ProfileComponent = () => {
   };
 
   const handleDelete = () => {
-    //aca haggo la solicitud al backend
     console.log("password:", password);
     setIsDelete(true);
     onClose();
@@ -87,32 +87,40 @@ const ProfileComponent = () => {
         boxShadow="md"
         borderRadius="20px"
       >
-        <IconButton
-          icon={<EditIcon />}
-          aria-label="Editar perfil"
-          _hover={{ bg: "light_gray" }}
-          transition="background-color 0.3s ease"
-          size="lg"
-          fontSize="24px"
-          h="40px"
-          w="40px"
-          position="fixed"
-          top="20px"
-          onClick={toggleEdit}
-          right={{ base: "200px", md: "220px", lg: "400px" }}
-        />
-        <Button
-          bg="red"
-          color="white"
-          w="150px"
-          h="40px"
-          position="fixed"
-          top="20px"
-          right={{ base: "30px", md: "50px", lg: "200px" }}
-          onClick={onOpen}
-        >
-          Eliminar Cuenta
-        </Button>
+<IconButton
+  icon={<EditIcon />}
+  aria-label="Editar perfil"
+  _hover={{ bg: "light_gray" }}
+  transition="background-color 0.3s ease"
+  size="lg"
+  fontSize="24px"
+  h="40px"
+  w="40px"
+  position="fixed"
+  top="20px"
+  right="200px"
+  zIndex={1000}
+  onClick={toggleEdit}
+/>
+
+<Button
+  bg="red"
+  color="white"
+  w="150px"
+  h="40px"
+  position="fixed"
+  top="20px"
+  right="30px"
+  zIndex={1000}
+  onClick={() => {
+    console.log("Botón clickeado");
+    onOpen();
+  }}
+>
+  Eliminar Cuenta
+</Button>
+
+
         <Modal isOpen={isOpen} onClose={onClose} size="lg">
           <ModalOverlay />
           <ModalContent>

@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import GenericTable from "../../common/components/GenericTable";
+import GenericTable from "../../common/components/generic-table";
 
 import { IconButton, Td, Tr } from "@chakra-ui/react";
-import { User, UserService } from "../../services/AdminService";
+import { User, UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 
 const Estudiantes: React.FC = () => {

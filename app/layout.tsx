@@ -1,7 +1,7 @@
 "use client";
 import { ChakraProvider } from "@chakra-ui/react";
 import customTheme from "../styles/theme";
-import SideBar from "../common/components/SideBar";
+import SideBar from "../common/components/side-bar";
 import { usePathname } from "next/navigation";
 import "../styles/globals.css";
 
