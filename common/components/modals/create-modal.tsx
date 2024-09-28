@@ -47,7 +47,12 @@ const CreateModal: React.FC<CreateModalProps> = ({
           ))}
         </ModalBody>
         <ModalFooter>
-          <Button bg="blue" color="white" onClick={() => onCreate(formData)} mr={3}>
+          <Button
+            bg="blue"
+            color="white"
+            onClick={() => onCreate(formData)}
+            mr={3}
+          >
             Crear
           </Button>
           <Button variant="ghost" onClick={onClose}>

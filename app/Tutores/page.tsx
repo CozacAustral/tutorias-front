@@ -3,34 +3,31 @@ import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import { User, UserService } from "../../services/admin-service";
-import { DeleteIcon, EditIcon} from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
 
 const Tutores: React.FC = () => {
   const [tutors, setTutors] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTutor, setSelectedTutor] = useState<User | null>(null);
-  const toast = useToast();
+  const [selectedTutor, setSelectedTutor] = useState<User | null>(null); //
+  const toast = useToast(); //
 
   const {
-        isOpen: isEditModalOpen,
-        onOpen: openEditModal,
-        onClose: closeEditModal,
-      } = useDisclosure();
-      const {
-        isOpen: isDeleteModalOpen,
-        onOpen: openDeleteModal,
-        onClose: closeDeleteModal,
-      } = useDisclosure();
-      const [formData, setFormData] = useState({
-        name: " ",
-        lastname: " ",
-        email: " ",
-      });
-
-
-
+    isOpen: isEditModalOpen,
+    onOpen: openEditModal,
+    onClose: closeEditModal,
+  } = useDisclosure(); //
+  const {
+    isOpen: isDeleteModalOpen,
+    onOpen: openDeleteModal,
+    onClose: closeDeleteModal,
+  } = useDisclosure();
+  const [formData, setFormData] = useState({
+    name: " ",
+    lastname: " ",
+    email: " ",
+  }); //
 
   const TableHeader = ["Apellido", "Nombre", "Correo", "Departamento"];
 
@@ -45,37 +42,37 @@ const Tutores: React.FC = () => {
     }
     fetchStudents();
   }, []);
-  
+
   const handleDeleteClick = (user: User) => {
-        setSelectedTutor(user);
-        openDeleteModal();
-      };
-    
-      const handleEditClick = (user: User) => {
-        setSelectedTutor(user);
-        setFormData({
-          name: user.name,
-          lastname: user.lastName,
-          email: user.email,
-        });
-        openEditModal();
-      };
-    
-      const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-      };
-      
-      const handleEditConfirm = async () => {
-        if (selectedTutor) {
-          try {
-            await UserService.updateTutor(selectedTutor.id, formData);
-            setTutors(
-              tutors?.map((user) =>
-                user.id === selectedTutor.id ? { ...user, ...formData } : user
+    setSelectedTutor(user);
+    openDeleteModal();
+  };
+
+  const handleEditClick = (user: User) => {
+    setSelectedTutor(user);
+    setFormData({
+      name: user.name,
+      lastname: user.lastName,
+      email: user.email,
+    });
+    openEditModal();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleEditConfirm = async () => {
+    if (selectedTutor) {
+      try {
+        await UserService.updateTutor(selectedTutor.id, formData);
+        setTutors(
+          tutors?.map((user) =>
+            user.id === selectedTutor.id ? { ...user, ...formData } : user
           ) || []
         );
         toast({
@@ -102,9 +99,7 @@ const Tutores: React.FC = () => {
     if (selectedTutor) {
       try {
         await UserService.deleteTutor(selectedTutor.id);
-        setTutors(
-          tutors?.filter((user) => user.id !== selectedTutor.id) || []
-        );
+        setTutors(tutors?.filter((user) => user.id !== selectedTutor.id) || []);
         toast({
           title: "Tutor eliminado.",
           description: "El tutor ha sido eliminado correctamente.",
@@ -124,14 +119,13 @@ const Tutores: React.FC = () => {
       }
     }
   };
-    
 
   const renderStudentRow = (tutor: User) => (
     <Tr key={tutor.id}>
       <Td>{tutor.name}</Td>
       <Td>{tutor.lastName}</Td>
       <Td>{tutor.email}</Td>
-      <Td>{tutor.role}</Td>
+      <Td>{tutor.roleId}</Td>
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}

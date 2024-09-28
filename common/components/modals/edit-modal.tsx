@@ -11,17 +11,17 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Text
+  Text,
 } from "@chakra-ui/react";
 
 interface EditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  entityName: string; 
+  entityName: string;
   title: String;
   onConfirm: () => Promise<void>;
-  formData: { [key: string]: string }; 
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
+  formData: { [key: string]: string };
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -36,11 +36,11 @@ const EditModal: React.FC<EditModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
       <ModalContent>
-      <ModalHeader>
-        <Text fontSize="2xl" fontWeight="bold">
-          Editar {entityName}
+        <ModalHeader>
+          <Text fontSize="2xl" fontWeight="bold">
+            Editar {entityName}
           </Text>
-      </ModalHeader>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           {Object.keys(formData).map((field) => (

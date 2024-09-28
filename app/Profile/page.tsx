@@ -8,13 +8,13 @@ const Profile = () => {
       height="100vh"
       bg="paleGray"
       flexDirection="column"
-      pl={{ base: "0", md: "250px" }} 
+      pl={{ base: "0", md: "250px" }}
     >
       <Flex
-        justifyContent="flex-start" 
+        justifyContent="flex-start"
         alignItems="center"
         mt="20px"
-        ml="20px" 
+        ml="20px"
         zIndex="5"
       >
         <Heading
@@ -26,11 +26,7 @@ const Profile = () => {
           Mi Perfil
         </Heading>
       </Flex>
-      <Flex
-        justifyContent="center"
-        alignItems="center"
-        flex="1" 
-      >
+      <Flex justifyContent="center" alignItems="center" flex="1">
         <ProfileComponent />
       </Flex>
     </Flex>

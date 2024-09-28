@@ -1,17 +1,18 @@
 import axios from "axios";
 import { Toast } from "@chakra-ui/react"; // Importa toast desde Chakra UI
+import { headers } from "next/headers";
 
 const API_URL = "http://localhost:3000/users";
 const API_URL_TUTORS = "http://localhost:3000/tutors";
 
 function getToken() {
-  return getCookie('authTokens');  
+  return getCookie("authTokens");
 }
 
 function getCookie(name: string): string | undefined {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
+  if (parts.length === 2) return parts.pop()?.split(";").shift();
 }
 
 export interface User {
@@ -20,7 +21,7 @@ export interface User {
   password: string;
   name: string;
   lastName: string;
-  role: number;
+  roleId: string;
 }
 
 export const UserService = {
@@ -29,29 +30,37 @@ export const UserService = {
       const token = getToken();
       const response = await axios.get<User[]>(API_URL, {
         headers: {
-          Authorization: `Bearer ${token}` 
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       return response.data;
     } catch (error) {
-      Toast({
-        title: "Error",
-        description: "Failed to fetch users.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      }); 
       throw new Error("Failed to fetch users");
     }
   },
 
+  async updateAdmin(
+    userId: number,
+    updateData: { name: string; lastname: string; roleId: string }
+  ): Promise<void> {
+    try {
+      const token = getToken();
+      await axios.patch(`${API_URL}/${userId}`, updateData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch {
+      throw new Error(`Failed to update User with ID ${userId}`);
+    }
+  },
   async deleteTutor(TutorId: number): Promise<void> {
     try {
       const token = getToken();
       await axios.delete(`${API_URL}/${TutorId}`, {
         headers: {
-          Authorization: `Bearer ${token}` 
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       Toast({
         title: "Success",
@@ -59,7 +68,7 @@ export const UserService = {
         status: "success",
         duration: 5000,
         isClosable: true,
-      }); 
+      });
     } catch (error) {
       Toast({
         title: "Error",
@@ -67,18 +76,18 @@ export const UserService = {
         status: "error",
         duration: 5000,
         isClosable: true,
-      }); 
+      });
       throw new Error(`Failed to delete user with ID ${TutorId}`);
     }
   },
 
   async updateTutor(tutorId: number, updateData: Partial<User>): Promise<void> {
     try {
-      const token = getToken(); 
+      const token = getToken();
       await axios.patch(`${API_URL_TUTORS}/${tutorId}`, updateData, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       Toast({
         title: "Success",
@@ -86,7 +95,7 @@ export const UserService = {
         status: "success",
         duration: 5000,
         isClosable: true,
-      }); 
+      });
     } catch (error) {
       Toast({
         title: "Error",

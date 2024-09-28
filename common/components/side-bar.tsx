@@ -1,7 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
-import { ArrowForwardIcon, ArrowBackIcon, ExternalLinkIcon } from "@chakra-ui/icons";
+import {
+  ArrowForwardIcon,
+  ArrowBackIcon,
+  ExternalLinkIcon,
+} from "@chakra-ui/icons";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -65,7 +69,11 @@ const SideBar = () => {
             mb="1rem"
           >
             <Image
-              src={collapsed ? "/images/collapsedaustral.png" : "/images/australsidebar.png"}
+              src={
+                collapsed
+                  ? "/images/collapsedaustral.png"
+                  : "/images/australsidebar.png"
+              }
               width={collapsed ? 75.52 : 200}
               height={collapsed ? 90.54 : 75}
               alt="logo"
@@ -86,7 +94,13 @@ const SideBar = () => {
                   _hover={{ bg: "#318AE4", color: "white" }}
                   justifyContent={collapsed ? "center" : "flex-start"}
                 >
-                  <Image src="/icons/MyProfile.svg" width={30} height={30} alt="" priority />
+                  <Image
+                    src="/icons/MyProfile.svg"
+                    width={30}
+                    height={30}
+                    alt=""
+                    priority
+                  />
                   {!collapsed && <Text ml="0.5rem">Mi Perfil</Text>}
                 </Flex>
               </Link>
@@ -95,7 +109,11 @@ const SideBar = () => {
             {/* 2. Alumnos */}
             {(role === 1 || role === 2) && (
               <Box as="li" mb="1rem">
-                <Link href="/Alumnos" passHref style={{ textDecoration: "none" }}>
+                <Link
+                  href="/Alumnos"
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
                   <Flex
                     align="center"
                     p="0.5rem"
@@ -106,7 +124,13 @@ const SideBar = () => {
                     _hover={{ bg: "secondary", color: "white" }}
                     justifyContent={collapsed ? "center" : "flex-start"}
                   >
-                    <Image src="/icons/student-icon.svg" width={30} height={30} alt="" priority />
+                    <Image
+                      src="/icons/student-icon.svg"
+                      width={30}
+                      height={30}
+                      alt=""
+                      priority
+                    />
                     {!collapsed && <Text ml="0.5rem">Alumnos</Text>}
                   </Flex>
                 </Link>
@@ -116,7 +140,11 @@ const SideBar = () => {
             {/* 3. Tutores */}
             {role === 1 && (
               <Box as="li" mb="1rem">
-                <Link href="/Tutores" passHref style={{ textDecoration: "none" }}>
+                <Link
+                  href="/Tutores"
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
                   <Flex
                     align="center"
                     p="0.5rem"
@@ -127,7 +155,13 @@ const SideBar = () => {
                     _hover={{ bg: "#318AE4", color: "white" }}
                     justifyContent={collapsed ? "center" : "flex-start"}
                   >
-                    <Image src="/icons/tutors-icon.svg" width={30} height={30} alt="" priority />
+                    <Image
+                      src="/icons/tutors-icon.svg"
+                      width={30}
+                      height={30}
+                      alt=""
+                      priority
+                    />
                     {!collapsed && <Text ml="0.5rem">Tutores</Text>}
                   </Flex>
                 </Link>
@@ -136,7 +170,11 @@ const SideBar = () => {
 
             {/* Reuniones */}
             <Box as="li" mb="1rem">
-              <Link href="/Reuniones" passHref style={{ textDecoration: "none" }}>
+              <Link
+                href="/Reuniones"
+                passHref
+                style={{ textDecoration: "none" }}
+              >
                 <Flex
                   align="center"
                   p="0.5rem"
@@ -147,7 +185,13 @@ const SideBar = () => {
                   _hover={{ bg: "secondary", color: "white" }}
                   justifyContent={collapsed ? "center" : "flex-start"}
                 >
-                  <Image src="/icons/Reuniones-icon.svg" width={30} height={30} alt="" priority />
+                  <Image
+                    src="/icons/Reuniones-icon.svg"
+                    width={30}
+                    height={30}
+                    alt=""
+                    priority
+                  />
                   {!collapsed && <Text ml="0.5rem">Reuniones</Text>}
                 </Flex>
               </Link>
@@ -156,18 +200,32 @@ const SideBar = () => {
             {/* Administradores */}
             {role === 1 && (
               <Box as="li" mb="1rem">
-                <Link href="/Administradores" passHref style={{ textDecoration: "none" }}>
+                <Link
+                  href="/Administradores"
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
                   <Flex
                     align="center"
                     p="0.5rem"
-                    bg={isActiveLink("/Administradores") ? "secondary" : "primary"}
-                    color={isActiveLink("/Administradores") ? "white" : "#fff3e9"}
+                    bg={
+                      isActiveLink("/Administradores") ? "secondary" : "primary"
+                    }
+                    color={
+                      isActiveLink("/Administradores") ? "white" : "#fff3e9"
+                    }
                     borderRadius="10px"
                     transition="background-color 0.1s ease-in-out"
                     _hover={{ bg: "secondary", color: "white" }}
                     justifyContent={collapsed ? "center" : "flex-start"}
                   >
-                    <Image src="/icons/Administradores-icon.svg" width={30} height={30} alt="" priority />
+                    <Image
+                      src="/icons/Administradores-icon.svg"
+                      width={30}
+                      height={30}
+                      alt=""
+                      priority
+                    />
                     {!collapsed && <Text ml="0.5rem">Administradores</Text>}
                   </Flex>
                 </Link>
