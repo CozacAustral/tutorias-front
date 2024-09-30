@@ -1,8 +1,6 @@
-"use client";
 import React, { useState } from "react";
 import {
   Box,
-  ChakraProvider,
   Flex,
   Table,
   TableContainer,
@@ -21,16 +19,21 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  IconButton,
 } from "@chakra-ui/react";
 import { SmallAddIcon, Search2Icon, TriangleDownIcon } from "@chakra-ui/icons";
-import Link from "next/link";
+import Pagination from "./Pagination";
 
 interface GenericTableProps<T> {
   data: T[];
   caption: string;
   TableHeader: string[];
   renderRow: (row: T) => React.ReactNode;
+  currentPage: number;
+  totalPages: number;
+  onFirstPage: () => void;
+  onPrevPage: () => void;
+  onNextPage: () => void;
+  onLastPage: () => void;
 }
 
 const GenericTable = <T,>({
@@ -38,6 +41,12 @@ const GenericTable = <T,>({
   caption,
   TableHeader,
   renderRow,
+  currentPage,
+  totalPages,
+  onFirstPage,
+  onPrevPage,
+  onNextPage,
+  onLastPage,
 }: GenericTableProps<T>) => {
   return (
     <Flex
@@ -123,6 +132,14 @@ const GenericTable = <T,>({
             <Tbody>{data.map((row, index) => renderRow(row))}</Tbody>
           </Table>
         </TableContainer>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onFirstPage={onFirstPage}
+          onPrevPage={onPrevPage}
+          onNextPage={onNextPage}
+          onLastPage={onLastPage}
+        />
       </Box>
     </Flex>
   );

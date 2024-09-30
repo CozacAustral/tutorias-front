@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/GenericTable";
-
 import { IconButton, Td, Tr } from "@chakra-ui/react";
 import { EditIcon } from "@chakra-ui/icons";
 import { User, UserService } from "../../services/AdminService";
@@ -10,8 +9,10 @@ import { User, UserService } from "../../services/AdminService";
 const Administradores: React.FC = () => {
   const [users, setUsers] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 6;
 
-  const TableHeader = ["Nombre", "Apellido/s", "Correo", "Area"];
+  const TableHeader = ["Nombre", "Apellido/s", "Correo", "Área"];
 
   useEffect(() => {
     async function fetchUsers() {
@@ -26,6 +27,15 @@ const Administradores: React.FC = () => {
     }
     fetchUsers();
   }, []);
+
+  const totalPages = users ? Math.ceil(users.length / usersPerPage) : 1;
+
+  const handleFirstPage = () => setCurrentPage(1);
+  const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const handleNextPage = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const handleLastPage = () => setCurrentPage(totalPages);
+
   const renderAdminRow = (admin: User) => (
     <Tr key={admin.id}>
       <Td>{admin.name}</Td>
@@ -48,15 +58,25 @@ const Administradores: React.FC = () => {
     </Tr>
   );
 
+  const paginatedUsers = users
+    ? users.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage)
+    : [];
+
   return (
     <>
       {error && <p>{error}</p>}
       {users ? (
         <GenericTable
-          data={users}
+          data={paginatedUsers}
           TableHeader={TableHeader}
           renderRow={renderAdminRow}
           caption="Administradores"
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onFirstPage={handleFirstPage}
+          onPrevPage={handlePrevPage}
+          onNextPage={handleNextPage}
+          onLastPage={handleLastPage}
         />
       ) : (
         <p>Loading...</p>

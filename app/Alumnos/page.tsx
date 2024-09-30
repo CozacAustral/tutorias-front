@@ -81,7 +81,7 @@ const Estudiantes: React.FC = () => {
         <GenericTable
           data={students}
           TableHeader={TableHeader}
-          caption="Estudiantes"
+          caption ="Estudiantes"
           renderRow={renderStudentRow}
         />
       ) : (
