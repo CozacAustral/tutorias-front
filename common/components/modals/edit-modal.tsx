@@ -44,7 +44,7 @@ const EditModal: React.FC<EditModalProps> = ({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}> {/* Cambia aquí el número de columnas */}
+          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}> {/* aca se cambia el número de columnas */}
             {Object.keys(formData).map((field) => (
               <FormControl key={field} mt={4}>
                 <FormLabel>{field}</FormLabel>
