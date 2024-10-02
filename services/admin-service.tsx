@@ -16,12 +16,30 @@ function getCookie(name: string): string | undefined {
 
 export interface User {
   id: number;
-  email: string;
-  password: string;
   name: string;
   lastName: string;
-  role: number;
+  email: string;
+  department: {
+    id: number;
+    name: string;
+  };
+  roleId: number;
 }
+
+export interface Tutor {
+  id: number; 
+  dni: string;
+  birthdate: string;
+  sex: string;
+  yearEntry: string;
+  category: string;
+  dedication: string;
+  dedicationDays: number;
+  countryId: number;
+  user: User; // Relacionado con el usuario
+}
+
+
 
 export const UserService = {
   async fetchAllUsers(): Promise<User[]> {
@@ -44,6 +62,27 @@ export const UserService = {
       throw new Error("Failed to fetch users");
     }
   },
+
+  async fetchAllTutor(): Promise<Tutor[]> {
+    try{
+      const token = getToken();
+      const response = await axios.get<Tutor[]>(API_URL_TUTORS, {
+        headers: {
+          Authorization: `Bearer ${token}` 
+        }
+      });
+      return response.data
+    } catch (error) {
+      Toast({
+
+        title: "Error",
+        description: "Failed to fetch users.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      }); 
+      throw new Error("Failed to fetch users");
+    }},
 
   async deleteTutor(TutorId: number): Promise<void> {
     try {
@@ -72,13 +111,14 @@ export const UserService = {
     }
   },
 
-  async updateTutor(tutorId: number, updateData: Partial<User>): Promise<void> {
+  async updateTutor(tutorId: number, updateData: Partial<Tutor>): Promise<void> {
     try {
-      const token = getToken(); 
-      await axios.patch(`${API_URL_TUTORS}/${tutorId}`, updateData, {
+      const token = getToken();
+      const response = await axios.patch(`${API_URL_TUTORS}/${tutorId}`, updateData, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`, 
+          "Content-Type": "application/json", 
+        },
       });
       Toast({
         title: "Success",
@@ -86,8 +126,14 @@ export const UserService = {
         status: "success",
         duration: 5000,
         isClosable: true,
-      }); 
+      });
+      
     } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("Error Response:", error.response?.data);
+      } else {
+        console.error("Unexpected Error:", error);
+      }
       Toast({
         title: "Error",
         description: `Failed to update tutor with ID ${tutorId}.`,
@@ -95,7 +141,9 @@ export const UserService = {
         duration: 5000,
         isClosable: true,
       });
+      
       throw new Error(`Failed to update tutor with ID ${tutorId}`);
     }
   },
 };
+

@@ -2,15 +2,15 @@
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
-import { User, UserService } from "../../services/admin-service";
+import {  Tutor, UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon} from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
 
 const Tutores: React.FC = () => {
-  const [tutors, setTutors] = useState<User[] | null>(null);
+  const [tutors, setTutors] = useState<Tutor[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTutor, setSelectedTutor] = useState<User | null>(null);
+  const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
   const toast = useToast();
 
   const {
@@ -26,37 +26,40 @@ const Tutores: React.FC = () => {
       const [formData, setFormData] = useState({
         name: " ",
         lastname: " ",
-        email: " ",
+        yearEntry: " ",
+        birthdate: " ",
       });
 
 
 
 
-  const TableHeader = ["Apellido", "Nombre", "Correo", "Departamento"];
+  const TableHeader = [ "Nombre","Apellido","Correo", "Departamento"];
 
   useEffect(() => {
-    async function fetchStudents() {
+    async function fetchTutors() {
       try {
-        const data = await UserService.fetchAllUsers();
+        const data = await UserService.fetchAllTutor();
         setTutors(data);
       } catch (err) {
-        setError("Failed to load students");
+        setError("Error al cargar a los tutores");
       }
     }
-    fetchStudents();
+    fetchTutors();
   }, []);
   
-  const handleDeleteClick = (user: User) => {
-        setSelectedTutor(user);
+  
+  const handleDeleteClick = (tutor: Tutor) => {
+        setSelectedTutor(tutor);
         openDeleteModal();
       };
     
-      const handleEditClick = (user: User) => {
-        setSelectedTutor(user);
+      const handleEditClick = (tutor: Tutor) => {
+        setSelectedTutor(tutor);
         setFormData({
-          name: user.name,
-          lastname: user.lastName,
-          email: user.email,
+          name: tutor.user.name,
+          lastname: tutor.user.lastName,
+          yearEntry: tutor.yearEntry || "",
+          birthdate: tutor.birthdate || "",
         });
         openEditModal();
       };
@@ -126,12 +129,12 @@ const Tutores: React.FC = () => {
   };
     
 
-  const renderStudentRow = (tutor: User) => (
+  const renderStudentRow = (tutor:  Tutor) => (
     <Tr key={tutor.id}>
-      <Td>{tutor.name}</Td>
-      <Td>{tutor.lastName}</Td>
-      <Td>{tutor.email}</Td>
-      <Td>{tutor.role}</Td>
+      <Td>{tutor.user.name}</Td>
+      <Td>{tutor.user.lastName}</Td>
+      <Td>{tutor.user.email}</Td>
+      <Td>{tutor.user.department.name}</Td>
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -188,7 +191,7 @@ const Tutores: React.FC = () => {
         onClose={closeDeleteModal}
         onDelete={handleDeleteConfirm}
         entityName="tutor"
-        entityDetails={`${selectedTutor?.name} ${selectedTutor?.lastName}`}
+        entityDetails={`${selectedTutor?.user.name} ${selectedTutor?.user.lastName}`}
       />
     </>
   );
