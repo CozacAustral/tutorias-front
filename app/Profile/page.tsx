@@ -1,33 +1,40 @@
-'use client'
-import { Flex, Heading } from '@chakra-ui/react';
-import ProfileComponent from './components/profile-component'
+"use client";
+import { Flex, Heading } from "@chakra-ui/react";
+import ProfileComponent from "./components/profile-component";
 
 const Profile = () => {
   return (
     <Flex
-      justifyContent="center"
-      alignItems="center"
       height="100vh"
       bg="paleGray"
-      
-
-      position="relative"
+      flexDirection="column"
+      pl={{ base: "0", md: "250px" }} 
     >
-      <Heading
-        as="h1"
-        size="4xl"
-        fontFamily="'Montserrat', sans-serif"
-        fontWeight='500'
-        position="absolute"
-        top="20px"
-        left="20px" 
+      <Flex
+        justifyContent="flex-start" 
+        alignItems="center"
+        mt="20px"
+        ml="20px" 
         zIndex="5"
       >
-        Mi Perfil
-      </Heading>
-      <ProfileComponent/>
+        <Heading
+          as="h1"
+          size="3xl"
+          fontFamily="'Montserrat', sans-serif"
+          fontWeight="500"
+        >
+          Mi Perfil
+        </Heading>
+      </Flex>
+      <Flex
+        justifyContent="center"
+        alignItems="center"
+        flex="1" 
+      >
+        <ProfileComponent />
+      </Flex>
     </Flex>
   );
-}
+};
 
 export default Profile;

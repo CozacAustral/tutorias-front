@@ -1,14 +1,23 @@
-'use client'
-import { Box, Button, Container, FormControl, FormLabel, Input, Heading, Text, Flex } from '@chakra-ui/react';
-import { useRouter } from 'next/navigation';
+"use client";
+import {
+  Box,
+  Button,
+  Container,
+  FormControl,
+  FormLabel,
+  Input,
+  Heading,
+  Text,
+  Flex,
+} from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 
 const CambiarContraseña = () => {
   const router = useRouter();
 
-
   const handleBack = () => {
-    router.replace('/Profile')
-  }
+    router.replace("/Profile");
+  };
   return (
     <Container maxWidth="931px" w="100%" h="auto" p={4}>
       <Heading
@@ -18,7 +27,7 @@ const CambiarContraseña = () => {
         fontWeight="500"
         mb={8}
         textAlign="left"
-        ml={4}          
+        ml={4}
       >
         Cambiar Contraseña
       </Heading>
@@ -37,7 +46,7 @@ const CambiarContraseña = () => {
             id="current-password"
             type="password"
             borderColor="light_gray"
-            bg='paleGray'
+            bg="paleGray"
             borderWidth="4px"
             borderRadius="15px"
             w="350px"
@@ -51,7 +60,7 @@ const CambiarContraseña = () => {
             id="new-password"
             type="password"
             borderColor="light_gray"
-            bg='paleGray'
+            bg="paleGray"
             borderWidth="4px"
             borderRadius="15px"
             w="350px"
@@ -60,12 +69,14 @@ const CambiarContraseña = () => {
           />
         </FormControl>
         <FormControl mb={4}>
-          <FormLabel htmlFor="confirm-password">Confirmar Nueva Contraseña:</FormLabel>
+          <FormLabel htmlFor="confirm-password">
+            Confirmar Nueva Contraseña:
+          </FormLabel>
           <Input
             id="confirm-password"
             type="password"
             borderColor="light_gray"
-            bg='paleGray'
+            bg="paleGray"
             borderWidth="4px"
             borderRadius="15px"
             w="350px"
@@ -80,23 +91,20 @@ const CambiarContraseña = () => {
           borderRadius="md"
           position="absolute"
           right="20px"
-          top="60px" 
-          maxWidth="400px" 
+          top="60px"
+          maxWidth="400px"
           textAlign="right"
         >
-          La contraseña debe tener 6 caracteres e incluir una combinación de números, letras y caracteres especiales (!$@%)
+          La contraseña debe tener 6 caracteres e incluir una combinación de
+          números, letras y caracteres especiales (!$@%)
         </Text>
-        
-        <Flex
-          direction="row"
-          justify="flex-end"
-          mt={12}
-        >
+
+        <Flex direction="row" justify="flex-end" mt={12}>
           <Button
-            bg='gray'
-            color='black'
-            w='150px'
-            h='40px'
+            bg="gray"
+            color="black"
+            w="150px"
+            h="40px"
             borderRadius="6px"
             mr={4}
             onClick={handleBack}
@@ -104,10 +112,10 @@ const CambiarContraseña = () => {
             Cancelar
           </Button>
           <Button
-            bg='primary'
-            color='white'
-            w='160px'
-            h='40px'
+            bg="primary"
+            color="white"
+            w="160px"
+            h="40px"
             borderRadius="6px"
           >
             Cambiar Contraseña

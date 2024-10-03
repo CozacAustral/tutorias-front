@@ -1,52 +1,68 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
-import { IconButton, Td, Tr } from "@chakra-ui/react";
-import { EditIcon } from "@chakra-ui/icons";
-import { Student, StudentService } from "./action.tsx/action";
-import GenericTable from "../../common/components/GenericTable";
+import GenericTable from "../../common/components/generic-table";
 
-const Alumnos: React.FC = () => {
-  // const { data, isError } = useQueries(["users"], async () =>
-  //   UserService.fetchAllUsers()
-  // );
-  const [students, setStudents] = useState<Student[] | null>(null);
+import { IconButton, Td, Tr } from "@chakra-ui/react";
+import { User, UserService } from "../../services/admin-service";
+import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
+
+const Estudiantes: React.FC = () => {
+  const [students, setStudents] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const TableHeader = [
-    "Apellido/s",
     "Nombre",
+    "Apellido",
     "Num. Celular",
     "Correo",
-    "Carrera",
+    "Carrera/s",
   ];
 
   useEffect(() => {
-    async function fetchUsers() {
+    async function fetchStudents() {
       try {
-        const data = await StudentService.fetchAllStudents();
+        const data = await UserService.fetchAllUsers();
         setStudents(data);
-        console.log(data);
       } catch (err) {
-        setError("Failed to load users");
-        console.error(err);
+        setError("Failed to load students");
       }
     }
-    fetchUsers();
+    fetchStudents();
   }, []);
-  const renderStudentRow = (students: Student) => (
-    <Tr key={students.id}>
-      <Td>{students.user.lastName}</Td>
-      <Td>{students.user.name}</Td>
-      <Td>{students.telephone}</Td>
-      <Td>{students.user.email}</Td>
-      <Td>{students.career.name}</Td>
 
+  const renderStudentRow = (student: User) => (
+    <Tr key={student.id}>
+      <Td>{student.name}</Td>
+      <Td>{student.lastName}</Td>
+      <Td>{student.role}</Td>
+      <Td>{student.email}</Td>
+      <Td>{student.role}</Td>
       <Td>
+        <IconButton
+          icon={<ViewIcon boxSize={5} />}
+          aria-label="View"
+          backgroundColor="white"
+          mr={5}
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
+        />
         <IconButton
           icon={<EditIcon boxSize={5} />}
           aria-label="Edit"
-          mr={10}
+          mr={5}
+          backgroundColor="white"
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
+        />
+        <IconButton
+          icon={<DeleteIcon boxSize={5} />}
+          aria-label="Delete"
           backgroundColor="white"
           _hover={{
             borderRadius: 15,
@@ -65,8 +81,8 @@ const Alumnos: React.FC = () => {
         <GenericTable
           data={students}
           TableHeader={TableHeader}
+          caption="Estudiantes"
           renderRow={renderStudentRow}
-          caption="Alumnos"
         />
       ) : (
         <p>Loading...</p>
@@ -75,4 +91,4 @@ const Alumnos: React.FC = () => {
   );
 };
 
-export default Alumnos;
+export default Estudiantes;
