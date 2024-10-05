@@ -1,18 +1,9 @@
 import axios from "axios";
 import { Toast } from "@chakra-ui/react"; // Importa toast desde Chakra UI
+import axiosInstance from "../axiosConfig";
 
-const API_URL = "http://localhost:3000/users";
-const API_URL_TUTORS = "http://localhost:3000/tutors";
-
-function getToken() {
-  return getCookie('authTokens');  
-}
-
-function getCookie(name: string): string | undefined {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
-}
+const url = "users";
+const url_tutors = "tutors";
 
 export interface User {
   id: number;
@@ -26,12 +17,7 @@ export interface User {
 export const UserService = {
   async fetchAllUsers(): Promise<User[]> {
     try {
-      const token = getToken();
-      const response = await axios.get<User[]>(API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}` 
-        }
-      });
+      const response = await axiosInstance.get<User[]>(url);
       return response.data;
     } catch (error) {
       Toast({
@@ -40,26 +26,21 @@ export const UserService = {
         status: "error",
         duration: 5000,
         isClosable: true,
-      }); 
+      });
       throw new Error("Failed to fetch users");
     }
   },
 
   async deleteTutor(TutorId: number): Promise<void> {
     try {
-      const token = getToken();
-      await axios.delete(`${API_URL}/${TutorId}`, {
-        headers: {
-          Authorization: `Bearer ${token}` 
-        }
-      });
+      await axios.delete(`${url_tutors}/${TutorId}`);
       Toast({
         title: "Success",
         description: `User with ID ${TutorId} deleted successfully`,
         status: "success",
         duration: 5000,
         isClosable: true,
-      }); 
+      });
     } catch (error) {
       Toast({
         title: "Error",
@@ -67,26 +48,21 @@ export const UserService = {
         status: "error",
         duration: 5000,
         isClosable: true,
-      }); 
+      });
       throw new Error(`Failed to delete user with ID ${TutorId}`);
     }
   },
 
   async updateTutor(tutorId: number, updateData: Partial<User>): Promise<void> {
     try {
-      const token = getToken(); 
-      await axios.patch(`${API_URL_TUTORS}/${tutorId}`, updateData, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await axios.patch(`${url_tutors}/${tutorId}`, updateData);
       Toast({
         title: "Success",
         description: `Tutor with ID ${tutorId} updated successfully`,
         status: "success",
         duration: 5000,
         isClosable: true,
-      }); 
+      });
     } catch (error) {
       Toast({
         title: "Error",
