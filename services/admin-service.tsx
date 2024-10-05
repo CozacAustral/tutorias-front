@@ -1,19 +1,9 @@
 import axios from "axios";
 import { Toast } from "@chakra-ui/react"; // Importa toast desde Chakra UI
-import { headers } from "next/headers";
+import axiosInstance from "../axiosConfig";
 
-const API_URL = "http://localhost:3000/users";
-const API_URL_TUTORS = "http://localhost:3000/tutors";
-
-function getToken() {
-  return getCookie("authTokens");
-}
-
-function getCookie(name: string): string | undefined {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(";").shift();
-}
+const url = "users";
+const url_tutors = "tutors";
 
 export interface User {
   id: number;
@@ -22,46 +12,65 @@ export interface User {
   name: string;
   lastName: string;
   roleId: string;
+  departmentId: number;
 }
 
 export const UserService = {
-  async fetchAllUsers(): Promise<User[]> {
+  async fetchAllAdmins(): Promise<User[]> {
     try {
-      const token = getToken();
-      const response = await axios.get<User[]>(API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axiosInstance.get<User[]>(`${url}/admins`);
       return response.data;
     } catch (error) {
+      Toast({
+        title: "Error",
+        description: "Failed to fetch users.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
       throw new Error("Failed to fetch users");
     }
   },
 
-  async updateAdmin(
-    userId: number,
-    updateData: { name: string; lastname: string; roleId: string }
-  ): Promise<void> {
+  async createAdmin(adminData: {
+    email: string;
+    name: string;
+    lastName: string;
+    roleId: number;
+    departmentId: number;
+  }): Promise<void> {
     try {
-      const token = getToken();
-      await axios.patch(`${API_URL}/${userId}`, updateData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    } catch {
-      throw new Error(`Failed to update User with ID ${userId}`);
+      await axiosInstance.post(url, adminData);
+    } catch (error) {
+      console.error("Error al crear el administrador:", error);
+      throw new Error("Failed to create admin");
     }
   },
+  async updateAdmin(userId: number, updateData: Partial<User>): Promise<void> {
+    try {
+      await axiosInstance.patch(`${url}/${userId}`, updateData);
+      Toast({
+        title: "Success",
+        description: `Tutor with ID ${userId} updated successfully`,
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      Toast({
+        title: "Error",
+        description: `Failed to delete user with ID ${userId}.`,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      throw new Error(`Failed to delete user with ID ${userId}`);
+    }
+  },
+
   async deleteTutor(TutorId: number): Promise<void> {
     try {
-      const token = getToken();
-      await axios.delete(`${API_URL}/${TutorId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axiosInstance.delete(`${url_tutors}/${TutorId}`);
       Toast({
         title: "Success",
         description: `User with ID ${TutorId} deleted successfully`,
@@ -83,12 +92,7 @@ export const UserService = {
 
   async updateTutor(tutorId: number, updateData: Partial<User>): Promise<void> {
     try {
-      const token = getToken();
-      await axios.patch(`${API_URL_TUTORS}/${tutorId}`, updateData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axiosInstance.patch(`${url_tutors}/${tutorId}`, updateData);
       Toast({
         title: "Success",
         description: `Tutor with ID ${tutorId} updated successfully`,

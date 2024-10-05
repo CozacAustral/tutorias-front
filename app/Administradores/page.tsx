@@ -7,6 +7,7 @@ import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import { EditIcon } from "@chakra-ui/icons";
 import { User, UserService } from "../../services/admin-service";
 import EditModal from "../../common/components/modals/edit-modal";
+import CreateModal from "../../common/components/modals/create-modal";
 
 const Administradores: React.FC = () => {
   const [admins, setAdmins] = useState<User[] | null>(null);
@@ -14,13 +15,47 @@ const Administradores: React.FC = () => {
   const [selectedAdmin, setSelectedAdmin] = useState<User | null>(null);
   const toast = useToast();
 
+  //Create Admin
+  const {
+    isOpen: isCreateModalOpen,
+    onOpen: openCreateModal,
+    onClose: closeCreateModal,
+  } = useDisclosure();
+  const [newFormData, setNewFormData] = useState({
+    email: " ",
+    name: " ",
+    lastName: " ",
+    departmentId: 1,
+    roleId: 1,
+  });
+
+  const handleCreateConfirm = async () => {
+    try {
+      await UserService.createAdmin(newFormData);
+      setAdmins((prev) => (prev ? [...prev, newFormData] : [newFormData])); //Como llamar al Id y usar la contrasena
+      toast({
+        title: "Administrador creado.",
+        description: "El administrador ha sido creado con éxito.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      closeCreateModal();
+    } catch (error) {}
+  };
+
+  //Termina Create Admin
+
+  //Edit Admin
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData ||
+      setNewFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
   };
+
   const {
     isOpen: isEditModalOpen,
     onOpen: openEditModal,
@@ -28,15 +63,15 @@ const Administradores: React.FC = () => {
   } = useDisclosure();
   const [formData, setFormData] = useState({
     name: " ",
-    lastname: " ",
-    roleId: " ",
+    lastName: " ",
+    departmentId: 1,
   });
   const handleEditClick = (user: User) => {
     setSelectedAdmin(user);
     setFormData({
       name: user.name,
-      lastname: user.lastName,
-      roleId: user.roleId,
+      lastName: user.lastName,
+      departmentId: 1,
     });
     openEditModal();
   };
@@ -52,8 +87,8 @@ const Administradores: React.FC = () => {
           ) || []
         );
         toast({
-          title: "Tutor actualizado.",
-          description: "El tutor ha sido actualizado con éxito.",
+          title: "Administrador actualizado.",
+          description: "El administrador ha sido actualizado con éxito.",
           status: "success",
           duration: 5000,
           isClosable: true,
@@ -61,8 +96,8 @@ const Administradores: React.FC = () => {
         closeEditModal();
       } catch (err) {
         toast({
-          title: "Error al actualizar tutor.",
-          description: "Hubo un error al intentar actualizar al tutor.",
+          title: "Error al actualizar administrador.",
+          description: "Hubo un error al intentar actualizar al administrador.",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -71,13 +106,13 @@ const Administradores: React.FC = () => {
       }
     }
   };
-
+  //Termina Edit Admin
   const TableHeader = ["Nombre", "Apellido/s", "Correo", "Area"];
 
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const data = await UserService.fetchAllUsers();
+        const data = await UserService.fetchAllAdmins();
         setAdmins(data);
         console.log(data);
       } catch (err) {
@@ -129,8 +164,17 @@ const Administradores: React.FC = () => {
         onConfirm={handleEditConfirm}
         formData={formData}
         onInputChange={handleInputChange}
-        title="Editar Tutor"
-        entityName="tutor"
+        title="Editar Administrador"
+        entityName="administrador"
+      />
+      <CreateModal
+        isOpen={isCreateModalOpen}
+        onClose={closeCreateModal}
+        onConfirm={handleEditConfirm}
+        formData={newFormData}
+        onInputChange={handleInputChange}
+        title="Nuevo Administrador"
+        entityName="administrador"
       />
     </>
   );

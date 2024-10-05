@@ -34,7 +34,7 @@ const Tutores: React.FC = () => {
   useEffect(() => {
     async function fetchStudents() {
       try {
-        const data = await UserService.fetchAllUsers();
+        const data = await UserService.fetchAllAdmins();
         setTutors(data);
       } catch (err) {
         setError("Failed to load students");
