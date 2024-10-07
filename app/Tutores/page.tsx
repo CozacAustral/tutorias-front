@@ -1,17 +1,18 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
-import { User, UserService } from "../../services/admin-service";
+import { Tutors, User, UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon} from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
 
 const Tutores: React.FC = () => {
-  const [tutors, setTutors] = useState<User[] | null>(null);
+  const [tutors, setTutors] = useState<Tutors[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTutor, setSelectedTutor] = useState<User | null>(null);
+  const [selectedTutor, setSelectedTutor] = useState<Tutors | null>(null);
   const toast = useToast();
+  const [loading, setLoading] = useState(true);
 
   const {
         isOpen: isEditModalOpen,
@@ -25,9 +26,8 @@ const Tutores: React.FC = () => {
       } = useDisclosure();
       const [formData, setFormData] = useState({
         name: " ",
-        lastname: " ",
-        email: " ",
-      });
+        sex: " ",
+            });
 
 
 
@@ -35,67 +35,77 @@ const Tutores: React.FC = () => {
   const TableHeader = ["Apellido", "Nombre", "Correo", "Departamento"];
 
   useEffect(() => {
-    async function fetchStudents() {
+    const loadTutors = async () => {
       try {
-        const data = await UserService.fetchAllUsers();
-        setTutors(data);
-      } catch (err) {
-        setError("Failed to load students");
+        const fetchedTutors = await UserService.fetchAllTutors();
+        setTutors(fetchedTutors);
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        setError("No se pudieron cargar los estudiantes.");
+      } finally {
+        setLoading(false);
       }
-    }
-    fetchStudents();
+    };
+  
+    loadTutors();
   }, []);
   
-  const handleDeleteClick = (user: User) => {
-        setSelectedTutor(user);
-        openDeleteModal();
-      };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+  
     
-      const handleEditClick = (user: User) => {
-        setSelectedTutor(user);
+      const handleEditClick = (tutor: Tutors) => {
+        setSelectedTutor(tutor);
         setFormData({
-          name: user.name,
-          lastname: user.lastName,
-          email: user.email,
+          name: tutor.user.name,
+          sex: tutor.sex,          
         });
         openEditModal();
       };
     
-      const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-      };
       
       const handleEditConfirm = async () => {
         if (selectedTutor) {
           try {
             await UserService.updateTutor(selectedTutor.id, formData);
-            setTutors(
-              tutors?.map((user) =>
-                user.id === selectedTutor.id ? { ...user, ...formData } : user
-          ) || []
-        );
-        toast({
-          title: "Tutor actualizado.",
-          description: "El tutor ha sido actualizado con éxito.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        closeEditModal();
-      } catch (err) {
-        toast({
-          title: "Error al actualizar tutor.",
-          description: "Hubo un error al intentar actualizar al tutor.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    }
+            
+            const updateTutors = await UserService.fetchAllTutors();
+            setTutors(updateTutors);
+
+            toast({
+              title: "Tutor actualizado.",
+              description: "El tutor ha sido actualizado con éxito.",
+              status: "success",
+              duration: 5000,
+              isClosable: true,
+            });
+      
+            closeEditModal();
+
+          } catch (err) {
+            toast({
+              title: "Error al actualizar tutor.",
+              description: "Hubo un error al intentar actualizar al tutor.",
+              status: "error",
+              duration: 5000,
+              isClosable: true,
+            });
+          }
+        }
+      };
+      
+      
+      
+      
+  const handleDeleteClick = (tutor: Tutors) => {
+    setSelectedTutor(tutor);
+    openDeleteModal();
   };
 
   const handleDeleteConfirm = async () => {
@@ -126,12 +136,12 @@ const Tutores: React.FC = () => {
   };
     
 
-  const renderStudentRow = (tutor: User) => (
-    <Tr key={tutor.id}>
-      <Td>{tutor.name}</Td>
-      <Td>{tutor.lastName}</Td>
-      <Td>{tutor.email}</Td>
-      <Td>{tutor.role}</Td>
+  const renderStudentRow = (tutor: Tutors) => (
+    <Tr key={tutor.user.id}>
+      <Td>{tutor.user.name}</Td>
+      <Td>{tutor.user.lastName}</Td>
+      <Td>{tutor.user.email}</Td>
+      <Td>{tutor.user.role}</Td>
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -188,7 +198,7 @@ const Tutores: React.FC = () => {
         onClose={closeDeleteModal}
         onDelete={handleDeleteConfirm}
         entityName="tutor"
-        entityDetails={`${selectedTutor?.name} ${selectedTutor?.lastName}`}
+        entityDetails={`${selectedTutor?.user.name} ${selectedTutor?.user.lastName}`}
       />
     </>
   );
