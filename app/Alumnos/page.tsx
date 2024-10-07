@@ -9,7 +9,7 @@ import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
 
 const Estudiantes: React.FC = () => {
-  const [students, setStudents] = useState<Student[]>([]); // Asegúrate de que sea un arreglo vacío
+  const [students, setStudents] = useState<Student[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const toast = useToast();
@@ -57,7 +57,6 @@ const Estudiantes: React.FC = () => {
 
   const handleDeleteClick = (student : Student) => {
     setSelectedStudent(student)
-    console.log(selectedStudent); // Verifica los datos aquí antes de abrir el modal
 
     openDeleteModal();
   }
