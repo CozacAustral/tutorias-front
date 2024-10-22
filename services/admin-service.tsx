@@ -69,6 +69,37 @@ export const UserService = {
     }
   },
 
+  async importStudent(file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append("file", file)
+    
+    try{
+      const response = await axiosInstance.post(`${url_students}/upload-students`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+      Toast({
+        title: "Éxito",
+        description: "Alumnos importados correctamente.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      return response.data
+    } catch (error) {
+      console.error("Error al importar alumnos:0", error);
+      Toast({
+        title: "Error",
+        description: "Falló la importación de alumnos.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      throw new Error("Error al importar alumnos");
+    }
+  },
+
   async fetchAllTutors(): Promise<Tutors[]> {
     try {
       const response = await axiosInstance.get<Tutors[]>(url_tutors);
