@@ -47,7 +47,7 @@ export const StudentService = {
 };
 
 
-const alumnos_asignados : React.FC = () => {
+const alumnosAsignados : React.FC = () => {
   const [students, setStudents] = useState<Student[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -117,4 +117,4 @@ const alumnos_asignados : React.FC = () => {
   );
 };
 
-export default alumnos_asignados
+export default alumnosAsignados

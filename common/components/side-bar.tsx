@@ -196,10 +196,10 @@ const SideBar = () => {
                     align="center"
                     p="0.5rem"
                     bg={
-                      isActiveLink("/alumnos_asignados") ? "secondary" : "primary"
+                      isActiveLink("/alumnosAsignados") ? "secondary" : "primary"
                     }
                     color={
-                      isActiveLink("/alumnos_asignados") ? "white" : "#fff3e9"
+                      isActiveLink("/alumnosAsignados") ? "white" : "#fff3e9"
                     }
                     borderRadius="6px"
                     transition="background-color 0.1s ease-in-out"
