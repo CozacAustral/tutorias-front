@@ -7,6 +7,8 @@ import { Student, UpdateStudentDto, UserService } from "../../services/admin-ser
 import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
+import { Console } from "console";
+import ImportModal from "../../common/components/modals/import-modal";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -19,6 +21,11 @@ const Estudiantes: React.FC = () => {
     isOpen: isEditModalOpen,
     onOpen: openEditModal,
     onClose: closeEditModal,
+  } = useDisclosure();
+  const {
+    isOpen: isImportModalOpen,
+    onOpen: openImportModal,
+    onClose: closeImportModal,
   } = useDisclosure();
   const {
     isOpen: isDeleteModalOpen,
@@ -137,6 +144,10 @@ const Estudiantes: React.FC = () => {
       }
     }
   };
+
+  const handleImport = (data: any) => {
+    console.log("imported data", data)
+  }
   
   
 
@@ -196,6 +207,8 @@ const Estudiantes: React.FC = () => {
           TableHeader={TableHeader}
           caption="Alumnos"
           renderRow={renderStudentRow}
+          showAddMenu={true}
+          onImportOpen={openImportModal}
         />
       ) : (
         <p>Loading...</p>
@@ -210,11 +223,17 @@ const Estudiantes: React.FC = () => {
       entityName="Alumno"
       />
 
+      <ImportModal
+      isOpen={isImportModalOpen}
+      onClose={closeImportModal}
+      onImport={handleImport}
+      />
+
       <DeleteModal
       isOpen={isDeleteModalOpen}
       onClose={closeDeleteModal}
       onDelete={handleDeleteConfirm}
-      entityName="alumnos"
+      entityName="alumno"
       entityDetails={`${selectedStudent?.user.name} ${selectedStudent?.user.lastName}`}
       />
     </>
