@@ -31,6 +31,7 @@ interface GenericTableProps<T> {
   renderRow: (row: T) => React.ReactNode;
   showAddMenu?: boolean;
   onImportOpen?: () => void;
+  onCreateOpen?: () => void;
 }
 
 const GenericTable = <T,>({
@@ -40,6 +41,7 @@ const GenericTable = <T,>({
   renderRow,
   showAddMenu = false,
   onImportOpen,
+  onCreateOpen
 }: GenericTableProps<T>) => {
   return (
     <Flex
@@ -108,7 +110,7 @@ const GenericTable = <T,>({
               icon={<SmallAddIcon />}
             />
             <MenuList>
-              <MenuItem >Agregar Alumno</MenuItem>
+              <MenuItem onClick={onCreateOpen}>Agregar Alumno</MenuItem>
               <MenuItem onClick={onImportOpen}>Importar Alumnos</MenuItem>
             </MenuList>
           </Menu>

@@ -1,14 +1,15 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
-
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
-import { Student, UpdateStudentDto, UserService } from "../../services/admin-service";
+import { UpdateStudentDto, UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
-import { Console } from "console";
 import ImportModal from "../../common/components/modals/import-modal";
+import { Student } from "../interfaces/student.interface";
+import CreateStudentModal from "../../common/components/modals/create-student-modal";
+import { CreateStudent } from "../interfaces/CreateStudent";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -32,6 +33,11 @@ const Estudiantes: React.FC = () => {
     onOpen: openDeleteModal,
     onClose: closeDeleteModal,
   } = useDisclosure();
+  const {
+    isOpen:isCreateModalOpen,
+    onOpen: openCreateModal,
+    onClose: closeCreateModal,
+  } = useDisclosure()
   const [formData, setFormData] = useState({
     name: " ",
   });
@@ -60,6 +66,8 @@ const Estudiantes: React.FC = () => {
     loadStudents();
   }, []);
   
+
+
 
 
   const handleDeleteClick = (student : Student) => {
@@ -149,6 +157,11 @@ const Estudiantes: React.FC = () => {
     console.log("imported data", data)
   }
   
+  const handleCreateClick = () => {
+    openCreateModal();
+  };
+
+
   
 
   const renderStudentRow = (student: Student) => (
@@ -209,6 +222,7 @@ const Estudiantes: React.FC = () => {
           renderRow={renderStudentRow}
           showAddMenu={true}
           onImportOpen={openImportModal}
+          onCreateOpen={handleCreateClick}
         />
       ) : (
         <p>Loading...</p>
@@ -227,6 +241,12 @@ const Estudiantes: React.FC = () => {
       isOpen={isImportModalOpen}
       onClose={closeImportModal}
       onImport={handleImport}
+      />
+
+      <CreateStudentModal
+      isOpen={isCreateModalOpen}
+      onClose={closeCreateModal}
+
       />
 
       <DeleteModal

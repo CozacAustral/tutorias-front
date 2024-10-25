@@ -2,10 +2,11 @@
 import React, { use, useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
-import { Tutors, User, UserService } from "../../services/admin-service";
+import {  UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon} from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
+import { Tutors } from "../interfaces/tutors.interface";
 
 const Tutores: React.FC = () => {
   const [tutors, setTutors] = useState<Tutors[] | null>(null);

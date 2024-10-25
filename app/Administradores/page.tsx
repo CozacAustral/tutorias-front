@@ -5,7 +5,8 @@ import GenericTable from "../../common/components/generic-table";
 
 import { IconButton, Td, Tr } from "@chakra-ui/react";
 import { EditIcon } from "@chakra-ui/icons";
-import { User, UserService } from "../../services/admin-service";
+import {  UserService } from "../../services/admin-service";
+import { User } from "../interfaces/user.interface";
 
 const Administradores: React.FC = () => {
   const [users, setUsers] = useState<User[] | null>(null);
