@@ -1,14 +1,31 @@
 import axios from "axios";
 
-const baseURL = "http://localhost:3000/";
+function getCookie(name: string): string | undefined {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(";").shift();
+}
 
-const axiosInstance = axios.create({
-  baseURL,
-  headers: {
-    "Content-Type": "application/json",
+function getToken() {
+  return getCookie("authTokens");
+}
+  const axiosInstance = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL ,
+    timeout: 10000,
+  });
+
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = getToken();
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
   },
-  timeout: 10000,
-});
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 axiosInstance.interceptors.response.use(
   (response) => response,

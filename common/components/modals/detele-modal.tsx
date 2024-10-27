@@ -28,25 +28,27 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered closeOnOverlayClick={false}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent
+      borderRadius="20px"
+      >
         <ModalHeader>Eliminar {entityName}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <Text fontSize="md">
-            ¿Estás seguro de que deseas eliminar {entityName}{" "}
+            ¿Estás seguro de que deseas eliminar al {entityName}{" "}
             <Text as="span" fontWeight="bold">
               {entityDetails}
             </Text>
-            ? Esta acción no se puede deshacer.
+            ?
           </Text>
         </ModalBody>
 
         <ModalFooter>
-          <Button  bg="red" color="white" onClick={onDelete} mr={3}>
-            Eliminar
-          </Button>
-          <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose}>
             Cancelar
+          </Button>
+          <Button  bg="primary" color="white" onClick={onDelete} mr={3}>
+            Eliminar
           </Button>
         </ModalFooter>
       </ModalContent>
