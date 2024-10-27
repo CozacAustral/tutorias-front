@@ -34,9 +34,8 @@ const Estudiantes: React.FC = () => {
     <Tr key={student.id}>
       <Td>{student.name}</Td>
       <Td>{student.lastName}</Td>
-      <Td>{student.role}</Td>
+      {/* <Td>{student.role}</Td> */}
       <Td>{student.email}</Td>
-      <Td>{student.role}</Td>
       <Td>
         <IconButton
           icon={<ViewIcon boxSize={5} />}
