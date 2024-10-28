@@ -1,10 +1,12 @@
 import axios from "axios";
 import { Toast } from "@chakra-ui/react";
-import axiosInstance from "../axiosConfig";
+
 
 const url = "users";
 const url_tutors = "tutors";
+
 const url_students = "students";
+
 
 export interface User {
   id: number;
@@ -72,6 +74,7 @@ export const UserService = {
     }
   },
 
+
   async importStudent(file: File): Promise<void> {
     const formData = new FormData();
     formData.append("file", file)
@@ -82,6 +85,10 @@ export const UserService = {
           'Content-Type': 'multipart/form-data',
         }
       });
+
+  async deleteTutor(TutorId: number): Promise<void> {
+    try {
+      await axios.delete(`${url_tutors}/${TutorId}`);
       Toast({
         title: "Éxito",
         description: "Alumnos importados correctamente.",
@@ -144,7 +151,7 @@ export const UserService = {
         status: "success",
         duration: 5000,
         isClosable: true,
-      }); 
+      });
     } catch (error) {
       Toast({
         title: "Error",
