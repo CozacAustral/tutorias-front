@@ -10,12 +10,6 @@ const url = "users";
 const url_tutors = "tutors";
 const url_students = "students";
 
-
-
- export interface UpdateStudentDto  { 
-  name?: string
-}
-
 export const UserService = {
   
   async fetchAllUsers(): Promise<User[]> {

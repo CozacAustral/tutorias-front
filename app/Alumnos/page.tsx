@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
-import { UpdateStudentDto, UserService } from "../../services/admin-service";
+import { UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
@@ -10,6 +10,8 @@ import ImportModal from "../../common/components/modals/import-modal";
 import { Student } from "../interfaces/student.interface";
 import CreateStudentModal from "../../common/components/modals/create-student-modal";
 import { CreateStudent } from "../interfaces/CreateStudent";
+import { UpdateStudentDto } from "../interfaces/update-student";
+import { Update } from "next/dist/build/swc";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -38,9 +40,21 @@ const Estudiantes: React.FC = () => {
     onOpen: openCreateModal,
     onClose: closeCreateModal,
   } = useDisclosure()
-  const [formData, setFormData] = useState({
+
+
+
+  const [formData, setFormData] = useState<UpdateStudentDto>({
     name: " ",
+    lastName: " ", 
+    dni: " ",
+    telephone: "",
+    birthdate: new Date,
+    address: "",
+    yearEntry: new Date(),
+    observations: "",
+    countryId: 0,
   });
+
 
   const TableHeader = [
     "Nombre",
@@ -70,26 +84,34 @@ const Estudiantes: React.FC = () => {
 
 
 
-  const handleDeleteClick = (student : Student) => {
+  const handleDeleteClick = (student : Student ) => {
     setSelectedStudent(student)
 
     openDeleteModal();
   }
 
-  const handleEditClick = (student: Student ) => {
+  const handleEditClick = (student: Student) => {
     setSelectedStudent(student);
     setFormData({
-      name: student.user.name,
-
+    name: student.user.name,
+    lastName: student.user.lastName,
+    dni: student.dni,
+    telephone: student.telephone,
+    birthdate: student.birthdate, 
+    address: student.address,
+    yearEntry: student.yearEntry, 
+    observations: student.observations || "",
+    countryId: student.countryId,
     });
     openEditModal();
-  }
+  };
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name ==="countryId" ? parseInt(value) : value,
     }));
   };
 
@@ -123,6 +145,12 @@ const Estudiantes: React.FC = () => {
       }
     }
   };
+
+  const handleAddStudent = async () => {
+      const fetchedStudents = await UserService.fetchAllStudents();
+      setStudents(fetchedStudents); 
+  };
+  
   
 
   const handleDeleteConfirm = async () => {
@@ -240,12 +268,13 @@ const Estudiantes: React.FC = () => {
       <ImportModal
       isOpen={isImportModalOpen}
       onClose={closeImportModal}
+      onImport={handleImport}
       />
 
       <CreateStudentModal
       isOpen={isCreateModalOpen}
       onClose={closeCreateModal}
-
+      onAddStudent={handleAddStudent}
       />
 
       <DeleteModal

@@ -24,10 +24,11 @@ import { CreateStudent } from "../../../app/interfaces/CreateStudent";
 interface CreateStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAddStudent: () => void;
 }
 
 
-const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose, })  => {
+const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose, onAddStudent })  => {
   const toast = useToast();
   const [studentData, setStudentData] = useState<CreateStudent>({
     name: '',
@@ -66,7 +67,8 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
             yearEntry: new Date(studentData.yearEntry).toISOString(),
         };
         
-        const response = await UserService.createStudent(formattedData);
+      await UserService.createStudent(formattedData);
+      onAddStudent();
 
         onClose();
         toast({

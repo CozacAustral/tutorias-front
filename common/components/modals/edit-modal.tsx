@@ -11,16 +11,18 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Text
+  Text,
+  HStack,
+  useToast,
 } from "@chakra-ui/react";
 
-interface EditModalProps {
+interface EditModalProps<t = any> {
   isOpen: boolean;
   onClose: () => void;
   entityName: string; 
-  title: String;
+  title: string;
   onConfirm: () => Promise<void>;
-  formData: { [key: string]: string }; 
+  formData: { [key: string]: t }; 
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
 }
 
@@ -32,27 +34,67 @@ const EditModal: React.FC<EditModalProps> = ({
   formData,
   onInputChange,
 }) => {
+
+
+  const toast = useToast();
+  
+  const keys = Object.keys(formData);
+  
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered>
+    <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl">
       <ModalOverlay />
-      <ModalContent>
-      <ModalHeader>
-        <Text fontSize="2xl" fontWeight="bold">
-          Editar {entityName}
+      <ModalContent  maxW="51vw">
+        <ModalHeader>
+          <Text fontSize="2xl" fontWeight="bold">
+            Editar {entityName}
           </Text>
-      </ModalHeader>
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {Object.keys(formData).map((field) => (
-            <FormControl key={field} mt={4}>
-              <FormLabel>{field}</FormLabel>
-              <Input
-                name={field}
-                value={formData[field]}
-                onChange={onInputChange}
-              />
-            </FormControl>
-          ))}
+          {keys.map((field, index) => {
+            const isEven = index % 2 === 0;
+            const nextField = keys[index + 1];
+            return isEven ? (
+              <HStack spacing={4} key={field} mt={4}>
+                <FormControl>
+                  <FormLabel>{field}</FormLabel>
+                  {typeof formData[field] === 'string' && formData[field].includes('-') ? (
+                    <Input
+                      type="date"
+                      name={field}
+                      value={formData[field] as string}
+                      onChange={onInputChange}
+                    />
+                  ) : (
+                    <Input
+                      name={field}
+                      value={formData[field] as string | number}
+                      onChange={onInputChange}
+                    />
+                  )}
+                </FormControl>
+                {nextField && (
+                  <FormControl>
+                    <FormLabel>{nextField}</FormLabel>
+                    {typeof formData[nextField] === 'string' && formData[nextField].includes('-') ? (
+                      <Input
+                        type="date"
+                        name={nextField}
+                        value={formData[nextField] as string}
+                        onChange={onInputChange}
+                      />
+                    ) : (
+                      <Input
+                        name={nextField}
+                        value={formData[nextField] as string | number}
+                        onChange={onInputChange}
+                      />
+                    )}
+                  </FormControl>
+                )}
+              </HStack>
+            ) : null; 
+          })}
         </ModalBody>
 
         <ModalFooter>
