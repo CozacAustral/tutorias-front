@@ -18,6 +18,7 @@ import { UserService } from '../../../services/admin-service';
 interface ImportModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onImport: (data: any) => void;
 }
 
 const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose }) => {

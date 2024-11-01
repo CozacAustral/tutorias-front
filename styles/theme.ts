@@ -7,6 +7,7 @@ const customTheme = extendTheme({
     red: "#e53e3e",
     light_gray: "#D9D9D9",
     softPink: "#FCF5F9",
+    Very_Light_Gray: "F9F9F9",
   },
 });
 
