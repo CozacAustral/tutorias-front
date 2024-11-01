@@ -69,34 +69,6 @@ const mock = [
     aula: "B1",
     status: true,
   },
-  {
-    tutor: "Jorge Pérez",
-    alumno: "Pedro Sánchez",
-    fecha_hora: "23/09/2024 16:10:00",
-    aula: "A4",
-    status: true,
-  },
-  {
-    tutor: "Sofía Torres",
-    alumno: "Sofía Torres",
-    fecha_hora: "24/09/2024 08:50:00",
-    aula: "B3",
-    status: false,
-  },
-  {
-    tutor: "Luis Fernández",
-    alumno: "Javier Vázquez",
-    fecha_hora: "23/09/2024 17:00:00",
-    aula: "A1",
-    status: true,
-  },
-  {
-    tutor: "María Mendoza",
-    alumno: "Clara Mendoza",
-    fecha_hora: "24/09/2024 13:45:00",
-    aula: "B5",
-    status: true,
-  },
 ];
 
 const Reuniones = () => {

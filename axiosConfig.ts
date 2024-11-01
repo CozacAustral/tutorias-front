@@ -9,11 +9,24 @@ function getCookie(name: string): string | undefined {
 function getToken() {
   return getCookie("authTokens");
 }
+  const axiosInstance = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL ,
+    timeout: 10000,
+  });
 
-const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000/",
-  timeout: 10000,
-});
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = getToken();
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 
 axiosInstance.interceptors.request.use(
   (config) => {
