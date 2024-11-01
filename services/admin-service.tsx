@@ -1,58 +1,17 @@
 import axios from "axios";
 import { Toast } from "@chakra-ui/react";
 import axiosInstance from "../axiosConfig";
+import { User } from "../app/interfaces/user.interface";
+import { Tutors } from "../app/interfaces/tutors.interface";
+import { Student } from "../app/interfaces/student.interface";
+import { CreateStudent } from "../app/interfaces/CreateStudent";
 
 const url = "users";
 const url_tutors = "tutors";
 const url_students = "students";
 
-export interface User {
-  id: number;
-  email: string;
-  password: string;
-  name: string;
-  lastName: string;
-  role: number;
-}
-
-export interface Student {
-  id: number;
-  dni: string;
-  telephone: string;
-  birthdate: Date;
-  address: string;
-  yearEntry: Date;
-  observations?: string;
-  countryId: number;
-  user: User;
-  userId: number;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
-}
-export interface Tutors {
-  id: number;
-  dni: string;
-  birthdate: Date;
-  sex: string;
-  yearEntry: Date;
-  category: string;
-  dedication: string;
-  dedicationDays: number;
-  user: User;
-  userId: number;
-  countryId: number;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
-}
-
-
- export interface UpdateStudentDto  { 
-  name?: string
-}
-
 export const UserService = {
+  
   async fetchAllUsers(): Promise<User[]> {
     try {
       const response = await axiosInstance.get<User[]>(url);
@@ -69,7 +28,33 @@ export const UserService = {
     }
   },
 
-  async importStudent(file: File): Promise<void> {
+  async createStudent(studentData: CreateStudent): Promise<CreateStudent> {
+    try {
+      const response = await axiosInstance.post(url_students, studentData);
+      Toast({
+        title: "Éxito",
+        description: "Estudiante creado correctamente.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      return response.data; 
+    } catch (error) {
+      console.error("Error al crear el estudiante:", error);
+      Toast({
+        title: "Error",
+        description: "Falló la creación del estudiante.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      throw new Error("Error al crear el estudiante");
+    }
+  },
+
+
+
+    async importStudent(file: File): Promise<void> {
     const formData = new FormData();
     formData.append("file", file)
     
