@@ -117,7 +117,7 @@ const GenericTable = <T,>({
         )}
         </Flex>
         <TableContainer>
-          <Table variant="simple" size="lg" overflowX={"hidden"} overflowY={"hidden"}>
+          <Table variant="simple" size="md" overflowX={"hidden"} overflowY={"hidden"}>
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
