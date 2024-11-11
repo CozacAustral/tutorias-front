@@ -130,8 +130,12 @@ const EditModal: React.FC<EditModalProps> = ({
           <Button bg="primary"color="white" onClick={onConfirm} mr={3}>
             Guardar
           </Button>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} mr={3}>
+
             Cancelar
+          </Button>
+          <Button bg="primary" color="white" onClick={onConfirm}>
+            Guardar
           </Button>
         </ModalFooter>
       </ModalContent>

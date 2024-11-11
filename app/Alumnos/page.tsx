@@ -295,7 +295,6 @@ const Estudiantes: React.FC = () => {
       <ImportModal
       isOpen={isImportModalOpen}
       onClose={closeImportModal}
-      onImport={handleImport}
       />
       <ViewStudentModal
       isOpen={isViewModalOpen}
