@@ -178,7 +178,7 @@ const SideBar = () => {
         <Box
           mb="1rem"
           display="flex"
-          flexDirection="column"
+          flexDirection={collapsed ? "column": "row"}
           alignItems="center"
           pb="1rem"
         >
@@ -192,7 +192,9 @@ const SideBar = () => {
             aria-label="Toggle SideBar"
             borderRadius="50%"
             border="none"
-            mb="1rem"
+            mb={collapsed ? "1rem": 0}
+            mr={!collapsed ? "1rem" : "0"}
+            
           />
           <IconButton
             color="white"
