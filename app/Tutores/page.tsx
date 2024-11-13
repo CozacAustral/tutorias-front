@@ -33,7 +33,7 @@ const Tutores: React.FC = () => {
 
 
 
-  const TableHeader = ["Apellido", "Nombre", "Correo", "Departamento"];
+  const TableHeader = [ "Nombre","Apellido","Correo", "Departamento"];
 
   useEffect(() => {
     const loadTutors = async () => {
