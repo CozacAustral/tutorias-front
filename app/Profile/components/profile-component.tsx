@@ -21,7 +21,8 @@ import {
   ModalFooter,
   useToast,
   Text,
-  Spinner
+  Spinner,
+  Heading
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -116,6 +117,16 @@ const ProfileComponent = () => {
 
   return (
     <Container maxWidth="1200px" w="100%" h="auto" p={4}>
+      <Heading
+      as="h1"
+      fontFamily="'Montserrat', sans-serif"
+      fontWeight="500"
+      fontSize="4rem"
+      textAlign={{ base: "center", md: "left" }}
+      mb={6}
+      >
+        Mi Perfil
+      </Heading>
       <Box
         bg="white"
         w="800px"
