@@ -268,7 +268,6 @@ const Estudiantes: React.FC = () => {
       <ImportModal
       isOpen={isImportModalOpen}
       onClose={closeImportModal}
-      onImport={handleImport}
       />
 
       <CreateStudentModal

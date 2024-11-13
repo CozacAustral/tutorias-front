@@ -10,6 +10,7 @@ export function middleware(request: NextRequest) {
     "/alumnos",
     "/Administradores",
     "/MiPerfil",
+    "/alumnos_asignados"
   ];
   if (
     protectedRoutes.some((route) =>
@@ -36,5 +37,6 @@ export const config = {
     "/Administradores/:path*",
     "/Login",
     "/MiPerfil/:path*",
+    "/alumnos_asignados/:path",
   ],
 };
