@@ -1,4 +1,3 @@
-
 export interface UpdateStudentDto {
   name: string;
   lastName: string;
@@ -9,4 +8,6 @@ export interface UpdateStudentDto {
   yearEntry: Date; 
   observations: string;
   countryId: number;
+  careersId?: number[];  
+  careerName?: string 
 }

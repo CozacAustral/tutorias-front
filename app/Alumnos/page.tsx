@@ -9,9 +9,11 @@ import DeleteModal from "../../common/components/modals/detele-modal";
 import ImportModal from "../../common/components/modals/import-modal";
 import { Student } from "../interfaces/student.interface";
 import CreateStudentModal from "../../common/components/modals/create-student-modal";
-import { CreateStudent } from "../interfaces/CreateStudent";
 import { UpdateStudentDto } from "../interfaces/update-student";
-import { Update } from "next/dist/build/swc";
+import { FaGraduationCap } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import ViewStudentModal from "../../common/components/modals/view-student-modal";
+
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -19,6 +21,7 @@ const Estudiantes: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const toast = useToast();
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const {
     isOpen: isEditModalOpen,
@@ -40,7 +43,12 @@ const Estudiantes: React.FC = () => {
     onOpen: openCreateModal,
     onClose: closeCreateModal,
   } = useDisclosure()
-
+  const {
+    isOpen: isViewModalOpen,
+    onOpen: openViewModal,
+    onClose: closeViewModal,
+  } = useDisclosure();
+  
 
 
   const [formData, setFormData] = useState<UpdateStudentDto>({
@@ -53,6 +61,8 @@ const Estudiantes: React.FC = () => {
     yearEntry: new Date(),
     observations: "",
     countryId: 0,
+    careersId: [],
+    
   });
 
 
@@ -102,6 +112,7 @@ const Estudiantes: React.FC = () => {
     yearEntry: student.yearEntry, 
     observations: student.observations || "",
     countryId: student.countryId,
+    careersId: Array.isArray(student.careersId) ? student.careersId : [student.careersId],
     });
     openEditModal();
   };
@@ -189,16 +200,19 @@ const Estudiantes: React.FC = () => {
     openCreateModal();
   };
 
-
+  const handleViewClick = (student: Student) => {
+    setSelectedStudent(student);
+    openViewModal();
+  };
   
-
+  
   const renderStudentRow = (student: Student) => (
     <Tr key={student.user.id}>
       <Td>{student.user.name}</Td>
       <Td>{student.user.lastName}</Td>
       <Td>{student.telephone}</Td>
       <Td>{student.user.email}</Td>
-      {/* <Td>{student.}</Td> */}
+      <Td>{student.careersId}</Td>
       <Td>
         <IconButton
           icon={<ViewIcon boxSize={5} />}
@@ -210,7 +224,7 @@ const Estudiantes: React.FC = () => {
             backgroundColor: "#318AE4",
             color: "White",
           }}
-
+          onClick={() => handleViewClick(student)}
         />
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -235,6 +249,7 @@ const Estudiantes: React.FC = () => {
           }}
           onClick={() => handleDeleteClick(student)}
         />
+
       </Td>
     </Tr>
   );
@@ -263,11 +278,28 @@ const Estudiantes: React.FC = () => {
       onInputChange={handleInputChange}
       title="Editar Alumno"
       entityName="Alumno"
+      fieldLabels={{
+        name: "Nombre",
+        lastName: "Apellido",
+        dni: "DNI",
+        telephone:"Telefono",
+        birthdate: "Fecha de Nacimiento",
+        address: "Direccion",
+        yearEntry: "Año ingreso",
+        observations: "Observaciones",
+        countryId: "Pais",
+        careersId: "Carrera/s"
+      }}
       />
 
       <ImportModal
       isOpen={isImportModalOpen}
       onClose={closeImportModal}
+      />
+      <ViewStudentModal
+      isOpen={isViewModalOpen}
+      onClose={closeViewModal}
+      student={selectedStudent}
       />
 
       <CreateStudentModal

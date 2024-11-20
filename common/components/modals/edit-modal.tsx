@@ -24,6 +24,8 @@ interface EditModalProps<t = any> {
   onConfirm: () => Promise<void>;
   formData: { [key: string]: t }; 
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
+  fieldLabels?: { [key: string]: string };
+  careerData?: { name: string; year: number; status: string };
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -33,6 +35,8 @@ const EditModal: React.FC<EditModalProps> = ({
   entityName,
   formData,
   onInputChange,
+  careerData,
+  fieldLabels,
 }) => {
 
 
@@ -57,10 +61,16 @@ const EditModal: React.FC<EditModalProps> = ({
             return isEven ? (
               <HStack spacing={4} key={field} mt={4}>
                 <FormControl>
-                  <FormLabel>{field}</FormLabel>
+                  <FormLabel>{fieldLabels?.[field] || field}</FormLabel> {/*nombre del campo */}
                   {typeof formData[field] === 'string' && formData[field].includes('-') ? (
                     <Input
                       type="date"
+                      borderColor="light_gray"
+                      bg="light_gray"
+                      borderWidth="4px"
+                      borderRadius="15px"
+                      w="100%"
+                      h="50px"
                       name={field}
                       value={formData[field] as string}
                       onChange={onInputChange}
@@ -68,6 +78,12 @@ const EditModal: React.FC<EditModalProps> = ({
                   ) : (
                     <Input
                       name={field}
+                      borderColor="light_gray"
+                      bg="light_gray"
+                      borderWidth="4px"
+                      borderRadius="15px"
+                      w="100%"
+                      h="50px"
                       value={formData[field] as string | number}
                       onChange={onInputChange}
                     />
@@ -75,10 +91,16 @@ const EditModal: React.FC<EditModalProps> = ({
                 </FormControl>
                 {nextField && (
                   <FormControl>
-                    <FormLabel>{nextField}</FormLabel>
+                    <FormLabel>{fieldLabels?.[nextField] || nextField}</FormLabel>
                     {typeof formData[nextField] === 'string' && formData[nextField].includes('-') ? (
                       <Input
                         type="date"
+                        borderColor="light_gray"
+                        bg="light_gray"
+                        borderWidth="4px"
+                        borderRadius="15px"
+                        w="100%"
+                        h="50px"
                         name={nextField}
                         value={formData[nextField] as string}
                         onChange={onInputChange}
@@ -86,6 +108,12 @@ const EditModal: React.FC<EditModalProps> = ({
                     ) : (
                       <Input
                         name={nextField}
+                        borderColor="light_gray"
+                        bg="light_gray"
+                        borderWidth="4px"
+                        borderRadius="15px"
+                        w="100%"
+                        h="50px"
                         value={formData[nextField] as string | number}
                         onChange={onInputChange}
                       />
@@ -97,8 +125,13 @@ const EditModal: React.FC<EditModalProps> = ({
           })}
         </ModalBody>
 
+
         <ModalFooter>
+          <Button bg="primary"color="white" onClick={onConfirm} mr={3}>
+            Guardar
+          </Button>
           <Button variant="ghost" onClick={onClose} mr={3}>
+
             Cancelar
           </Button>
           <Button bg="primary" color="white" onClick={onConfirm}>

@@ -13,6 +13,24 @@ const url_students = "students";
 const toast = useToast();
 
 export const UserService = {
+
+
+  async fetchStudentById(id: number): Promise<Student> {
+    try {
+      const response = await axiosInstance.get<Student>(`${url_students}/${id}`);
+      return response.data
+    }catch(error) {
+      Toast({
+        title: "Error",
+        description: `No se pudo obtener el estudiante con ID ${id}.`,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    console.error("Error al obtener a el estudiante: " )
+    throw new Error(`No se pudo obtener el estudiante con ID ${id}`);
+  },
   
   async fetchAllUsers(): Promise<User[]> {
     try {
