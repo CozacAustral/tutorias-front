@@ -263,19 +263,39 @@ const SideBar = () => {
           borderRadius="50%"
           border="none"
           mb="1rem"
-        />
-        <IconButton
-          color="white"
-          bg="red"
-          boxSize="50px"
-          fontSize="20px"
-          icon={<ExternalLinkIcon />}
-          onClick={handleLogout}
-          aria-label="Logout"
-          borderRadius="50%"
-          border="none"
-        />
-      </Box>
+          display="flex"
+          flexDirection={collapsed ? "column": "row"}
+          alignItems="center"
+          pb="1rem"
+        >
+          <IconButton
+            color="white"
+            bg="secondary"
+            boxSize="50px"
+            fontSize="20px"
+            icon={collapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
+            onClick={toggleSidebar}
+            aria-label="Toggle SideBar"
+            borderRadius="50%"
+            border="none"
+            mb={collapsed ? "1rem": 0}
+            mr={!collapsed ? "1rem" : "0"}
+            
+          />
+          <IconButton
+            color="white"
+            bg="red"
+            boxSize="50px"
+            fontSize="20px"
+            icon={<ExternalLinkIcon />}
+            onClick={handleLogout}
+            aria-label="Logout"
+            borderRadius="50%"
+            border="none"
+          />
+        </Box>
+      </Flex>
+
     </Flex>
   );
 };
