@@ -45,7 +45,7 @@ const ProfileComponent = () => {
   const [isDelete, setIsDelete] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(true); // Estado de carga
+  const [isLoading, setIsLoading] = useState(true); 
   const toast = useToast();
   const router = useRouter();
 
@@ -81,7 +81,6 @@ const ProfileComponent = () => {
   const fetchUserData = async () => {
     const data = await AuthService.getUserInfo();
     setUserData(data);
-    console.log(data);
     setIsLoading(false);
   };
 

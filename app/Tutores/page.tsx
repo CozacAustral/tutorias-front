@@ -1,12 +1,14 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, {  useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import {  UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon} from "@chakra-ui/icons";
-import EditModal from "../../common/components/modals/edit-modal";
-import DeleteModal from "../../common/components/modals/detele-modal";
+import EditModal from "../../common/modals/edit-modal";
+import DeleteModal from "../../common/modals/detele-modal";
 import { Tutors } from "../interfaces/tutors.interface";
+import CreateTutorModal from "./modals/create-tutor-modal";
+import { CreateTutor } from "../interfaces/create-tutor";
 
 const Tutores: React.FC = () => {
   const [tutors, setTutors] = useState<Tutors[] | null>(null);
@@ -21,6 +23,11 @@ const Tutores: React.FC = () => {
         onClose: closeEditModal,
       } = useDisclosure();
       const {
+        isOpen:isCreateModalOpen,
+        onOpen: openCreateModal,
+        onClose: closeCreateModal,
+      } = useDisclosure()
+      const {
         isOpen: isDeleteModalOpen,
         onOpen: openDeleteModal,
         onClose: closeDeleteModal,
@@ -28,7 +35,7 @@ const Tutores: React.FC = () => {
       const [formData, setFormData] = useState({
         name: " ",
         sex: " ",
-            });
+            }); //editar tutores faltan propiedads
 
 
 
@@ -51,7 +58,20 @@ const Tutores: React.FC = () => {
     loadTutors();
   }, []);
   
-
+  const handleDeleteClick = (tutor: Tutors) => {
+    setSelectedTutor(tutor);
+    openDeleteModal();
+  };
+  
+  const handleEditClick = (tutor: Tutors) => {
+    setSelectedTutor(tutor);
+    setFormData({
+      name: tutor.user.name,
+      sex: tutor.sex,          
+    });
+    openEditModal();
+  };
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -59,56 +79,59 @@ const Tutores: React.FC = () => {
       [name]: value,
     }));
   };
-  
-    
-      const handleEditClick = (tutor: Tutors) => {
-        setSelectedTutor(tutor);
-        setFormData({
-          name: tutor.user.name,
-          sex: tutor.sex,          
+  const handleEditConfirm = async () => {
+    if (selectedTutor) {
+      try {
+        await UserService.updateTutor(selectedTutor.id, formData);
+        
+        const updateTutors = await UserService.fetchAllTutors();
+        setTutors(updateTutors);
+
+        toast({
+          title: "Tutor actualizado.",
+          description: "El tutor ha sido actualizado con éxito.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
         });
-        openEditModal();
-      };
-    
-      
-      const handleEditConfirm = async () => {
-        if (selectedTutor) {
-          try {
-            await UserService.updateTutor(selectedTutor.id, formData);
-            
-            const updateTutors = await UserService.fetchAllTutors();
-            setTutors(updateTutors);
+  
+        closeEditModal();
 
-            toast({
-              title: "Tutor actualizado.",
-              description: "El tutor ha sido actualizado con éxito.",
-              status: "success",
-              duration: 5000,
-              isClosable: true,
-            });
-      
-            closeEditModal();
-
-          } catch (err) {
-            toast({
-              title: "Error al actualizar tutor.",
-              description: "Hubo un error al intentar actualizar al tutor.",
-              status: "error",
-              duration: 5000,
-              isClosable: true,
-            });
-          }
-        }
-      };
-      
-      
-      
-      
-  const handleDeleteClick = (tutor: Tutors) => {
-    setSelectedTutor(tutor);
-    openDeleteModal();
+      } catch (err) {
+        toast({
+          title: "Error al actualizar tutor.",
+          description: "Hubo un error al intentar actualizar al tutor.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
   };
 
+
+  const handleAddTutor = async () => {
+    const fetchedTutors = await UserService.fetchAllTutors();
+    setTutors(fetchedTutors)
+  }
+
+  const [tutorData, setTutorData] = useState<CreateTutor> ({
+    name: '',
+    lastName: '',
+    dni: '',
+    email: '',
+    telephone: '',
+    birthdate: new Date().toISOString(),
+    yearEntry: new Date().toISOString(),
+    observations: '',
+    countryId: 1,
+    sex: '',
+    category: '',
+    dedication: '',
+    dedicationDays: 1,
+    departmentId: 0
+  })
+  
   const handleDeleteConfirm = async () => {
     if (selectedTutor) {
       try {
@@ -135,6 +158,31 @@ const Tutores: React.FC = () => {
       }
     }
   };
+  const handleCreateClick = () => {
+        setTutorData({
+          name:'',
+          lastName: '',
+          dni: '',
+          email: '',
+          telephone: '',
+          birthdate: new Date().toISOString(),
+          yearEntry: new Date().toISOString(),
+          observations: '',
+          countryId: 1,
+          sex: '',
+          category: '',
+          dedication: '',
+          dedicationDays: 0,
+          departmentId: 0
+        });
+        openCreateModal();
+      };
+    
+      
+      
+      
+
+
     
 
   const renderStudentRow = (tutor: Tutors) => (
@@ -142,7 +190,7 @@ const Tutores: React.FC = () => {
       <Td>{tutor.user.name}</Td>
       <Td>{tutor.user.lastName}</Td>
       <Td>{tutor.user.email}</Td>
-      <Td>{tutor.user.role}</Td>
+      <Td>{tutor.category}</Td>
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -179,7 +227,11 @@ const Tutores: React.FC = () => {
           data={tutors}
           TableHeader={TableHeader}
           caption="Tutores"
+          showAddMenu={true}
           renderRow={renderStudentRow}
+          addItemLabel="Tutor"
+          onCreateOpen={handleCreateClick}
+          
         />
       ) : (
         <p>Loading...</p>
@@ -192,6 +244,12 @@ const Tutores: React.FC = () => {
         onInputChange={handleInputChange}
         title="Editar Tutor"
         entityName="tutor"
+      />
+
+      <CreateTutorModal
+      isOpen={isCreateModalOpen}
+      onClose={closeCreateModal}
+      onAddTutor={handleAddTutor}
       />
 
       <DeleteModal

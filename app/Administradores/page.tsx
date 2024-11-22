@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 
 import { IconButton, Td, Tr } from "@chakra-ui/react";
-import { EditIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {  UserService } from "../../services/admin-service";
 import { User } from "../interfaces/user.interface";
 
@@ -17,7 +17,7 @@ const Administradores: React.FC = () => {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const data = await UserService.fetchAllUsers();
+        const data = await UserService.fetchAllAdmins();
         setUsers(data);
         console.log(data);
       } catch (err) {
@@ -45,6 +45,16 @@ const Administradores: React.FC = () => {
             color: "White",
           }}
         />
+        <IconButton
+        icon={<DeleteIcon boxSize={5}/>}
+        aria-label="delete"
+        backgroundColor="white"
+        _hover={{
+          borderRadius: 10,
+          backgroundColor: '#318AE4',
+          color:"white"
+        }}
+        />
       </Td>
     </Tr>
   );
@@ -58,6 +68,8 @@ const Administradores: React.FC = () => {
           TableHeader={TableHeader}
           renderRow={renderAdminRow}
           caption="Administradores"
+          showAddMenu={true}
+          addItemLabel="Administador"
         />
       ) : (
         <p>Loading...</p>

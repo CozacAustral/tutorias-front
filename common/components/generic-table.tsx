@@ -36,6 +36,7 @@ interface GenericTableProps<T> {
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
+  addItemLabel?: string ;
 }
 
 const GenericTable = <T,>({
@@ -46,11 +47,11 @@ const GenericTable = <T,>({
   showAddMenu = false,
   onImportOpen,
   onCreateOpen,
+  addItemLabel = ' Item'
 }: GenericTableProps<T>) => {
   const itemsPerPage = 3
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("")
-
   const handleSearch = (term: string) => {
     setSearchTerm(term)
     setCurrentPage(1)
@@ -58,10 +59,8 @@ const GenericTable = <T,>({
 
   const filteredData = data.filter((row) => 
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
-  )
+)
 
-
-  
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData.slice(startIndex, endIndex)
@@ -144,8 +143,8 @@ const GenericTable = <T,>({
               icon={<SmallAddIcon />}
             />
             <MenuList>
-              <MenuItem onClick={onCreateOpen}>Agregar Alumno</MenuItem>
-              <MenuItem onClick={onImportOpen}>Importar Alumnos</MenuItem>
+              <MenuItem onClick={onCreateOpen}>Crear {addItemLabel}</MenuItem>
+              <MenuItem onClick={onImportOpen}>Importar {addItemLabel}</MenuItem>
             </MenuList>
           </Menu>
         )}

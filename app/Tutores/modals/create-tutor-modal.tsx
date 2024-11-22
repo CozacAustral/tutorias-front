@@ -19,70 +19,74 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { UserService } from "../../../services/admin-service";
-import { CreateStudent } from "../../../app/interfaces/CreateStudent";
+import { format, parseISO } from "date-fns";
+import { CreateTutor } from "../../interfaces/create-tutor";
 
 interface CreateStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddStudent: () => void;
+  onAddTutor: () => void;
 }
 
-
-const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose, onAddStudent })  => {
-  const toast = useToast();
-  const [studentData, setStudentData] = useState<CreateStudent>({
+const CreateTutorModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose, onAddTutor })  => {
+    const toast = useToast();
+    const [tutorData, setTutorData] = useState<CreateTutor>({
+    email: '',
     name: '',
     lastName: '',
+    sex: '',
     dni: '',
-    email: '',
     telephone: '',
     birthdate: new Date().toISOString(),
-    address: '',
     yearEntry: new Date().toISOString(),
     observations: '',
     countryId: 1,
-    careerId: 1,
+    category: '',
+    dedication: '',
+    dedicationDays: 1,
+    departmentId: 1
   });
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
   
-    setStudentData((prevData) => ({
+    setTutorData((prevData) => ({
       ...prevData,
-      [name]: 
-        name === "birthdate" || name === "yearEntry" 
-          ? new Date(value).toISOString().split('T')[0]  // yyyy-MM-dd
-          : name === "careerId" || name === "countryId" 
-            ? parseInt(value) 
-            : value,
+      [name]:
+        name === "birthdate" || name === "yearEntry"
+          ? format(new Date(value), "yyyy-MM-dd")
+          : name === "dedicationDays" || name === "departmentId"  // Aquí se asegura de que sean enteros
+          ? parseInt(value, 10) || 0  // Si no es un número válido, se asigna 0
+          : value,
     }));
   };
+  
   
 
   const handleSubmit = async () => {
     try {
         const formattedData = {
-            ...studentData,
-            birthdate: new Date(studentData.birthdate).toISOString(),
-            yearEntry: new Date(studentData.yearEntry).toISOString(),
+            ...tutorData,
+            birthdate: new Date(tutorData.birthdate).toISOString(),
+            yearEntry: new Date(tutorData.yearEntry).toISOString(),
         };
         
-      await UserService.createStudent(formattedData);
-      onAddStudent();
-
-        onClose();
-        toast({
+      await UserService.createTutor(formattedData);
+      onAddTutor();
+      onClose();
+      toast({
             title: "Éxito",
-            description: "Estudiante creado exitosamente.",
+            description: "Tutor creado exitosamente.",
             status: "success",
             duration: 5000,
             isClosable: true,
         });
     } catch (error) {
-        console.error("Error al crear el estudiante", error);
+        console.error("Error al crear el tutor", error);
         toast({
             title: "Error",
-            description: "No se pudo crear el estudiante.",
+            description: "No se pudo crear el tutor.",
             status: "error",
             duration: 5000,
             isClosable: true,
@@ -90,13 +94,12 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
     }
 };
 
-
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl">
         <ModalOverlay />
         <ModalContent maxW="51vw">
-          <ModalHeader >Crear Alumno</ModalHeader>
+          <ModalHeader >Crear Tutor</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
 
@@ -113,30 +116,29 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   borderRadius="15px"
                   w="100%"
                   h="50px"
-                  value={studentData.name}
+                  value={tutorData.name}
                   onChange={handleChange}
-                  placeholder="Escribe el nombre del estudiante"
+                  placeholder="Escribe el nombre del tutor"
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
                 <FormLabel>Apellido</FormLabel>
                 <Input
                   name="lastName"
+                  type="text"
                   borderColor="light_gray"
                   bg="Very_Light_Gray"
                   borderWidth="4px"
                   borderRadius="15px"
                   w="100%"
                   h="50px"
-                  value={studentData.lastName}
+                  value={tutorData.lastName}
                   onChange={handleChange}
-                  placeholder="Escribe el apellido del estudiante"
+                  placeholder="Escribe el apellido del tutor"
                 />
               </FormControl>
               </HStack>
               </VStack>
-
-
 
               <VStack spacing={4} align="stretch">
               <HStack spacing={4} w="100%">
@@ -144,15 +146,16 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 <FormLabel>DNI</FormLabel>
                 <Input
                   name="dni"
+                  type="number"
                   borderColor="light_gray"
                   bg="Very_Light_Gray"
                   borderWidth="4px"
                   borderRadius="15px"
                   w="100%"
                   h="50px"
-                  value={studentData.dni}
+                  value={tutorData.dni}
                   onChange={handleChange}
-                  placeholder="Escribe el DNI del estudiante"
+                  placeholder="Escribe el DNI del tutor"
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -165,9 +168,9 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   borderRadius="15px"
                   w="100%"
                   h="50px"
-                  value={studentData.email}
+                  value={tutorData.email}
                   onChange={handleChange}
-                  placeholder="Escribe el email del estudiante"
+                  placeholder="Escribe el email del tutor"
                 />
               </FormControl>
               </HStack>
@@ -178,7 +181,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
               <FormControl isRequired mt={4}>
                 <FormLabel>Telefono</FormLabel>
                 <Input
-                type="tel"
+                type="number"
                   name="telephone"
                   borderColor="light_gray"
                   bg="Very_Light_Gray"
@@ -186,13 +189,13 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   borderRadius="15px"
                   w="100%"
                   h="50px"
-                  value={studentData.telephone}
+                  value={tutorData.telephone}
                   onChange={handleChange}
-                  placeholder="Ingrese el telefono del estudiante"
+                  placeholder="Ingrese el telefono del tutor"
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
-                <FormLabel>Fecha Nacacimiento</FormLabel>
+                <FormLabel>Fecha Nacimiento</FormLabel>
                 <Input
                   name="birthdate"
                   type="date"
@@ -202,30 +205,66 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   borderRadius="15px"
                   w="100%"
                   h="50px"
-                  value={studentData.birthdate}
+                  value={format(new Date(tutorData.birthdate), "yyyy-MM-dd")}
                   onChange={handleChange}
-                  placeholder="Ingrese la fecha de nacimiento del estudiante"
+                  placeholder="Ingrese la fecha de nacimiento del tutor"
                 />
               </FormControl>
               </HStack>
               </VStack>
 
-
               <VStack spacing={4} align="stretch">
               <HStack spacing={4} w="100%">
               <FormControl isRequired mt={4}>
-                <FormLabel>Direccion</FormLabel>
+                <FormLabel>Dedicación</FormLabel>
                 <Input
-                  name="address"
+                  name="dedication"
                   borderColor="light_gray"
                   bg="Very_Light_Gray"
                   borderWidth="4px"
                   borderRadius="15px"
                   w="100%"
                   h="50px"
-                  value={studentData.address}
+                  value={tutorData.dedication}
                   onChange={handleChange}
-                  placeholder="Ingrese la direccion del estudiante"
+                  placeholder="Ingrese la dedicación del tutor"
+                />
+              </FormControl>
+              <FormControl isRequired mt={4}>
+                <FormLabel>Días dedicación</FormLabel>
+                <Input
+                  name="dedicationDays"
+                  type="number"
+                  borderColor="light_gray"
+                  bg="Very_Light_Gray"
+                  borderWidth="4px"
+                  borderRadius="15px"
+                  w="100%"
+                  h="50px"
+                  value={tutorData.dedicationDays}
+                  onChange={handleChange}
+                  placeholder="Ingrese los días de dedicación del tutor"
+                />
+              </FormControl>
+              </HStack>
+              </VStack>
+
+              <VStack spacing={4} align="stretch">
+              <HStack spacing={4} w="100%">
+              <FormControl isRequired mt={4}>
+                <FormLabel>Departamento</FormLabel>
+                <Input
+                  type="number"
+                  name="departmentId"
+                  borderColor="light_gray"
+                  bg="Very_Light_Gray"
+                  borderWidth="4px"
+                  borderRadius="15px"
+                  w="100%"
+                  h="50px"
+                  value={tutorData.departmentId}
+                  onChange={handleChange}
+                  placeholder="Ingrese el departamento del tutor"
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -239,9 +278,9 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   borderRadius="15px"
                   w="100%"
                   h="50px"
-                  value={studentData.yearEntry}
+                  value={tutorData.yearEntry}
                   onChange={handleChange}
-                  placeholder="Ingrese el año de ingreso del estudiante"
+                  placeholder="Ingrese el año de ingreso del tutor"
                 />
               </FormControl>
               </HStack>
@@ -250,67 +289,74 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
               <VStack spacing={4} align="stretch">
               <HStack spacing={4} w="100%">
               <FormControl isRequired>
-              <FormLabel>País</FormLabel>
-              <Select
-                name="countryId"
-                borderColor="light_gray"
-                bg="Very_Light_Gray"
-                borderWidth="4px"
-                borderRadius="15px"
-                defaultValue={studentData.countryId}
-                onChange={handleChange}
-              >
-                <option value={1}>Argentina</option>
-                <option value={2}>Brasil</option>
-                <option value={3}>Chile</option>
-                <option value={4}>Paraguay</option>
-              </Select>
-            </FormControl>
-
-              <FormControl isRequired>
-              <FormLabel>Carrera</FormLabel>
-              <Select
-                name="careerId"
-                borderColor="light_gray"
-                bg="Very_Light_Gray"
-                borderWidth="4px"
-                borderRadius="15px"
-                defaultValue={studentData.careerId}
-                onChange={handleChange}
-              >
-                <option value={1}>Administración de Empresas</option>
-                <option value={2}>Tecnicatura en Programación</option>
-                <option value={3}>Abogacía</option>
-              </Select>
-            </FormControl>
-              </HStack>
-              </VStack>
-              <FormControl>
-                <FormLabel>Observaciones</FormLabel>
-                <Input
-                type="text"
-                name="observations"
-                borderColor="light_gray"
+                <FormLabel>País</FormLabel>
+                <Select
+                  name="countryId"
+                  borderColor="light_gray"
                   bg="Very_Light_Gray"
                   borderWidth="4px"
-                borderRadius="15px"
-                w="100%"
-                h="50px"
-                value={studentData.observations}
-                onChange={handleChange}
+                  borderRadius="15px"
+                  defaultValue={tutorData.countryId}
+                  onChange={handleChange}
+                >
+                  <option value={1}>Argentina</option>
+                  <option value={2}>Chile</option>
+                  <option value={3}>Brasil</option>
+                </Select>
+              </FormControl>
+              <FormControl isRequired mt={4}>
+                <FormLabel>Categoria</FormLabel>
+                <Input
+                  name="category"
+                  type="text"
+                  borderColor="light_gray"
+                  bg="Very_Light_Gray"
+                  borderWidth="4px"
+                  borderRadius="15px"
+                  w="100%"
+                  h="50px"
+                  value={tutorData.category}
+                  onChange={handleChange}
+                  placeholder="Ingrese la categoria del tutor"
                 />
               </FormControl>
+              </HStack>
+              </VStack>
+              <VStack spacing={4} align="stretch">
+              <HStack spacing={4} w="100%">
+              <FormControl isRequired mt={4}>
+                <FormLabel>Sexo</FormLabel>
+                <Input
+                type="text"
+                  name="sex"
+                  borderColor="light_gray"
+                  bg="Very_Light_Gray"
+                  borderWidth="4px"
+                  borderRadius="15px"
+                  w="100%"
+                  h="50px"
+                  value={tutorData.sex}
+                  onChange={handleChange}
+                  placeholder="Ingrese el sexo del tutor"
+                />
+              </FormControl>
+              </HStack>
+              </VStack>
+
           </ModalBody>
+          
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} type="submit" onClick={handleSubmit}>
-              Guardar
+            <Button variant="ghost" onClick={onClose}>
+              Cancelar
             </Button>
-            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button bg="primary"  color="white"onClick={handleSubmit}>
+              Crear Tutor
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
     </>
   );
-};
+}
 
-export default CreateStudentModal;
+export default CreateTutorModal;
