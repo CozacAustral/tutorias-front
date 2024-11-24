@@ -19,7 +19,7 @@ const SideBar = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = Cookies.get("authTokens"); // Usa el nombre correcto de la cookie
+    const token = Cookies.get("authTokens"); 
     if (token) {
       try {
         const decodedToken = jwt.decode(token);
@@ -252,7 +252,7 @@ const SideBar = () => {
           color="white"
           bg="secondary"
           boxSize="50px"
-          fontSize="20px"
+          fontSize="25px"
           icon={collapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
           onClick={toggleSidebar}
           aria-label="Toggle SideBar"
@@ -262,7 +262,6 @@ const SideBar = () => {
           display="flex"
           flexDirection={collapsed ? "column" : "row"}
           alignItems="center"
-          pb="1rem"
         />
         <IconButton
           color="white"

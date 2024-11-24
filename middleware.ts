@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const authTokens = request.cookies.get("authTokens")?.value;
 
   const protectedRoutes = [
-    "/Tzutores",
+    "/Tutores",
     "/alumnos",
     "/Administradores",
     "/MiPerfil",

@@ -79,6 +79,7 @@ const Estudiantes: React.FC = () => {
       try {
         const fetchedStudents = await UserService.fetchAllStudents();
         setStudents(fetchedStudents);
+        console.log(fetchedStudents)
       } catch (error) {
         console.error('Error fetching students:', error);
         setError("No se pudieron cargar los estudiantes.");
@@ -212,7 +213,7 @@ const Estudiantes: React.FC = () => {
       <Td>{student.user.lastName}</Td>
       <Td>{student.telephone}</Td>
       <Td>{student.user.email}</Td>
-      <Td>{student.careersId}</Td>
+      <Td>{student.careers && student.careers.length > 0 ? student.careers[0]?.name : 'No name available'}</Td>
       <Td>
         <IconButton
           icon={<ViewIcon boxSize={5} />}
@@ -295,6 +296,7 @@ const Estudiantes: React.FC = () => {
       <ImportModal
       isOpen={isImportModalOpen}
       onClose={closeImportModal}
+      onImport={handleImport}
       />
       <ViewStudentModal
       isOpen={isViewModalOpen}
