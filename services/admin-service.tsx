@@ -20,7 +20,7 @@ export const UserService = {
       const response = await axiosInstance.get<Student>(`${url_students}/${id}`);
       return response.data
     }catch(error) {
-      Toast({
+      toast({
         title: "Error",
         description: `No se pudo obtener el estudiante con ID ${id}.`,
         status: "error",
