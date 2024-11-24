@@ -1,8 +1,8 @@
-import axiosInstance from "../axiosConfig";
-import { User } from "../app/interfaces/user.interface";
-import { Tutors } from "../app/interfaces/tutors.interface";
-import { Student } from "../app/interfaces/student.interface";
 import { CreateStudent } from "../app/interfaces/CreateStudent";
+import { Student } from "../app/interfaces/student.interface";
+import { Tutors } from "../app/interfaces/tutors.interface";
+import { User } from "../app/interfaces/user.interface";
+import axiosInstance from "../axiosConfig";
 
 const url = "users";
 const url_tutors = "tutors";

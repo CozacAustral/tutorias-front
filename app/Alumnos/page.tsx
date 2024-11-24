@@ -7,12 +7,11 @@ import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
 import ImportModal from "../../common/components/modals/import-modal";
-import { Student } from "../interfaces/student.interface";
 import CreateStudentModal from "../../common/components/modals/create-student-modal";
-import { UpdateStudentDto } from "../interfaces/update-student";
-import { FaGraduationCap } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import ViewStudentModal from "../../common/components/modals/view-student-modal";
+import { Student } from "../interfaces/students/student.interface";
+import { UpdateStudentDto } from "../interfaces/update-student";
 
 
 const Estudiantes: React.FC = () => {
