@@ -11,6 +11,18 @@ const url_students = "students";
 
 export const UserService = {
 
+
+  async fetchStudentById(id: number): Promise<Student> {
+    try {
+      const response = await axiosInstance.get<Student>(`${url_students}/${id}`);
+      return response.data
+    }catch(error) {
+      console.error(`Error to find student with ID ${id}:`, error);
+    }
+    console.error("Error al obtener a el estudiante: " )
+    throw new Error(`No se pudo obtener el estudiante con ID ${id}`);
+  },
+  
   async fetchAllUsers(): Promise<User[]> {
     try {
       const response = await axiosInstance.get<User[]>(url);
