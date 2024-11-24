@@ -1,3 +1,4 @@
+import { Career } from "./career-interface";
 import { User } from "./user.interface";
 
 export interface Student {
@@ -10,6 +11,7 @@ export interface Student {
     observations?: string;
     countryId: number;
     user: User;
+    careers: Career[]
     userId: number;
     createdAt: Date;
     updatedAt: Date;

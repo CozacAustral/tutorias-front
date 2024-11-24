@@ -9,9 +9,9 @@ export interface Tutors {
     category: string;
     dedication: string;
     dedicationDays: number;
+    countryId: number;
     user: User;
     userId: number;
-    countryId: number;
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;

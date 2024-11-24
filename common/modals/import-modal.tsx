@@ -12,7 +12,7 @@ import {
   InputGroup,
 } from "@chakra-ui/react";
 import React, { useRef, useState } from "react";
-import { UserService } from '../../../services/admin-service';
+import { UserService } from '../../services/admin-service';
 
 
 interface ImportModalProps {

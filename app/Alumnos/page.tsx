@@ -1,17 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
-import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
+import { IconButton, Spinner, Td, Tr, useDisclosure, useToast, Text, Center } from "@chakra-ui/react";
 import { UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
-import EditModal from "../../common/components/modals/edit-modal";
-import DeleteModal from "../../common/components/modals/detele-modal";
-import ImportModal from "../../common/components/modals/import-modal";
+import EditModal from "../../common/modals/edit-modal";
+import DeleteModal from "../../common/modals/detele-modal";
+import ImportModal from "../../common/modals/import-modal";
 import { Student } from "../interfaces/student.interface";
-import CreateStudentModal from "../../common/components/modals/create-student-modal";
 import { CreateStudent } from "../interfaces/CreateStudent";
 import { UpdateStudentDto } from "../interfaces/update-student";
-import { Update } from "next/dist/build/swc";
+import CreateStudentModal from "./modals/create-student-modal";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -56,12 +55,9 @@ const Estudiantes: React.FC = () => {
   });
 
 
-  const TableHeader = [
-    "Nombre",
-    "Apellido",
-    "Num. Celular",
-    "Correo",
-    "Carrera/s",
+
+
+  const TableHeader = ["Nombre", "Apellido", "Num. Celular", "Correo", "Carrera/s",
   ];
 
   useEffect(() => {
@@ -79,14 +75,9 @@ const Estudiantes: React.FC = () => {
   
     loadStudents();
   }, []);
-  
-
-
-
 
   const handleDeleteClick = (student : Student ) => {
     setSelectedStudent(student)
-
     openDeleteModal();
   }
 
@@ -106,7 +97,6 @@ const Estudiantes: React.FC = () => {
     openEditModal();
   };
   
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -151,7 +141,19 @@ const Estudiantes: React.FC = () => {
       setStudents(fetchedStudents); 
   };
   
-  
+  const [studentData, setStudentData] = useState<CreateStudent>({
+    name: '',
+    lastName: '',
+    dni: '',
+    email: '',
+    telephone: '',
+    birthdate: new Date().toISOString(),
+    address: '',
+    yearEntry: new Date().toISOString(),
+    observations: '',
+    countryId: 1,
+    careerId: 1,
+  });
 
   const handleDeleteConfirm = async () => {
     if (selectedStudent) {
@@ -181,14 +183,27 @@ const Estudiantes: React.FC = () => {
     }
   };
 
+  const handleCreateClick = () => {
+    setStudentData({
+      name: '',
+      lastName: '',
+      dni: '',
+      email: '',
+      telephone: '',
+      birthdate: new Date().toISOString(),
+      address: '',
+      yearEntry: new Date().toISOString(),
+      observations: '',
+      countryId: 1,
+      careerId: 1,
+    });
+    openCreateModal();
+  };
+
   const handleImport = (data: any) => {
     console.log("imported data", data)
   }
   
-  const handleCreateClick = () => {
-    openCreateModal();
-  };
-
 
   
 
@@ -198,7 +213,6 @@ const Estudiantes: React.FC = () => {
       <Td>{student.user.lastName}</Td>
       <Td>{student.telephone}</Td>
       <Td>{student.user.email}</Td>
-      {/* <Td>{student.}</Td> */}
       <Td>
         <IconButton
           icon={<ViewIcon boxSize={5} />}
@@ -242,8 +256,12 @@ const Estudiantes: React.FC = () => {
   return (
     <>
       {error && <p>{error}</p>}
-      {students ? (
-        <GenericTable
+      {loading ? (
+        <Center>
+          <Spinner size="xl" />
+          </Center>
+          ) : students.length > 0 ? (
+          <GenericTable
           data={students}
           TableHeader={TableHeader}
           caption="Alumnos"
@@ -251,10 +269,12 @@ const Estudiantes: React.FC = () => {
           showAddMenu={true}
           onImportOpen={openImportModal}
           onCreateOpen={handleCreateClick}
-        />
-      ) : (
-        <p>Loading...</p>
-      )}
+          addItemLabel="Estudiante"
+          />
+        ) : (
+        <Text>No hay estudiantes disponibles.</Text>
+        )}
+
       <EditModal
       isOpen={isEditModalOpen}
       onClose={closeEditModal}
@@ -268,7 +288,8 @@ const Estudiantes: React.FC = () => {
       <ImportModal
       isOpen={isImportModalOpen}
       onClose={closeImportModal}
-      />
+      onImport={handleImport}
+      /> 
 
       <CreateStudentModal
       isOpen={isCreateModalOpen}

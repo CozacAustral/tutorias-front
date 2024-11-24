@@ -1,6 +1,7 @@
 "use client";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { HiEye, HiEyeOff } from "react-icons/hi"; 
 import React, { useState } from "react";
 import {
   Stack,
@@ -13,6 +14,7 @@ import {
   Text,
   FormHelperText,
   Container,
+  IconButton,
 } from "@chakra-ui/react";
 import { login } from "./api";
 
@@ -106,6 +108,19 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 paddingLeft="1.5rem"
                 width="100%"
+              />
+              <IconButton
+              aria-label="mostrar/ocultar contrasena"
+              icon={showPassword ? <HiEyeOff/> : <HiEye/>}
+              onClick={handleClick}
+              position='absolute'
+              right='10px'
+              backgroundColor="light_gray"
+              top="50%"
+              transform="translateY(-50%)"
+              variant="link"
+              color="gray.900"
+              fontSize="24px"
               />
             </FormControl>
 
