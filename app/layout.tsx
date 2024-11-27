@@ -17,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <body>
         <ChakraProvider theme={customTheme}>
           <div className="container">
-            {pathname !== "/Login" && <SideBar />}
+            {pathname !== "/login" && <SideBar />}
             <main className="content">{children}</main>
           </div>
         </ChakraProvider>

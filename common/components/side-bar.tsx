@@ -19,7 +19,7 @@ const SideBar = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = Cookies.get("authTokens"); // Usa el nombre correcto de la cookie
+    const token = Cookies.get("authTokens"); 
     if (token) {
       try {
         const decodedToken = jwt.decode(token);
@@ -42,7 +42,7 @@ const SideBar = () => {
 
   const handleLogout = () => {
     Cookies.remove("authTokens", { path: "/" });
-    router.push("/Login");
+    router.push("/login");
   };
 
   return (
@@ -81,12 +81,12 @@ const SideBar = () => {
         </Box>
         <Flex direction="column" as="ul" listStyleType="none" p={0}>
           <Box as="li" mb="1rem">
-            <Link href="/Profile" passHref style={{ textDecoration: "none" }}>
+            <Link href="/profile" passHref style={{ textDecoration: "none" }}>
               <Flex
                 align="center"
                 p="0.5rem"
-                bg={isActiveLink("/Profile") ? "secondary" : "primary"}
-                color={isActiveLink("/Profile") ? "white" : "#fff3e9"}
+                bg={isActiveLink("/profile") ? "secondary" : "primary"}
+                color={isActiveLink("/profile") ? "white" : "#fff3e9"}
                 borderRadius="10px"
                 transition="background-color 0.1s ease-in-out"
                 _hover={{ bg: "#318AE4", color: "white" }}
@@ -105,12 +105,12 @@ const SideBar = () => {
           </Box>
 
           <Box as="li" mb="1rem">
-            <Link href="/Reuniones" passHref style={{ textDecoration: "none" }}>
+            <Link href="/reuniones" passHref style={{ textDecoration: "none" }}>
               <Flex
                 align="center"
                 p="0.5rem"
-                bg={isActiveLink("/Reuniones") ? "secondary" : "primary"}
-                color={isActiveLink("/Reuniones") ? "white" : "#fff3e9"}
+                bg={isActiveLink("/reuniones") ? "secondary" : "primary"}
+                color={isActiveLink("/reuniones") ? "white" : "#fff3e9"}
                 borderRadius="6px"
                 transition="background-color 0.1s ease-in-out"
                 _hover={{ bg: "secondary", color: "white" }}
@@ -132,15 +132,15 @@ const SideBar = () => {
             <>
               <Box as="li" mb="1rem">
                 <Link
-                  href="/Administradores"
+                  href="/administradores"
                   passHref
                   style={{ textDecoration: "none" }}
                 >
                   <Flex
                     align="center"
                     p="0.5rem"
-                    bg={isActiveLink("/Administradores") ? "secondary" : "primary"}
-                    color={isActiveLink("/Administradores") ? "white" : "#fff3e9"}
+                    bg={isActiveLink("/administradores") ? "secondary" : "primary"}
+                    color={isActiveLink("/administradores") ? "white" : "#fff3e9"}
                     borderRadius="10px"
                     transition="background-color 0.1s ease-in-out"
                     _hover={{ bg: "secondary", color: "white" }}
@@ -159,12 +159,12 @@ const SideBar = () => {
               </Box>
 
               <Box as="li" mb="1rem">
-                <Link href="/Tutores" passHref style={{ textDecoration: "none" }}>
+                <Link href="/tutores" passHref style={{ textDecoration: "none" }}>
                   <Flex
                     align="center"
                     p="0.5rem"
-                    bg={isActiveLink("/Tutores") ? "secondary" : "primary"}
-                    color={isActiveLink("/Tutores") ? "white" : "#fff3e9"}
+                    bg={isActiveLink("/tutores") ? "secondary" : "primary"}
+                    color={isActiveLink("/tutores") ? "white" : "#fff3e9"}
                     borderRadius="10px"
                     transition="background-color 0.1s ease-in-out"
                     _hover={{ bg: "#318AE4", color: "white" }}
@@ -215,12 +215,12 @@ const SideBar = () => {
               </Box>
 
               <Box as="li" mb="1rem">
-                <Link href="/Alumnos" passHref style={{ textDecoration: "none" }}>
+                <Link href="/alumnos" passHref style={{ textDecoration: "none" }}>
                   <Flex
                     align="center"
                     p="0.5rem"
-                    bg={isActiveLink("/Alumnos") ? "secondary" : "primary"}
-                    color={isActiveLink("/Alumnos") ? "white" : "#fff3e9"}
+                    bg={isActiveLink("/alumnos") ? "secondary" : "primary"}
+                    color={isActiveLink("/alumnos") ? "white" : "#fff3e9"}
                     borderRadius="6px"
                     transition="background-color 0.1s ease-in-out"
                     _hover={{ bg: "secondary", color: "white" }}
@@ -252,7 +252,7 @@ const SideBar = () => {
           color="white"
           bg="secondary"
           boxSize="50px"
-          fontSize="20px"
+          fontSize="25px"
           icon={collapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
           onClick={toggleSidebar}
           aria-label="Toggle SideBar"
@@ -262,7 +262,6 @@ const SideBar = () => {
           display="flex"
           flexDirection={collapsed ? "column" : "row"}
           alignItems="center"
-          pb="1rem"
         />
         <IconButton
           color="white"

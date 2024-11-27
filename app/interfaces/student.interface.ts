@@ -10,7 +10,7 @@ export interface Student {
     yearEntry: Date;
     observations?: string;
     careersId:number[];
-    carrera: Career
+    careers: Career[];
     countryId: number;
     user: User;
     userId: number;

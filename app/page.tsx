@@ -5,7 +5,7 @@ export default function Page() {
   const isAuthenticated = true;
 
   if (!isAuthenticated) {
-    redirect("/Login");
+    redirect("/login");
   }
 
   return (

@@ -142,7 +142,7 @@ const Tutores: React.FC = () => {
       <Td>{tutor.user.name}</Td>
       <Td>{tutor.user.lastName}</Td>
       <Td>{tutor.user.email}</Td>
-      <Td>{tutor.user.role}</Td>
+      <Td>{tutor.category}</Td>
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
