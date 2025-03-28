@@ -21,8 +21,12 @@ import {
   MenuList,
   MenuItem,
   IconButton,
+
 } from "@chakra-ui/react";
-import { SmallAddIcon, Search2Icon, TriangleDownIcon } from "@chakra-ui/icons";
+
+import { SmallAddIcon, Search2Icon, TriangleDownIcon, ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import Search from "../../app/ui/search";
+
 
 interface GenericTableProps<T> {
   data: T[];
@@ -32,6 +36,7 @@ interface GenericTableProps<T> {
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
+  addItemLabel?: string ;
 }
 
 const GenericTable = <T,>({
@@ -41,8 +46,39 @@ const GenericTable = <T,>({
   renderRow,
   showAddMenu = false,
   onImportOpen,
-  onCreateOpen
+  onCreateOpen,
+  addItemLabel = ' Item'
 }: GenericTableProps<T>) => {
+  const itemsPerPage = 3
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("")
+  const handleSearch = (term: string) => {
+    setSearchTerm(term)
+    setCurrentPage(1)
+  }
+
+  const filteredData = data.filter((row) => 
+    JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
+)
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = filteredData.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const nextPage = () => {
+    if (endIndex < filteredData.length) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1){
+      setCurrentPage((prev) => prev - 1)
+    }
+  }
+
+
   return (
     <Flex
       justifyContent="center"
@@ -71,12 +107,9 @@ const GenericTable = <T,>({
         mt="-25"
       >
         <Flex mb={4} width="100%">
-          <InputGroup width="30%" mr={2}>
-            <InputLeftElement pointerEvents="none">
-              <Search2Icon color="black" />
-            </InputLeftElement>
-            <Input placeholder="Buscar" />
-          </InputGroup>
+          {/*Componete busqueda o search */}
+          <Search onSearch={handleSearch}/>
+
           <Menu>
             <MenuButton as={InputGroup} width="30%" mr={2}>
               <Input placeholder="Ordenar por..." readOnly />
@@ -110,14 +143,14 @@ const GenericTable = <T,>({
               icon={<SmallAddIcon />}
             />
             <MenuList>
-              <MenuItem onClick={onCreateOpen}>Agregar Alumno</MenuItem>
-              <MenuItem onClick={onImportOpen}>Importar Alumnos</MenuItem>
+              <MenuItem onClick={onCreateOpen}>Crear {addItemLabel}</MenuItem>
+              <MenuItem onClick={onImportOpen}>Importar {addItemLabel}</MenuItem>
             </MenuList>
           </Menu>
         )}
         </Flex>
         <TableContainer>
-          <Table variant="simple" size="lg" overflowX={"hidden"} overflowY={"hidden"}>
+          <Table variant="simple" size="md" overflowX={"hidden"} overflowY={"hidden"}>
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
@@ -128,9 +161,16 @@ const GenericTable = <T,>({
                 <Th></Th>
               </Tr>
             </Thead>
-            <Tbody>{data.map((row, index) => renderRow(row))}</Tbody>
+            <Tbody>{currentData.map((row, index) => renderRow(row))}</Tbody>
           </Table>
         </TableContainer>
+        <Flex justifyContent="space-between" mt={4}>
+          <Button onClick={prevPage} isDisabled={currentPage === 1} leftIcon={<ChevronLeftIcon/>}>
+          </Button>
+          <Text> Página {currentPage}/{totalPages}</Text>
+          <Button onClick={nextPage} isDisabled={endIndex >= filteredData.length} rightIcon={<ChevronRightIcon/>}>
+          </Button>
+        </Flex>
       </Box>
     </Flex>
   );
