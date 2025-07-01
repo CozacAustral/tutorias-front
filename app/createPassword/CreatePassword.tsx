@@ -2,24 +2,20 @@
 
 import { Container, Image, Stack, Text, FormControl, Input, Box, IconButton, Button, FormHelperText, Link} from '@chakra-ui/react'
 import { HiEye, HiEyeOff } from "react-icons/hi"; 
-import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation';
 import { createPassword } from './api'
-import Cookies from "js-cookie";
-import { tokenProps } from '../../interfaces/tokenProps.interface'
+import { CreatePasswordProps } from '../interfaces/createPassword.interface'
 
-const CreatePassword = ({ params } : tokenProps) => {
-    const router = useRouter();
-    const token = params.token
-    
+const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {  
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState('')
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState(false)
     const errorPassword = useRef<HTMLInputElement>(null)
     const errorRepeatPassword= useRef<HTMLInputElement> (null)
-
-    
+    const router = useRouter()
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault()
@@ -44,11 +40,11 @@ const CreatePassword = ({ params } : tokenProps) => {
         }
         
         try{
-          const data = await createPassword(token, password)
-          Cookies.set("authTokens", data.accessToken, { expires: 7 });
-          router.push('/Login')
+          await createPassword(token, password)
+          setSuccess(true);
+          setTimeout(() => router.push('/Login'), 2000)
         } catch(error) {
-          setError('Error en la autenticacion!')
+          setError('Error al establecer la contraseña')
         }
     }   
 
