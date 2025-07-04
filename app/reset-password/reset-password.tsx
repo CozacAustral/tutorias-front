@@ -1,6 +1,6 @@
 'use client';
 
-import { Container, Image, Stack, Text, FormControl, Input, Box, IconButton, Button, FormHelperText, Link} from '@chakra-ui/react'
+import { Container, Image, Stack, Text, FormControl, Input, Box, IconButton, Button, FormHelperText, Link, InputGroup, InputRightElement} from '@chakra-ui/react'
 import { HiEye, HiEyeOff } from "react-icons/hi"; 
 import { useState, useRef, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -8,7 +8,10 @@ import { createPassword } from './api'
 import { CreatePasswordProps } from '../interfaces/createPassword.interface'
 
 const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {  
-    const [showPassword, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState({
+      password: false,
+      confirmPassword: false
+    });
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState('')
     const [error, setError] = useState("");
@@ -45,6 +48,7 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
           setTimeout(() => router.push('/Login'), 2000)
         } catch(error) {
           setError('Error al establecer la contraseña')
+          setSuccess(false)
         }
     }   
 
@@ -56,8 +60,12 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
       setRepeatPassword(event.currentTarget.value)
     }
 
-    const handleClick = () => {
-        setShowPassword(prevBool => !prevBool);
+    const handleClickPassword = () => {
+      setShowPassword(prevBool => ({ ...showPassword, password: !prevBool.password}))
+    }
+
+     const handleClickConfirmPassword = () => {
+      setShowPassword(prevBool => ({ ...showPassword, confirmPassword: !prevBool.confirmPassword}))
     }
 
   return (
@@ -77,83 +85,115 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
         textAlign="center"
         backgroundColor="softPink"
         p={6}
-        borderRadius="10px"
+        pt={10}
+        borderRadius="15px"
         shadow="md"
         width={{ base: "90%", sm: "70%", md: "50%", lg: "40%" }}
+        height='500px'
         maxW="500px"
       >
         <form onSubmit={handleSubmit}>
           <Stack spacing={4} alignItems="center">
             <Image
-              src="/images/LoginFormImage.png"
+              src="/images/australCreatePassword.png"
               alt="Image-login"
               width="100%"
-              maxWidth="450px"
-              height="auto"
-              objectFit="contain"
+              height="150px"
+              objectFit="none"
+              objectPosition='top'
             />
 
-            {error && (
-              <Text color="red.500" textAlign="center">
-                {error}
-              </Text>
-            )}
-
-            <FormControl width="100%">
+          <FormControl width="100%">
+            <InputGroup>
               <Input
-                borderRadius="3px"
+                borderRadius="8px"
                 h="42px"
                 backgroundColor="light_gray"
-                type={showPassword ? "text" : "password"}
+                type={showPassword.password ? "text" : "password"}
                 placeholder="Contraseña"
                 value={password}
                 onChange={handleSetPassword}
                 ref={errorPassword}
-                paddingLeft="1.5rem"
                 width="100%"
+                marginTop='10px'
+                padding={'21px'}
+                focusBorderColor={error ? 'red' : undefined}
               />
-            </FormControl>
+            <InputRightElement height={'100%'}>
+              <IconButton
+              aria-label="mostrar/ocultar contrasena"
+              icon={showPassword.password ? <HiEyeOff/> : <HiEye/>}
+              onClick={handleClickPassword}
+              position='absolute'
+              right='10px'
+              backgroundColor="light_gray"
+              top="58%"
+              transform="translateY(-50%)"
+              variant="link"
+              color="gray.900"
+              fontSize="24px"
+              pointerEvents={'auto'}
+              />
+            </InputRightElement>
+            </InputGroup>
+          </FormControl>
 
-            <FormControl width="100%">
-              <Input
-                borderRadius="3px"
+          <FormControl width="100%">
+            <InputGroup>
+             <Input
+                borderRadius="8px"
                 h="42px"
                 backgroundColor="light_gray"
-                type={showPassword ? "text" : "password"}
+                type={showPassword.confirmPassword ? "text" : "password"}
                 placeholder="Repetir Contraseña"
                 value={repeatPassword}
                 onChange={handleRepeatPassword}
                 ref={errorRepeatPassword}
                 paddingLeft="1.5rem"
                 width="100%"
+                marginBottom={'30px'}
+                marginTop={'18px'}
+                padding={'21px'}
+                focusBorderColor={error ? 'red' : undefined}
               />
-              <IconButton
-              aria-label="mostrar/ocultar contrasena"
-              icon={showPassword ? <HiEyeOff/> : <HiEye/>}
-              onClick={handleClick}
-              position='absolute'
-              right='10px'
-              backgroundColor="light_gray"
-              top="50%"
-              transform="translateY(-50%)"
-              variant="link"
-              color="gray.900"
-              fontSize="24px"
+              <InputRightElement height={'100%'}>
+                <IconButton
+                aria-label="mostrar/ocultar contrasena"
+                icon={showPassword.confirmPassword ? <HiEyeOff/> : <HiEye/>}
+                onClick={handleClickConfirmPassword}
+                position='absolute'
+                right='10px'
+                backgroundColor="light_gray"
+                top="45%"
+                transform="translateY(-50%)"
+                variant="link"
+                color="gray.900"
+                fontSize="24px"
+                pointerEvents={'auto'}
               />
-            </FormControl>
+              </InputRightElement>
+            </InputGroup>
+          </FormControl>
+
+           {error && (
+              <Text color="red" textAlign="center">
+                {error}
+              </Text>
+            )}
 
             <Button
-              borderRadius="5px"
+              borderRadius="8px"
               type="submit"
               backgroundColor="primary"
               color="white"
               width="100%"
               maxW="300px"
               height="42px"
-              mt={4}
+              mt={5}
+              margin={'6px'}
             >
               Crear Contraseña
-            </Button> 
+            </Button>         
           </Stack>
         </form>
       </Box>

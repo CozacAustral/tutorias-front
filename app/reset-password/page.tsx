@@ -1,13 +1,7 @@
 'use client';
 
-import CreatePassword from './CreatePassword';
+import CreatePassword from './reset-password';
 import { useSearchParams } from 'next/navigation';
-
-type PageProps = {
-  params: {
-      token: string
-  }
-}
 
 const Page = () => {
   const searchParams = useSearchParams();
