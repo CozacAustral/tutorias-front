@@ -31,6 +31,7 @@ import {
   ChevronRightIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
+import { useSidebar } from "../../app/contexts/SidebarContext";
 
 interface GenericTableProps<T> {
   data: T[];
@@ -65,7 +66,7 @@ const GenericTable = <T,>({
   const filteredData = data.filter((row) =>
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+  const { collapsed } = useSidebar();
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData.slice(startIndex, endIndex);
@@ -83,13 +84,16 @@ const GenericTable = <T,>({
     }
   };
 
+  const marginLeft = collapsed ? "6.5rem" : "15.625rem"; // o importás de constantes
+
   return (
     <Flex
       justifyContent="center"
       alignItems="center"
-      minHeight="100vh"
+      minHeight="100dvh"
       flexDirection="column"
       mt="-20"
+      ml={marginLeft}
     >
       <Box width="100%" maxWidth="1200px" mb={4}>
         <Text

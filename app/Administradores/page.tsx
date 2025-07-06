@@ -18,11 +18,12 @@ import EditModal from "../../common/components/modals/edit-modal";
 import { UserService } from "../../services/admin-service";
 import { User } from "../interfaces/user.interface";
 import DeleteModal from "../../common/components/modals/detele-modal";
+import { useSidebar } from "../contexts/SidebarContext";
 
 const Administradores: React.FC = () => {
   const [users, setUsers] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const { collapsed } = useSidebar();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isEditOpen,
@@ -179,7 +180,7 @@ const Administradores: React.FC = () => {
   return (
     <>
       {error && <p>{error}</p>}
-      <Box px={10} pt={5}>
+      <Box pl={collapsed ? "6.5rem" : "17rem"} px={10} pt={5}>
         {users ? (
           <GenericTable
             data={users}

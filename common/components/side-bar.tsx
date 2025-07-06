@@ -11,9 +11,10 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 const jwt = require("jsonwebtoken");
 import Cookies from "js-cookie";
+import { useSidebar } from "../../app/contexts/SidebarContext";
 
 const SideBar = () => {
-  const [collapsed, setCollapsed] = useState(true);
+  const { collapsed, toggleSidebar } = useSidebar();
   const [role, setRole] = useState(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -31,10 +32,6 @@ const SideBar = () => {
       console.log("No token found");
     }
   }, []);
-
-  const toggleSidebar = () => {
-    setCollapsed(!collapsed);
-  };
 
   const isActiveLink = (href: string): boolean => {
     return pathname === href;
