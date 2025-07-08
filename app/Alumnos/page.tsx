@@ -10,7 +10,7 @@ import ImportModal from "../../common/components/modals/import-modal";
 import CreateStudentModal from "../../common/components/modals/create-student-modal";
 import { useRouter } from "next/navigation";
 import ViewStudentModal from "../../common/components/modals/view-student-modal";
-import { Student } from "../interfaces/students/student.interface";
+import { Student } from "../interfaces/student.interface";
 import { UpdateStudentDto } from "../interfaces/update-student";
 
 
