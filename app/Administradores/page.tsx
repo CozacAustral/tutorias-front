@@ -59,16 +59,28 @@ const Administradores: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const handleEditClick = (admin: User) => {
-    setEditingUser(admin);
-    setEditForm({
-      name: admin.name,
-      lastName: admin.lastName,
-      email: admin.email,
-      telephone: (admin as any).telephone, // ← asegurate que 'telephone' existe
-      password: "",
-    });
-    onEditOpen();
+  const handleEditClick = async (admin: User) => {
+    try {
+      const fetchedUser = await UserService.fetchUserById(admin.id);
+
+      setEditingUser(fetchedUser); // esto sigue siendo útil
+      setEditForm({
+        name: fetchedUser.name,
+        lastName: fetchedUser.lastName,
+        telephone: (fetchedUser as any).telephone || "",
+      });
+
+      onEditOpen();
+    } catch (error) {
+      console.error("❌ Error al obtener el usuario por ID:", error);
+      toast({
+        title: "Error al obtener los datos",
+        description: "No se pudo obtener el administrador para editar.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,10 +91,15 @@ const Administradores: React.FC = () => {
   const handleEditSubmit = async () => {
     if (!editingUser) return;
 
-    const { name, lastName, password, telephone } = editForm;
+    const { name, lastName, telephone } = editForm;
 
     try {
-      await UserService.updateUser({ name, lastName, password, telephone });
+      await UserService.updateUser(editingUser.id, {
+        name,
+        lastName,
+        telephone,
+      });
+
       toast({
         title: "Administrador actualizado",
         status: "success",
@@ -172,9 +189,7 @@ const Administradores: React.FC = () => {
   const adminFields = [
     { name: "name", label: "Nombre", required: true },
     { name: "lastName", label: "Apellido", required: true },
-    { name: "email", label: "Correo", type: "email", required: true },
     { name: "telephone", label: "Teléfono", type: "tel", required: true },
-    { name: "password", label: "Contraseña", type: "password", required: true },
   ];
 
   return (
@@ -229,7 +244,6 @@ const Administradores: React.FC = () => {
           lastName: "Apellido",
           email: "Correo",
           telephone: "Teléfono",
-          password: "Contraseña",
         }}
       />
 
