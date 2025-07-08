@@ -6,13 +6,14 @@ export function middleware(request: NextRequest) {
   const authTokens = request.cookies.get("authTokens")?.value;
 
   const protectedRoutes = [
-    "/Tutores",
+    "/tutores",
     "/alumnos",
-    "/Administradores",
-    "/MiPerfil",
+    "/administradores",
+    "/miPerfil",
     "/Carrera",
-    "/alumnos_asignados"
-
+    "/alumnos_asignados",
+    "/profile",
+    "/reuniones"
   ];
   if (
     protectedRoutes.some((route) =>
@@ -41,5 +42,7 @@ export const config = {
     "/MiPerfil/:path*",
     "/Carrera/:path*",
     "/alumnos_asignados/:path",
+    "/profile",
+    "/reuniones/:path"
   ],
 };

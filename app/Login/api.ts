@@ -19,3 +19,11 @@ export const login = async (
     throw error;
   }
 };
+export const sendRecoveryEmail = async (email: string) => {
+  await fetch("/users/recover-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }), 
+  });
+};
+

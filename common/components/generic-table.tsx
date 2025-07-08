@@ -21,12 +21,16 @@ import {
   MenuList,
   MenuItem,
   IconButton,
-
 } from "@chakra-ui/react";
 
-import { SmallAddIcon, Search2Icon, TriangleDownIcon, ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import {
+  SmallAddIcon,
+  Search2Icon,
+  TriangleDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
-
 
 interface GenericTableProps<T> {
   data: T[];
@@ -36,6 +40,7 @@ interface GenericTableProps<T> {
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
+  topRightComponent?: React.ReactNode;
 }
 
 const GenericTable = <T,>({
@@ -46,25 +51,24 @@ const GenericTable = <T,>({
   showAddMenu = false,
   onImportOpen,
   onCreateOpen,
+  topRightComponent,
 }: GenericTableProps<T>) => {
-  const itemsPerPage = 3
+  const itemsPerPage = 3;
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearch = (term: string) => {
-    setSearchTerm(term)
-    setCurrentPage(1)
-  }
+    setSearchTerm(term);
+    setCurrentPage(1);
+  };
 
-  const filteredData = data.filter((row) => 
+  const filteredData = data.filter((row) =>
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  );
 
-
-  
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex)
+  const currentData = filteredData.slice(startIndex, endIndex);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const nextPage = () => {
@@ -74,11 +78,10 @@ const GenericTable = <T,>({
   };
 
   const prevPage = () => {
-    if (currentPage > 1){
-      setCurrentPage((prev) => prev - 1)
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
     }
-  }
-
+  };
 
   return (
     <Flex
@@ -107,51 +110,52 @@ const GenericTable = <T,>({
         p={4}
         mt="-25"
       >
-        <Flex mb={4} width="100%">
-          {/*Componete busqueda o search */}
-          <Search onSearch={handleSearch}/>
+        <Flex
+          mb={4}
+          width="100%"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Flex gap={2} width="100%">
+            {/* buscador, ordenar y filtrar */}
+            <Search onSearch={handleSearch} />
+            <Menu>
+              <MenuButton as={InputGroup} width="30%" mr={2}>
+                <Input placeholder="Ordenar por..." readOnly />
+                <InputRightElement pointerEvents="none">
+                  <TriangleDownIcon color="black" />
+                </InputRightElement>
+              </MenuButton>
+              <MenuList>
+                <MenuItem>De la A - Z</MenuItem>
+                <MenuItem>De la Z - A</MenuItem>
+              </MenuList>
+            </Menu>
 
-          <Menu>
-            <MenuButton as={InputGroup} width="30%" mr={2}>
-              <Input placeholder="Ordenar por..." readOnly />
-              <InputRightElement pointerEvents="none">
-                <TriangleDownIcon color="black" />
-              </InputRightElement>
-            </MenuButton>
-            <MenuList>
-              <MenuItem>De la A - Z</MenuItem>
-              <MenuItem>De la Z - A</MenuItem>
-            </MenuList>
-          </Menu>
-          <Menu>
-            <MenuButton as={InputGroup} width="30%" mr={2}>
-              <Input placeholder="Filtrar por..." readOnly />
-              <InputRightElement pointerEvents="none">
-                <TriangleDownIcon color="black" />
-              </InputRightElement>
-            </MenuButton>
-            <MenuList>
-              <MenuItem>Carrera</MenuItem>
-              <MenuItem>Año de Ingreso</MenuItem>
-            </MenuList>
-          </Menu>
+            <Menu>
+              <MenuButton as={InputGroup} width="30%" mr={2}>
+                <Input placeholder="Filtrar por..." readOnly />
+                <InputRightElement pointerEvents="none">
+                  <TriangleDownIcon color="black" />
+                </InputRightElement>
+              </MenuButton>
+              <MenuList>
+                <MenuItem>Carrera</MenuItem>
+                <MenuItem>Año de Ingreso</MenuItem>
+              </MenuList>
+            </Menu>
+          </Flex>
 
-        { showAddMenu && (
-          <Menu>
-            <MenuButton
-              as={IconButton}
-              aria-label="Opciones"
-              icon={<SmallAddIcon />}
-            />
-            <MenuList>
-              <MenuItem onClick={onCreateOpen}>Agregar Alumno</MenuItem>
-              <MenuItem onClick={onImportOpen}>Importar Alumnos</MenuItem>
-            </MenuList>
-          </Menu>
-        )}
+          {/* A la derecha, el nuevo botón si viene desde el padre */}
+          {topRightComponent && <Box ml={4}>{topRightComponent}</Box>}
         </Flex>
         <TableContainer>
-          <Table variant="simple" size="md" overflowX={"hidden"} overflowY={"hidden"}>
+          <Table
+            variant="simple"
+            size="md"
+            overflowX={"hidden"}
+            overflowY={"hidden"}
+          >
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
@@ -166,11 +170,20 @@ const GenericTable = <T,>({
           </Table>
         </TableContainer>
         <Flex justifyContent="space-between" mt={4}>
-          <Button onClick={prevPage} isDisabled={currentPage === 1} leftIcon={<ChevronLeftIcon/>}>
-          </Button>
-          <Text> Página {currentPage}/{totalPages}</Text>
-          <Button onClick={nextPage} isDisabled={endIndex >= filteredData.length} rightIcon={<ChevronRightIcon/>}>
-          </Button>
+          <Button
+            onClick={prevPage}
+            isDisabled={currentPage === 1}
+            leftIcon={<ChevronLeftIcon />}
+          ></Button>
+          <Text>
+            {" "}
+            Página {currentPage}/{totalPages}
+          </Text>
+          <Button
+            onClick={nextPage}
+            isDisabled={endIndex >= filteredData.length}
+            rightIcon={<ChevronRightIcon />}
+          ></Button>
         </Flex>
       </Box>
     </Flex>
