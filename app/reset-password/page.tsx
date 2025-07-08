@@ -8,9 +8,6 @@ const Page = () => {
   const token = searchParams.get('token') ?? ''
   const linkId = searchParams.get('linkId') ?? ''
 
-  console.log('token:', token);
-  console.log('linkId:', linkId);
-
   return <CreatePassword token={token} linkId={linkId}/>
 }
 
