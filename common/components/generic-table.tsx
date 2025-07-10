@@ -47,7 +47,7 @@ const GenericTable = <T,>({
   onImportOpen,
   onCreateOpen,
 }: GenericTableProps<T>) => {
-  const itemsPerPage = 3
+  const itemsPerPage = 10
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("")
 
@@ -60,8 +60,6 @@ const GenericTable = <T,>({
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-
-  
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData.slice(startIndex, endIndex)
@@ -81,20 +79,21 @@ const GenericTable = <T,>({
 
 
   return (
-    <Flex
-      justifyContent="center"
-      alignItems="center"
-      minHeight="100vh"
+    <Box
+      minH='100vh'
+      display="flex"
       flexDirection="column"
-      mt="-20"
+      alignItems="center"
+      width='100%'
+      paddingX={4}
+      paddingY={4}
     >
       <Box width="100%" maxWidth="1200px" mb={4}>
         <Text
           fontSize="6xl"
           color="black"
           marginLeft="-25"
-          marginTop="-30"
-          marginBottom="3"
+          marginTop="7"
         >
           {caption}
         </Text>
@@ -105,9 +104,11 @@ const GenericTable = <T,>({
         backgroundColor="white"
         borderRadius="20px"
         p={4}
-        mt="-25"
+        display='flex'
+        flexDirection='column'
+        flex='1'
       >
-        <Flex mb={4} width="100%">
+        <Flex mb={4} width="100%" flexWrap='wrap' gap='2px'>
           {/*Componete busqueda o search */}
           <Search onSearch={handleSearch}/>
 
@@ -150,8 +151,8 @@ const GenericTable = <T,>({
           </Menu>
         )}
         </Flex>
-        <TableContainer>
-          <Table variant="simple" size="md" overflowX={"hidden"} overflowY={"hidden"}>
+        <TableContainer marginBottom={2}>
+          <Table variant='simple' size='sm'>
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
@@ -159,21 +160,33 @@ const GenericTable = <T,>({
                     {header}
                   </Th>
                 ))}
-                <Th></Th>
+                <Th>
+                  Acciones
+                </Th>
               </Tr>
             </Thead>
             <Tbody>{currentData.map((row, index) => renderRow(row))}</Tbody>
           </Table>
         </TableContainer>
-        <Flex justifyContent="space-between" mt={4}>
-          <Button onClick={prevPage} isDisabled={currentPage === 1} leftIcon={<ChevronLeftIcon/>}>
+        <Flex justifyContent="space-between" alignItems='center' marginTop={2}>
+          <Button 
+            onClick={prevPage} 
+            isDisabled={currentPage === 1} 
+            leftIcon={<ChevronLeftIcon/>}
+            variant='ghost'
+            >
           </Button>
           <Text> Página {currentPage}/{totalPages}</Text>
-          <Button onClick={nextPage} isDisabled={endIndex >= filteredData.length} rightIcon={<ChevronRightIcon/>}>
+          <Button 
+            onClick={nextPage} 
+            isDisabled={endIndex >= filteredData.length} 
+            rightIcon={<ChevronRightIcon/>}
+            variant='ghost'
+            >
           </Button>
         </Flex>
       </Box>
-    </Flex>
+    </Box>
   );
 };
 

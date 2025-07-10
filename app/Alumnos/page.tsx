@@ -10,7 +10,7 @@ import ImportModal from "../../common/components/modals/import-modal";
 import CreateStudentModal from "../../common/components/modals/create-student-modal";
 import { useRouter } from "next/navigation";
 import ViewStudentModal from "../../common/components/modals/view-student-modal";
-import { Student } from "../interfaces/students/student.interface";
+import { Student } from "../interfaces/student.interface";
 import { UpdateStudentDto } from "../interfaces/update-student";
 
 
@@ -38,7 +38,7 @@ const Estudiantes: React.FC = () => {
     onClose: closeDeleteModal,
   } = useDisclosure();
   const {
-    isOpen:isCreateModalOpen,
+    isOpen: isCreateModalOpen,
     onOpen: openCreateModal,
     onClose: closeCreateModal,
   } = useDisclosure()
@@ -47,12 +47,12 @@ const Estudiantes: React.FC = () => {
     onOpen: openViewModal,
     onClose: closeViewModal,
   } = useDisclosure();
-  
+
 
 
   const [formData, setFormData] = useState<UpdateStudentDto>({
     name: " ",
-    lastName: " ", 
+    lastName: " ",
     dni: " ",
     telephone: "",
     birthdate: new Date,
@@ -60,10 +60,8 @@ const Estudiantes: React.FC = () => {
     yearEntry: new Date(),
     observations: "",
     countryId: 0,
-    careersId: [],
-    
+    careersId: 0,
   });
-
 
   const TableHeader = [
     "Nombre",
@@ -86,15 +84,11 @@ const Estudiantes: React.FC = () => {
         setLoading(false);
       }
     };
-  
+
     loadStudents();
   }, []);
-  
 
-
-
-
-  const handleDeleteClick = (student : Student ) => {
+  const handleDeleteClick = (student: Student) => {
     setSelectedStudent(student)
 
     openDeleteModal();
@@ -103,26 +97,35 @@ const Estudiantes: React.FC = () => {
   const handleEditClick = (student: Student) => {
     setSelectedStudent(student);
     setFormData({
-    name: student.user.name,
-    lastName: student.user.lastName,
-    dni: student.dni,
-    telephone: student.telephone,
-    birthdate: student.birthdate, 
-    address: student.address,
-    yearEntry: student.yearEntry, 
-    observations: student.observations || "",
-    countryId: student.countryId,
-    careersId: Array.isArray(student.careersId) ? student.careersId : [student.careersId],
+      name: student.user.name || '',
+      lastName: student.user.lastName || '',
+      dni: student.dni || '',
+      telephone: student.telephone || '',
+      birthdate: student.birthdate || new Date(),
+      address: student.address || '',
+      yearEntry: student.yearEntry || new Date(),
+      observations: student.observations || "",
+      countryId: 1,
+      careersId: 1,
     });
+
+    console.log('FormData being set:', formData);
+    console.log('FormData keys:', Object.keys(formData));
     openEditModal();
   };
-  
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name ==="countryId" ? parseInt(value) : value,
+  
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: 
+        name === "birthdate" || name === "yearEntry" 
+          ? new Date(value).toISOString().split('T')[0]  // yyyy-MM-dd
+          : name === "careerId" || name === "countryId" 
+            ? parseInt(value) 
+            : value,
     }));
   };
 
@@ -158,11 +161,11 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleAddStudent = async () => {
-      const fetchedStudents = await UserService.fetchAllStudents();
-      setStudents(fetchedStudents); 
+    const fetchedStudents = await UserService.fetchAllStudents();
+    setStudents(fetchedStudents);
   };
-  
-  
+
+
 
   const handleDeleteConfirm = async () => {
     if (selectedStudent) {
@@ -195,7 +198,7 @@ const Estudiantes: React.FC = () => {
   const handleImport = (data: any) => {
     console.log("imported data", data)
   }
-  
+
   const handleCreateClick = () => {
     openCreateModal();
   };
@@ -204,8 +207,8 @@ const Estudiantes: React.FC = () => {
     setSelectedStudent(student);
     openViewModal();
   };
-  
-  
+
+
   const renderStudentRow = (student: Student) => (
     <Tr key={student.user.id}>
       <Td>{student.user.name}</Td>
@@ -271,50 +274,50 @@ const Estudiantes: React.FC = () => {
         <p>Loading...</p>
       )}
       <EditModal
-      isOpen={isEditModalOpen}
-      onClose={closeEditModal}
-      onConfirm={handleEditConfirm}
-      formData={formData}
-      onInputChange={handleInputChange}
-      title="Editar Alumno"
-      entityName="Alumno"
-      fieldLabels={{
-        name: "Nombre",
-        lastName: "Apellido",
-        dni: "DNI",
-        telephone:"Telefono",
-        birthdate: "Fecha de Nacimiento",
-        address: "Direccion",
-        yearEntry: "Año ingreso",
-        observations: "Observaciones",
-        countryId: "Pais",
-        careersId: "Carrera/s"
-      }}
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        onConfirm={handleEditConfirm}
+        formData={formData}
+        onInputChange={handleChange}
+        title="Editar Alumno"
+        entityName="Alumno"
+        fieldLabels={{
+          name: "Nombre",
+          lastName: "Apellido",
+          dni: "DNI",
+          telephone: "Telefono",
+          birthdate: "Fecha de Nacimiento",
+          address: "Direccion",
+          yearEntry: "Año ingreso",
+          observations: "Observaciones",
+          countryId: "Pais",
+          careersId: "Carrera/s"
+        }}
       />
 
       <ImportModal
-      isOpen={isImportModalOpen}
-      onClose={closeImportModal}
-      onImport={handleImport}
+        isOpen={isImportModalOpen}
+        onClose={closeImportModal}
+        onImport={handleImport}
       />
       <ViewStudentModal
-      isOpen={isViewModalOpen}
-      onClose={closeViewModal}
-      student={selectedStudent}
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        student={selectedStudent}
       />
 
       <CreateStudentModal
-      isOpen={isCreateModalOpen}
-      onClose={closeCreateModal}
-      onAddStudent={handleAddStudent}
+        isOpen={isCreateModalOpen}
+        onClose={closeCreateModal}
+        onAddStudent={handleAddStudent}
       />
 
       <DeleteModal
-      isOpen={isDeleteModalOpen}
-      onClose={closeDeleteModal}
-      onDelete={handleDeleteConfirm}
-      entityName="alumno"
-      entityDetails={`${selectedStudent?.user.name} ${selectedStudent?.user.lastName}`}
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onDelete={handleDeleteConfirm}
+        entityName="alumno"
+        entityDetails={`${selectedStudent?.user.name} ${selectedStudent?.user.lastName}`}
       />
     </>
   );

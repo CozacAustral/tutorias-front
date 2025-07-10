@@ -1,3 +1,5 @@
+import { Career } from "../app/interfaces/career.interface";
+import { Country } from "../app/interfaces/country.interface";
 import { CreateStudent } from "../app/interfaces/CreateStudent";
 import { Student } from "../app/interfaces/student.interface";
 import { Tutors } from "../app/interfaces/tutors.interface";
@@ -7,8 +9,28 @@ import axiosInstance from "../axiosConfig";
 const url = "users";
 const url_tutors = "tutors";
 const url_students = "students";
+const url_careers = 'careers'
+const url_countries = 'countries'
 
 export const UserService = {
+
+  async fetchAllCareers(): Promise<Career[]>{
+    try {
+      const response = await axiosInstance.get<Career[]>(`${url_careers}/carreras`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Error al obtener las carreras: ${error.message || error}`);
+    }
+  },
+
+  async fetchAllCountries(): Promise<Country[]>{
+    try {
+      const response = await axiosInstance.get<Country[]>(`${url_countries}/paises`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Error al obtener los paises de los estudiantes: ${error.message || error}`);
+    }
+  },
 
   async fetchStudentById(id: number): Promise<Student> {
     try {

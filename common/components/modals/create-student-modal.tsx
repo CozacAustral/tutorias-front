@@ -17,9 +17,11 @@ import {
   HStack,
   Select,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import { UserService } from "../../../services/admin-service";
+import { useEffect, useState } from "react";
 import { CreateStudent } from "../../../app/interfaces/CreateStudent";
+import { UserService } from '../../../services/admin-service'
+import { Career } from "../../../app/interfaces/career.interface";
+import { Country } from "../../../app/interfaces/country.interface";
 
 interface CreateStudentModalProps {
   isOpen: boolean;
@@ -43,6 +45,41 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
     countryId: 1,
     careerId: 1,
   });
+
+  const [careers, setCareers] = useState<Career[]>([]);
+  const [countries, setCountries] = useState<Country[]>([])
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadCareers = async() => {
+      try {
+        const data = await UserService.fetchAllCareers()
+        setCareers(data)
+      } catch(error) {
+        toast({ 
+          title: 'Errro al cargar las carreras',
+          status: 'error'
+      });
+    }
+  };
+
+  const loadCountries = async() => {
+    try {
+      const data = await UserService.fetchAllCountries()
+      setCountries(data)
+    } catch(error){
+      toast({
+        title: 'Error al cargar los paises de los estudiantes',
+        status: 'error'
+      });
+    }
+  }
+  if(isOpen) {
+    loadCareers();
+    loadCountries();
+  }
+}, [isOpen]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -116,6 +153,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.name}
                   onChange={handleChange}
                   placeholder="Escribe el nombre del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -131,6 +169,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.lastName}
                   onChange={handleChange}
                   placeholder="Escribe el apellido del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               </HStack>
@@ -153,6 +192,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.dni}
                   onChange={handleChange}
                   placeholder="Escribe el DNI del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -168,6 +208,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.email}
                   onChange={handleChange}
                   placeholder="Escribe el email del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               </HStack>
@@ -189,6 +230,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.telephone}
                   onChange={handleChange}
                   placeholder="Ingrese el telefono del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -205,6 +247,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.birthdate}
                   onChange={handleChange}
                   placeholder="Ingrese la fecha de nacimiento del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               </HStack>
@@ -226,6 +269,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.address}
                   onChange={handleChange}
                   placeholder="Ingrese la direccion del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -242,6 +286,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.yearEntry}
                   onChange={handleChange}
                   placeholder="Ingrese el año de ingreso del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               </HStack>
@@ -260,10 +305,11 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 defaultValue={studentData.countryId}
                 onChange={handleChange}
               >
-                <option value={1}>Argentina</option>
-                <option value={2}>Brasil</option>
-                <option value={3}>Chile</option>
-                <option value={4}>Paraguay</option>
+                {countries.map((country) => (
+                  <option key={country.id} value={country.id}>
+                      {country.name}
+                  </option>
+                ))}
               </Select>
             </FormControl>
 
@@ -278,9 +324,11 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 defaultValue={studentData.careerId}
                 onChange={handleChange}
               >
-                <option value={1}>Administración de Empresas</option>
-                <option value={2}>Tecnicatura en Programación</option>
-                <option value={3}>Abogacía</option>
+                {careers.map((career) => (
+                  <option key={career.id} value={career.id}>
+                      {career.name}
+                  </option>
+                ))}
               </Select>
             </FormControl>
               </HStack>
@@ -291,8 +339,8 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 type="text"
                 name="observations"
                 borderColor="light_gray"
-                  bg="Very_Light_Gray"
-                  borderWidth="4px"
+                bg="Very_Light_Gray"
+                borderWidth="4px"
                 borderRadius="15px"
                 w="100%"
                 h="50px"
