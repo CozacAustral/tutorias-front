@@ -54,7 +54,7 @@ const GenericTable = <T,>({
   onCreateOpen,
   topRightComponent,
 }: GenericTableProps<T>) => {
-  const itemsPerPage = 3;
+  const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -84,7 +84,7 @@ const GenericTable = <T,>({
     }
   };
 
-  const marginLeft = collapsed ? "6.5rem" : "15.625rem"; // o importás de constantes
+  const marginLeft = collapsed ? "6.5rem" : "15.625rem"; 
 
   return (
     <Flex
@@ -92,15 +92,15 @@ const GenericTable = <T,>({
       alignItems="center"
       minHeight="100dvh"
       flexDirection="column"
-      mt="-20"
+      mt="2"
       ml={marginLeft}
     >
       <Box width="100%" maxWidth="1200px" mb={4}>
         <Text
           fontSize="6xl"
           color="black"
-          marginLeft="-25"
-          marginTop="-30"
+          marginLeft="5"
+          marginTop="0"
           marginBottom="3"
         >
           {caption}
@@ -121,7 +121,6 @@ const GenericTable = <T,>({
           justifyContent="space-between"
         >
           <Flex gap={2} width="100%">
-            {/* buscador, ordenar y filtrar */}
             <Search onSearch={handleSearch} />
             <Menu>
               <MenuButton as={InputGroup} width="30%" mr={2}>
@@ -150,7 +149,6 @@ const GenericTable = <T,>({
             </Menu>
           </Flex>
 
-          {/* A la derecha, el nuevo botón si viene desde el padre */}
           {topRightComponent && <Box ml={4}>{topRightComponent}</Box>}
         </Flex>
         <TableContainer>
@@ -173,7 +171,7 @@ const GenericTable = <T,>({
             <Tbody>{currentData.map((row, index) => renderRow(row))}</Tbody>
           </Table>
         </TableContainer>
-        <Flex justifyContent="space-between" mt={4}>
+        <Flex justifyContent="space-between" mt={2}>
           <Button
             onClick={prevPage}
             isDisabled={currentPage === 1}

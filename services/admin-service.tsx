@@ -22,7 +22,12 @@ export const UserService = {
 
   async updateUser(
     id: number,
-    updatedData: { name: string; lastName: string; telephone: string }
+    updatedData: {
+      name?: string;
+      lastName?: string;
+      telephone?: string;
+      password?: string;
+    }
   ): Promise<void> {
     try {
       await axiosInstance.patch(`users/${id}`, updatedData);

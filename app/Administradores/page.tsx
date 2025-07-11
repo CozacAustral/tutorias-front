@@ -63,11 +63,12 @@ const Administradores: React.FC = () => {
     try {
       const fetchedUser = await UserService.fetchUserById(admin.id);
 
-      setEditingUser(fetchedUser); // esto sigue siendo útil
+      setEditingUser(fetchedUser);
       setEditForm({
         name: fetchedUser.name,
         lastName: fetchedUser.lastName,
         telephone: (fetchedUser as any).telephone || "",
+        password: "",
       });
 
       onEditOpen();
@@ -98,6 +99,7 @@ const Administradores: React.FC = () => {
         name,
         lastName,
         telephone,
+        password: editForm.password || undefined,
       });
 
       toast({
@@ -189,7 +191,9 @@ const Administradores: React.FC = () => {
   const adminFields = [
     { name: "name", label: "Nombre", required: true },
     { name: "lastName", label: "Apellido", required: true },
-    { name: "telephone", label: "Teléfono", type: "tel", required: true },
+    { name: "email", label: "Correo", type: "email", required: true },
+    { name: "password", label: "Contraseña", type: "password", required: true },
+    { name: "telephone", label: "Teléfono", type: "tel", required: false },
   ];
 
   return (

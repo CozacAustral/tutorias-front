@@ -16,7 +16,7 @@ import {
   Container,
   IconButton,
 } from "@chakra-ui/react";
-import { login, sendRecoveryEmail } from "./api"; // Asegurate de agregar esta función
+import { login, sendRecoveryEmail } from "./api"; 
 
 const Login = () => {
   const [email, setEmail] = useState("");
