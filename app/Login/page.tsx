@@ -15,6 +15,8 @@ import {
   FormHelperText,
   Container,
   IconButton,
+  InputGroup,
+  InputRightElement,
 } from "@chakra-ui/react";
 import { login, sendRecoveryEmail } from "./api"; // Asegurate de agregar esta función
 
@@ -75,21 +77,24 @@ const Login = () => {
         textAlign="center"
         backgroundColor="softPink"
         p={6}
-        borderRadius="10px"
+        pt={10}
+        borderRadius="15px"
         shadow="md"
         width={{ base: "90%", sm: "70%", md: "50%", lg: "40%" }}
+        height='500px'
         maxW="500px"
       >
         {!mostrarRecuperacion ? (
           <form onSubmit={handleSubmit}>
             <Stack spacing={4} alignItems="center">
               <Image
-                src="/images/LoginFormImage.png"
+                src="/images/australCreatePassword.png"
                 alt="Image-login"
                 width="100%"
                 maxWidth="450px"
-                height="auto"
-                objectFit="contain"
+                height='150px'
+                objectFit="none"
+                objectPosition='top'
               />
 
               {error && (
@@ -99,22 +104,25 @@ const Login = () => {
               )}
 
               <FormControl width="100%">
-                <Input
-                  borderRadius="3px"
-                  h="42px"
-                  backgroundColor="light_gray"
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  paddingLeft="1.5rem"
-                  width="100%"
-                />
+                  <Input
+                    borderRadius="8px"
+                    h="42px"
+                    backgroundColor="light_gray"
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    paddingLeft="1.5rem"
+                    width="100%"
+                    marginTop='10px'
+                    padding='21px'
+                  />
               </FormControl>
 
               <FormControl width="100%">
+                <InputGroup>
                 <Input
-                  borderRadius="3px"
+                  borderRadius="8px"
                   h="42px"
                   backgroundColor="light_gray"
                   type={showPassword ? "text" : "password"}
@@ -123,31 +131,39 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   paddingLeft="1.5rem"
                   width="100%"
+                  marginBottom={'30px'}
+                  marginTop='17px'
+                  padding='21px'
                 />
-                <IconButton
+                <InputRightElement height={'100%'}>
+                  <IconButton
                   aria-label="mostrar/ocultar contrasena"
                   icon={showPassword ? <HiEyeOff /> : <HiEye />}
                   onClick={handleClick}
                   position="absolute"
                   right="10px"
                   backgroundColor="light_gray"
-                  top="50%"
+                  top="39%"
                   transform="translateY(-50%)"
                   variant="link"
                   color="gray.900"
                   fontSize="24px"
+                  pointerEvents={'auto'}
                 />
+                </InputRightElement>
+                </InputGroup>
               </FormControl>
 
               <Button
-                borderRadius="5px"
+                borderRadius="8px"
                 type="submit"
                 backgroundColor="primary"
                 color="white"
                 width="100%"
                 maxW="300px"
                 height="42px"
-                mt={4}
+                mt={5}
+                margin={'6px'}
                 isLoading={isLoading}
               >
                 Iniciar Sesión
