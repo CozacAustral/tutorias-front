@@ -54,7 +54,7 @@ const GenericTable = <T,>({
   onCreateOpen,
   topRightComponent,
 }: GenericTableProps<T>) => {
-  const itemsPerPage = 10;
+  const itemsPerPage = 7;
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -154,7 +154,7 @@ const GenericTable = <T,>({
         <TableContainer>
           <Table
             variant="simple"
-            size="md"
+            size="sm"
             overflowX={"hidden"}
             overflowY={"hidden"}
           >

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   IconButton,
@@ -45,19 +45,22 @@ const Administradores: React.FC = () => {
 
   const TableHeader = ["Nombre", "Apellido/s", "Correo", "Área", "Acciones"];
 
-  const fetchUsers = async () => {
+  const fetchAdminUsers = async () => {
     try {
-      const data = await UserService.fetchAllUsers();
+      const data = await UserService.fetchAdminUsers();
       setUsers(data);
     } catch (err) {
       setError("Fallo al cargar los usuarios.");
       console.error(err);
     }
   };
+const calledRef = useRef(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+useEffect(() => {
+  if (calledRef.current) return;
+  calledRef.current = true;
+  fetchAdminUsers();
+}, []);
 
   const handleEditClick = async (admin: User) => {
     try {
@@ -108,7 +111,7 @@ const Administradores: React.FC = () => {
         duration: 4000,
         isClosable: true,
       });
-      fetchUsers();
+      fetchAdminUsers();
       onEditClose();
     } catch (err) {
       console.error(err);
@@ -138,7 +141,7 @@ const Administradores: React.FC = () => {
         duration: 4000,
         isClosable: true,
       });
-      fetchUsers();
+      fetchAdminUsers();
     } catch (err) {
       console.error(err);
       toast({
@@ -229,7 +232,7 @@ const Administradores: React.FC = () => {
       <GenericCreateModal
         isOpen={isOpen}
         onClose={onClose}
-        onCreateSuccess={fetchUsers}
+        onCreateSuccess={fetchAdminUsers}
         title="Administrador"
         fields={adminFields}
         createFn={(data) => UserService.createUser({ ...data, roleId: 1 })}
@@ -248,6 +251,7 @@ const Administradores: React.FC = () => {
           lastName: "Apellido",
           email: "Correo",
           telephone: "Teléfono",
+           password: "Cambiar contraseña",
         }}
       />
 

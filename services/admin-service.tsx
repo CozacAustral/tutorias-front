@@ -10,6 +10,18 @@ const url_tutors = "tutors";
 const url_students = "students";
 
 export const UserService = {
+
+  async fetchAdminUsers(): Promise<User[]> {
+  try {
+    const response = await axiosInstance.get<User[]>("/users/admins");
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      `Error al obtener los administradores: ${error.message || error}`
+    );
+  }
+},
+
   async deleteUser(id: number | string): Promise<void> {
     try {
       await axiosInstance.delete(`/users/${id}`);
