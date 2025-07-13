@@ -1,5 +1,5 @@
 "use client";
-import { Flex, Heading } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import ProfileComponent from "./components/profile-component";
 
 const Profile = () => {
@@ -10,11 +10,7 @@ const Profile = () => {
       flexDirection="column"
       pl={{ base: "0", md: "250px" }}
     >
-      <Flex
-        justifyContent="center"
-        alignItems="center"
-        flex="1"
-      >
+      <Flex justifyContent="center" alignItems="center" flex="1">
         <ProfileComponent />
       </Flex>
     </Flex>

@@ -153,6 +153,7 @@ const Administradores: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     if (!adminToDelete) return;
+
     try {
       await UserService.deleteUser(adminToDelete.id);
       toast({
@@ -214,7 +215,7 @@ const Administradores: React.FC = () => {
   return (
     <>
       {error && <p>{error}</p>}
-      <Box pl={collapsed ? "6.5rem" : "17rem"} px={15} >
+      <Box pl={collapsed ? "6.5rem" : "17rem"} px={15}>
         {users ? (
           <GenericTable
             data={users}

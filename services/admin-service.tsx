@@ -10,18 +10,6 @@ const url_tutors = "tutors";
 const url_students = "students";
 
 export const UserService = {
-
-  async fetchAdminUsers(): Promise<User[]> {
-  try {
-    const response = await axiosInstance.get<User[]>("/users/admins");
-    return response.data;
-  } catch (error: any) {
-    throw new Error(
-      `Error al obtener los administradores: ${error.message || error}`
-    );
-  }
-},
-
   async deleteUser(id: number | string): Promise<void> {
     try {
       await axiosInstance.delete(`/users/${id}`);
@@ -55,6 +43,17 @@ export const UserService = {
     return res.data;
   },
 
+  async fetchAdminUsers(): Promise<User[]> {
+    try {
+      const response = await axiosInstance.get<User[]>("/users/admins");
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `Error al obtener los administradores: ${error.message || error}`
+      );
+    }
+  },
+
   async fetchUserById(id: number): Promise<User> {
     try {
       const response = await axiosInstance.get<User>(`/users/${id}`);
@@ -68,18 +67,15 @@ export const UserService = {
 
   async fetchStudentById(id: number): Promise<Student> {
     try {
-      const response = await axiosInstance.get<Student>(
-        `${url_students}/${id}`
-      );
+      const response = await axiosInstance.get<Student>(`${url_students}/${id}`);
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `No se pudo obtener el estudiante con ID ${id}. ${
-          error.message || error
-        }`
+        `No se pudo obtener el estudiante con ID ${id}. ${error.message || error}`
       );
     }
   },
+
 
   async fetchAllUsers(): Promise<User[]> {
     try {

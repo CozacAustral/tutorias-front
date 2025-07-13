@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Box,
-  ChakraProvider,
   Flex,
   Table,
   TableContainer,
@@ -13,7 +12,6 @@ import {
   Text,
   Button,
   InputGroup,
-  InputLeftElement,
   InputRightElement,
   Input,
   Menu,
@@ -24,7 +22,6 @@ import {
 } from "@chakra-ui/react";
 
 import {
-  SmallAddIcon,
   Search2Icon,
   TriangleDownIcon,
   ChevronLeftIcon,
@@ -58,6 +55,8 @@ const GenericTable = <T,>({
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const { collapsed } = useSidebar();
+
   const handleSearch = (term: string) => {
     setSearchTerm(term);
     setCurrentPage(1);
@@ -66,7 +65,7 @@ const GenericTable = <T,>({
   const filteredData = data.filter((row) =>
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const { collapsed } = useSidebar();
+
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData.slice(startIndex, endIndex);
@@ -116,6 +115,7 @@ const GenericTable = <T,>({
         >
           <Flex gap={2} width="100%">
             <Search onSearch={handleSearch} />
+
             <Menu>
               <MenuButton as={InputGroup} width="30%" mr={2}>
                 <Input placeholder="Ordenar por..." readOnly />
@@ -145,12 +145,13 @@ const GenericTable = <T,>({
 
           {topRightComponent && <Box ml={4}>{topRightComponent}</Box>}
         </Flex>
+
         <TableContainer>
           <Table
             variant="simple"
             size="sm"
-            overflowX={"hidden"}
-            overflowY={"hidden"}
+            overflowX="hidden"
+            overflowY="hidden"
           >
             <Thead>
               <Tr>
@@ -165,6 +166,7 @@ const GenericTable = <T,>({
             <Tbody>{currentData.map((row, index) => renderRow(row))}</Tbody>
           </Table>
         </TableContainer>
+
         <Flex justifyContent="space-between" mt={2}>
           <Button
             onClick={prevPage}
@@ -172,7 +174,6 @@ const GenericTable = <T,>({
             leftIcon={<ChevronLeftIcon />}
           ></Button>
           <Text>
-            {" "}
             Página {currentPage}/{totalPages}
           </Text>
           <Button

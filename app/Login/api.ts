@@ -21,5 +21,9 @@ export const login = async (
 };
 
 export const sendRecoveryEmail = async (email: string) => {
-  await axiosInstance.post("/auth/recover-password", { email });
+  await fetch("/users/recover-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
 };
