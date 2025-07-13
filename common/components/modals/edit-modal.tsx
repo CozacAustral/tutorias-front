@@ -29,7 +29,8 @@ import {
   Tr,
   Th,
   Tbody,
-  Box
+  Box,
+  Td
 } from "@chakra-ui/react";
 import { UserService } from "../../../services/admin-service";
 import { Career } from "../../../app/interfaces/career.interface";
@@ -38,6 +39,7 @@ import { UpdateStudentDto } from "../../../app/interfaces/update-student";
 import { SmallAddIcon, TriangleDownIcon } from "@chakra-ui/icons";
 import GenericTable from "../generic-table";
 import { title } from "process";
+import { Student } from "../../../app/interfaces/student.interface";
 
 interface EditModalProps<t = any> {
   isOpen: boolean;
@@ -47,8 +49,8 @@ interface EditModalProps<t = any> {
   onConfirm: () => Promise<void>;
   formData: { [key: string]: t };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  renderCareerNow: (career: any, index: number) => React.ReactNode
   fieldLabels?: { [key: string]: string };
-  careerData?: { name: string; year: number; status: string };
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -58,7 +60,7 @@ const EditModal: React.FC<EditModalProps> = ({
   entityName,
   formData,
   onInputChange,
-  careerData,
+  renderCareerNow,
   fieldLabels,
 }) => {
 
@@ -67,7 +69,7 @@ const EditModal: React.FC<EditModalProps> = ({
   const [careers, setCareers] = useState<Career[]>([]);
   const [countries, setCountries] = useState<Country[]>([])
 
-
+ 
   useEffect(() => {
     const loadCareers = async () => {
       try {
@@ -103,7 +105,7 @@ const EditModal: React.FC<EditModalProps> = ({
       <ModalOverlay />
       <ModalContent maxW="51vw">
         <ModalHeader>
-          <Text fontSize="2xl" fontWeight="bold">
+          <Text fontSize="5xl" color='black' marginTop={6}>
             Editar {entityName}
           </Text>
         </ModalHeader>
@@ -193,12 +195,11 @@ const EditModal: React.FC<EditModalProps> = ({
           </VStack>
 
           <Box mt={4}>
-            <Text fontSize='2x1' mb='4'>
-              Carreras
-            </Text>
-
             <GenericTable
               data={formData.careers}
+              TableHeader={['Carrera', 'Estado', 'Año de ingreso']}
+              caption="Carreras"
+              renderRow={renderCareerNow}
             />
           </Box>
         </ModalBody>

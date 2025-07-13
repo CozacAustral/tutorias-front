@@ -55,13 +55,13 @@ const Estudiantes: React.FC = () => {
     lastName: " ",
     dni: " ",
     telephone: "",
-    birthdate: new Date,
+    birthdate: new Date(),
     address: "",
     yearEntry: new Date(),
     observations: "",
     countryId: 1,
-    careersId: [],
-    email: ''
+    email: '',
+    careers: []
   });
 
   const TableHeader = [
@@ -107,23 +107,23 @@ const Estudiantes: React.FC = () => {
       yearEntry: student.yearEntry || new Date(),
       observations: student.observations || "",
       countryId: student.countryId,
-      careersId: [],
-      email: student.user.email || ''
+      email: student.user.email || '',
+      careers: student.careers
     })
     openEditModal();
   };
 
 
-   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-  
+
     setFormData((prevData) => ({
       ...prevData,
-      [name]: 
-        name === "birthdate" || name === "yearEntry" 
+      [name]:
+        name === "birthdate" || name === "yearEntry"
           ? new Date(value).toISOString().split('T')[0]  // yyyy-MM-dd
-          : name === "careerId" || name === "countryId" 
-            ? parseInt(value) 
+          : name === "careerId" || name === "countryId"
+            ? parseInt(value)
             : value,
     }));
   };
@@ -254,6 +254,54 @@ const Estudiantes: React.FC = () => {
     </Tr>
   );
 
+  const renderCareerRow = (career: any, index: number) => (
+    <Tr key={career.careerId}>
+      <Td>{career.name}</Td>
+      <Td>{career.active ? 'Activa' : 'Inactiva'}</Td>
+      <Td>{career.yearEntry}</Td>
+      <Td>
+        <IconButton
+          icon={<ViewIcon boxSize={5} />}
+          aria-label="View"
+          backgroundColor="white"
+          mr={5}
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
+        // onClick={() => handleViewClick(student)}
+        />
+        <IconButton
+          icon={<EditIcon boxSize={5} />}
+          aria-label="Edit"
+          mr={5}
+          backgroundColor="white"
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
+        // onClick={() => handleEditClick(student)}
+        />
+        <IconButton
+          icon={<DeleteIcon boxSize={5} />}
+          aria-label="Delete"
+          backgroundColor="white"
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
+        // onClick={() => handleDeleteClick(student)}
+        />
+
+      </Td>
+    </Tr>
+  )
+
+
+
   return (
     <>
       {error && <p>{error}</p>}
@@ -278,6 +326,7 @@ const Estudiantes: React.FC = () => {
         onInputChange={handleChange}
         title="Editar Alumno"
         entityName="Alumno"
+        renderCareerNow={renderCareerRow}
         fieldLabels={{
           lastName: "Apellido/s",
           name: "Nombre",

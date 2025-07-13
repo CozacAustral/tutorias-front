@@ -1,8 +1,10 @@
 import { Career } from "../app/interfaces/career.interface";
+import { CareerStudent } from "../app/interfaces/careerStudent.interface";
 import { Country } from "../app/interfaces/country.interface";
 import { CreateStudent } from "../app/interfaces/CreateStudent";
 import { Student } from "../app/interfaces/student.interface";
 import { Tutors } from "../app/interfaces/tutors.interface";
+import { UpdateStudentDto } from "../app/interfaces/update-student";
 import { User } from "../app/interfaces/user.interface";
 import axiosInstance from "../axiosConfig";
 
@@ -100,20 +102,29 @@ export const UserService = {
     }
   },
 
-  async deleteStudent(studentId: number): Promise<void> {
+  async fetchStudent(studentId: number): Promise<Student>{
     try {
-      await axiosInstance.delete(`${urlStudents}/${studentId}`);
+      const response = await axiosInstance.get<Student>(`${urlStudents}/${studentId}`);
+      return response.data;
     } catch (error: any) {
-      throw new Error(`No se pudo eliminar al estudiante con ID ${studentId}. ${error.message || error}`);
+      throw new Error(`Error al obtener el estudiante: ${error.message || error}`);
     }
   },
 
-  async updateStudent(studentId: number, updatedData: any): Promise<void> {
+   async updateStudent(studentId: number, updatedData: UpdateStudentDto): Promise<void> {
     try {
       const response = await axiosInstance.patch(`${urlStudents}/${studentId}`, updatedData);
       return response.data;
     } catch (error: any) {
       throw new Error(`No se pudo actualizar el estudiante con ID ${studentId}. ${error.message || error}`);
+    }
+  },
+  
+  async deleteStudent(studentId: number): Promise<void> {
+    try {
+      await axiosInstance.delete(`${urlStudents}/${studentId}`);
+    } catch (error: any) {
+      throw new Error(`No se pudo eliminar al estudiante con ID ${studentId}. ${error.message || error}`);
     }
   },
 

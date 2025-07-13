@@ -32,7 +32,7 @@ interface GenericTableProps<T> {
   data: T[];
   caption: string;
   TableHeader: string[];
-  renderRow: (row: T) => React.ReactNode;
+  renderRow: (row: T, index: number) => React.ReactNode;
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
@@ -165,7 +165,7 @@ const GenericTable = <T,>({
                 </Th>
               </Tr>
             </Thead>
-            <Tbody>{currentData.map((row, index) => renderRow(row))}</Tbody>
+            <Tbody>{currentData.map((row, index) => renderRow(row, index))}</Tbody>
           </Table>
         </TableContainer>
         <Flex justifyContent="space-between" alignItems='center' marginTop={2}>
