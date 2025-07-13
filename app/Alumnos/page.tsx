@@ -59,8 +59,9 @@ const Estudiantes: React.FC = () => {
     address: "",
     yearEntry: new Date(),
     observations: "",
-    countryId: 0,
-    careersId: 0,
+    countryId: 1,
+    careersId: [],
+    email: ''
   });
 
   const TableHeader = [
@@ -105,12 +106,10 @@ const Estudiantes: React.FC = () => {
       address: student.address || '',
       yearEntry: student.yearEntry || new Date(),
       observations: student.observations || "",
-      countryId: 1,
-      careersId: 1,
-    });
-
-    console.log('FormData being set:', formData);
-    console.log('FormData keys:', Object.keys(formData));
+      countryId: student.countryId,
+      careersId: [],
+      email: student.user.email || ''
+    })
     openEditModal();
   };
 
@@ -164,8 +163,6 @@ const Estudiantes: React.FC = () => {
     const fetchedStudents = await UserService.fetchAllStudents();
     setStudents(fetchedStudents);
   };
-
-
 
   const handleDeleteConfirm = async () => {
     if (selectedStudent) {
@@ -282,15 +279,11 @@ const Estudiantes: React.FC = () => {
         title="Editar Alumno"
         entityName="Alumno"
         fieldLabels={{
+          lastName: "Apellido/s",
           name: "Nombre",
-          lastName: "Apellido",
-          dni: "DNI",
-          telephone: "Telefono",
-          birthdate: "Fecha de Nacimiento",
-          address: "Direccion",
-          yearEntry: "Año ingreso",
+          mail: "Correo",
+          telephone: "Nro. De telefono",
           observations: "Observaciones",
-          countryId: "Pais",
           careersId: "Carrera/s"
         }}
       />

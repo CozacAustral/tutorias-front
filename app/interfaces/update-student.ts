@@ -8,6 +8,7 @@ export interface UpdateStudentDto {
   yearEntry: Date; 
   observations: string;
   countryId: number;
-  careersId?: number;  
+  careersId?: number[];  
   careerName?: string 
+  email: string;
 }

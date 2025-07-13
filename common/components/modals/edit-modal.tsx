@@ -15,17 +15,35 @@ import {
   HStack,
   useToast,
   Select,
+  VStack,
+  TableContainer,
+  Table,
+  MenuButton,
+  Menu,
+  InputRightElement,
+  InputGroup,
+  MenuItem,
+  MenuList,
+  IconButton,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Box
 } from "@chakra-ui/react";
 import { UserService } from "../../../services/admin-service";
 import { Career } from "../../../app/interfaces/career.interface";
 import { Country } from "../../../app/interfaces/country.interface";
 import { UpdateStudentDto } from "../../../app/interfaces/update-student";
+import { SmallAddIcon, TriangleDownIcon } from "@chakra-ui/icons";
+import GenericTable from "../generic-table";
+import { title } from "process";
 
 interface EditModalProps<t = any> {
   isOpen: boolean;
   onClose: () => void;
   entityName: string;
-  title: string;
+  title: string; 
   onConfirm: () => Promise<void>;
   formData: { [key: string]: t };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
@@ -44,10 +62,7 @@ const EditModal: React.FC<EditModalProps> = ({
   fieldLabels,
 }) => {
 
-
   const toast = useToast();
-
-  const keys = Object.keys(formData);
 
   const [careers, setCareers] = useState<Career[]>([]);
   const [countries, setCountries] = useState<Country[]>([])
@@ -94,151 +109,98 @@ const EditModal: React.FC<EditModalProps> = ({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {keys.map((field, index) => {
-            const isEven = index % 2 === 0;
-            const nextField = keys[index + 1];
-            return isEven ? (
-              <HStack spacing={4} key={field} mt={4}>
-                <FormControl>
-                  <FormLabel>{fieldLabels?.[field] || field}</FormLabel> {/*nombre del campo */}
-                  {field === 'countryId' && (
-                    <Select
-                      name="countryId"
-                      borderColor="light_gray"
-                      bg="Very_Light_Gray"
-                      borderWidth="4px"
-                      borderRadius="15px"
-                      h="50px"
-                      value={formData.countryId}
-                      onChange={onInputChange}
-                    >
-                      {countries.map((country) => (
-                        <option key={country.id} value={country.id.toString()}>
-                          {country.name}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
-                  {field === 'careersId' && (
-                    <Select
-                      name="careersId"
-                      borderColor="light_gray"
-                      bg="Very_Light_Gray"
-                      borderWidth="4px"
-                      borderRadius="15px"
-                      h="50px"
-                      value={formData.careersId}
-                      onChange={onInputChange}
-                    >
-                      {careers.map((career) => (
-                        <option key={career.id} value={career.id.toString()}>
-                          {career.name}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
-                  {field !== 'countryId' && field !== 'careersId' && (
-                    typeof formData[field] === 'string' && (formData[field] as string).includes('-') ? (
-                      <Input
-                        type="date"
-                        borderColor="light_gray"
-                        bg="light_gray"
-                        borderWidth="4px"
-                        borderRadius="15px"
-                        w="100%"
-                        h="50px"
-                        name={field}
-                        value={formData[field] as string}
-                        onChange={onInputChange}
-                      />
-                    ) : (
-                      <Input
-                        name={field}
-                        borderColor="light_gray"
-                        bg="light_gray"
-                        borderWidth="4px"
-                        borderRadius="15px"
-                        w="100%"
-                        h="50px"
-                        value={formData[field] as string | number}
-                        onChange={onInputChange}
-                      />
-                    )
-                  )}
-                </FormControl>
-                {nextField && (
-                  <FormControl>
-                    <FormLabel>{fieldLabels?.[nextField] || nextField}</FormLabel>
-                    {nextField === 'countryId' && (
-                      <Select
-                        name="countryId"
-                        borderColor="light_gray"
-                        bg="Very_Light_Gray"
-                        borderWidth="4px"
-                        borderRadius="15px"
-                        h="50px"
-                        value={formData.countryId}
-                        onChange={onInputChange}
-                      >
-                        <option value="">Seleccionar país</option>
-                        {countries.map((country) => (
-                          <option key={country.id} value={country.id.toString()}>
-                            {country.name}
-                          </option>
-                        ))}
-                      </Select>
-                    )}
-                    {nextField === 'careersId' && (
-                      <Select
-                        name="careersId"
-                        borderColor="light_gray"
-                        bg="Very_Light_Gray"
-                        borderWidth="4px"
-                        borderRadius="15px"
-                        h="50px"
-                        value={formData.careersId}
-                        onChange={onInputChange}
-                      >
-                        {careers.map((career) => (
-                          <option key={career.id} value={career.id.toString()}>
-                            {career.name}
-                          </option>
-                        ))}
-                      </Select>
-                    )}
-                    {nextField !== 'countryId' && nextField !== 'careersId' && (
-                      typeof formData[nextField] === 'string' && (formData[nextField] as string).includes('-') ? (
-                        <Input
-                          type="date"
-                          borderColor="light_gray"
-                          bg="light_gray"
-                          borderWidth="4px"
-                          borderRadius="15px"
-                          w="100%"
-                          h="50px"
-                          name={nextField}
-                          value={formData[nextField] as string}
-                          onChange={onInputChange}
-                        />
-                      ) : (
-                        <Input
-                          name={nextField}
-                          borderColor="light_gray"
-                          bg="light_gray"
-                          borderWidth="4px"
-                          borderRadius="15px"
-                          w="100%"
-                          h="50px"
-                          value={formData[nextField] as string | number}
-                          onChange={onInputChange}
-                        />
-                      )
-                    )}
-                  </FormControl>
-                )}
-              </HStack>
-            ) : null;
-          })}
+          <VStack spacing={4}>
+            <HStack spacing={4} width='100%'>
+              <FormControl>
+                <FormLabel>Apellido/s</FormLabel>
+                <Input
+                  type="lastname"
+                  borderColor="light_gray"
+                  bg="light_gray"
+                  borderWidth="4px"
+                  borderRadius="15px"
+                  h="50px"
+                  value={formData.lastName}
+                  onChange={onInputChange}
+                  placeholder="ApelLido/s del alumno seleccionado"
+                  isDisabled
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Nombre</FormLabel>
+                <Input
+                  type="name"
+                  borderColor="light_gray"
+                  bg="light_gray"
+                  borderWidth="4px"
+                  borderRadius="15px"
+                  h="50px"
+                  value={formData.name}
+                  onChange={onInputChange}
+                  placeholder="Nombre del alumno seleccionado"
+                  isDisabled
+                />
+              </FormControl>
+            </HStack>
+            <HStack spacing={4} width='100%'>
+              <FormControl>
+                <FormLabel>Correo</FormLabel>
+                <Input
+                  name="email"
+                  type="email"
+                  borderColor="light_gray"
+                  bg="light_gray"
+                  borderWidth="4px"
+                  borderRadius="15px"
+                  h="50px"
+                  value={formData.email}
+                  onChange={onInputChange}
+                  placeholder="Correo del alumno seleccionado"
+                  isDisabled
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Nro. De Telefono</FormLabel>
+                <Input
+                  name="telephone"
+                  type="tel"
+                  borderColor="light_gray"
+                  bg="light_gray"
+                  borderWidth="4px"
+                  borderRadius="15px"
+                  h="50px"
+                  value={formData.telephone}
+                  onChange={onInputChange}
+                  placeholder="Nro. De telefono del alumno seleccionado"
+                  isDisabled
+                />
+              </FormControl>e
+            </HStack>
+            <FormControl width='100%'>
+              <FormLabel>Observaciones</FormLabel>
+              <Input
+                name="observations"
+                type="text"
+                borderColor="light_gray"
+                bg="light_gray"
+                borderWidth="4px"
+                borderRadius="15px"
+                h="50px"
+                value={formData.observations}
+                onChange={onInputChange}
+              />
+            </FormControl>
+          </VStack>
+
+          <Box mt={4}>
+            <Text fontSize='2x1' mb='4'>
+              Carreras
+            </Text>
+
+            <GenericTable
+              data={formData.careers}
+            />
+          </Box>
         </ModalBody>
 
         <ModalFooter>
@@ -249,6 +211,7 @@ const EditModal: React.FC<EditModalProps> = ({
             Guardar
           </Button>
         </ModalFooter>
+
       </ModalContent>
     </Modal >
   );
