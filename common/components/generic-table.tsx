@@ -84,25 +84,19 @@ const GenericTable = <T,>({
     }
   };
 
-  const marginLeft = collapsed ? "6.5rem" : "15.625rem"; 
+  const marginLeft = collapsed ? "6.5rem" : "15.625rem";
 
   return (
     <Flex
-      justifyContent="center"
-      alignItems="center"
+      justifyContent="flex-start"
+      alignItems="flex-start"
       minHeight="100dvh"
       flexDirection="column"
-      mt="2"
       ml={marginLeft}
+      pt={8}
     >
-      <Box width="100%" maxWidth="1200px" mb={4}>
-        <Text
-          fontSize="6xl"
-          color="black"
-          marginLeft="5"
-          marginTop="0"
-          marginBottom="3"
-        >
+      <Box width="100%" maxWidth="1200px">
+        <Text fontSize="6xl" color="black" marginLeft="5" marginBottom="3">
           {caption}
         </Text>
       </Box>
@@ -112,7 +106,7 @@ const GenericTable = <T,>({
         backgroundColor="white"
         borderRadius="20px"
         p={4}
-        mt="-25"
+        mt="0"
       >
         <Flex
           mb={4}

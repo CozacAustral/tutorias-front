@@ -12,32 +12,29 @@ import {
   FormLabel,
   Input,
   Text,
-  useToast,
 } from "@chakra-ui/react";
 
-interface EditModalProps<t = any> {
+interface FormModalProps<t = any> {
   isOpen: boolean;
   onClose: () => void;
-  entityName: string;
-  title: string;
   onConfirm: () => Promise<void>;
+  entityName: string;
   formData: { [key: string]: t };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   fieldLabels?: { [key: string]: string };
-  careerData?: { name: string; year: number; status: string };
+  mode: "create" | "edit";
 }
 
-const EditModal: React.FC<EditModalProps> = ({
+const FormModal: React.FC<FormModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
   entityName,
   formData,
   onInputChange,
-  careerData,
   fieldLabels,
+  mode,
 }) => {
-  const toast = useToast();
   const keys = Object.keys(formData);
 
   return (
@@ -46,29 +43,23 @@ const EditModal: React.FC<EditModalProps> = ({
       <ModalContent maxW="51vw">
         <ModalHeader>
           <Text fontSize="2xl" fontWeight="bold">
-            Editar {entityName}
+            {mode === "edit" ? `Editar ${entityName}` : `Crear ${entityName}`}
           </Text>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {keys.map((field) => (
-            <FormControl key={field} mt={4}>
-              <FormLabel>{fieldLabels?.[field] || field}</FormLabel>
-              {typeof formData[field] === "string" && formData[field].includes("-") ? (
+          {keys.map((field) => {
+            if (mode === "edit" && field === "email") return null; 
+            return (
+              <FormControl key={field} mt={4}>
+                <FormLabel>{fieldLabels?.[field] || field}</FormLabel>
                 <Input
-                  type="date"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  w="100%"
-                  h="50px"
-                  name={field}
-                  value={formData[field] as string}
-                  onChange={onInputChange}
-                />
-              ) : (
-                <Input
+                  type={
+                    typeof formData[field] === "string" &&
+                    formData[field].includes("-")
+                      ? "date"
+                      : "text"
+                  }
                   name={field}
                   borderColor="light_gray"
                   bg="light_gray"
@@ -79,9 +70,9 @@ const EditModal: React.FC<EditModalProps> = ({
                   value={formData[field] as string | number}
                   onChange={onInputChange}
                 />
-              )}
-            </FormControl>
-          ))}
+              </FormControl>
+            );
+          })}
         </ModalBody>
 
         <ModalFooter>
@@ -89,7 +80,7 @@ const EditModal: React.FC<EditModalProps> = ({
             Cancelar
           </Button>
           <Button bg="primary" color="white" onClick={onConfirm}>
-            Guardar
+            {mode === "edit" ? "Guardar" : "Crear"}
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -97,4 +88,4 @@ const EditModal: React.FC<EditModalProps> = ({
   );
 };
 
-export default EditModal;
+export default FormModal;
