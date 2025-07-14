@@ -139,7 +139,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
 
           <VStack spacing={4} align="stretch">
           <HStack spacing={4} w="100%">
-              <FormControl isRequired>
+              <FormControl isRequired mt={4}>
                 <FormLabel>Nombre</FormLabel>
                 <Input
                   name="name"
@@ -294,7 +294,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
 
               <VStack spacing={4} align="stretch">
               <HStack spacing={4} w="100%">
-              <FormControl isRequired>
+              <FormControl isRequired mt={4}>
               <FormLabel>País</FormLabel>
               <Select
                 name="countryId"
@@ -302,6 +302,8 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 bg="Very_Light_Gray"
                 borderWidth="4px"
                 borderRadius="15px"
+                w="100%"
+                h="50px"
                 defaultValue={studentData.countryId}
                 onChange={handleChange}
               >
@@ -313,7 +315,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
               </Select>
             </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired mt={4}>
               <FormLabel>Carrera</FormLabel>
               <Select
                 name="careerId"
@@ -321,6 +323,8 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 bg="Very_Light_Gray"
                 borderWidth="4px"
                 borderRadius="15px"
+                w="100%"
+                h="50px"
                 defaultValue={studentData.careerId}
                 onChange={handleChange}
               >
@@ -333,7 +337,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
             </FormControl>
               </HStack>
               </VStack>
-              <FormControl>
+              <FormControl isRequired mt={4}>
                 <FormLabel>Observaciones</FormLabel>
                 <Input
                 type="text"
@@ -350,10 +354,12 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
               </FormControl>
           </ModalBody>
           <ModalFooter>
+            <Button variant="ghost" onClick={onClose}> 
+              Cancelar
+            </Button>
             <Button colorScheme="blue" mr={3} type="submit" onClick={handleSubmit}>
               Guardar
             </Button>
-            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
