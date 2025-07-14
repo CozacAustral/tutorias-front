@@ -13,10 +13,10 @@ import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
 import GenericTable from "../../common/components/generic-table";
 import DeleteModal from "../../common/components/modals/detele-modal";
-import FormModal from "../../common/components/modals/form-modal";
 import { UserService } from "../../services/admin-service";
 import { User } from "../interfaces/user.interface";
 import { useSidebar } from "../contexts/SidebarContext";
+import EditModal from "../../common/components/modals/edit-modal";
 
 const Administradores: React.FC = () => {
   const [users, setUsers] = useState<User[] | null>(null);
@@ -40,13 +40,21 @@ const Administradores: React.FC = () => {
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [adminToDelete, setAdminToDelete] = useState<User | null>(null);
   const toast = useToast();
+  const [admins, setAdmins] = useState<User[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
 
+  const [itemsPerPage, setItemsPerPage] = useState(7);
+  const [currentPage, setCurrentPage] = useState(1);
   const TableHeader = ["Nombre", "Apellido/s", "Correo", "Área", "Acciones"];
 
-  const fetchAdminUsers = async () => {
+  const fetchAdminUsers = async (page: number, itemsPerPage: number) => {
     try {
-      const data = await UserService.fetchAdminUsers();
-      setUsers(data);
+      const res = await UserService.fetchAdminUsers(page, itemsPerPage);
+      setUsers(res.data);
+      setTotal(res.total);
+      setItemsPerPage(res.limit);
+      setCurrentPage(page);
     } catch (err) {
       setError("Fallo al cargar los usuarios.");
       console.error(err);
@@ -57,7 +65,7 @@ const Administradores: React.FC = () => {
   useEffect(() => {
     if (calledRef.current) return;
     calledRef.current = true;
-    fetchAdminUsers();
+    fetchAdminUsers(1, itemsPerPage);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +108,7 @@ const Administradores: React.FC = () => {
           isClosable: true,
         });
       }
-      fetchAdminUsers();
+      fetchAdminUsers(currentPage, itemsPerPage);
       onClose();
       resetForm();
     } catch (err) {
@@ -162,7 +170,7 @@ const Administradores: React.FC = () => {
         duration: 4000,
         isClosable: true,
       });
-      fetchAdminUsers();
+      fetchAdminUsers(currentPage, itemsPerPage);
     } catch (err) {
       console.error(err);
       toast({
@@ -222,6 +230,11 @@ const Administradores: React.FC = () => {
             TableHeader={TableHeader}
             renderRow={renderAdminRow}
             caption="Administradores"
+            showPagination={true}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={total}
+            onPageChange={(page) => fetchAdminUsers(page, itemsPerPage)}
             topRightComponent={
               <IconButton
                 aria-label="Crear administrador"
@@ -240,13 +253,16 @@ const Administradores: React.FC = () => {
         )}
       </Box>
 
-      <FormModal
+      <EditModal
         isOpen={isOpen}
         onClose={() => {
           onClose();
           resetForm();
         }}
         onConfirm={handleSubmit}
+        title={
+          formMode === "edit" ? "Editar Administrador" : "Crear Administrador"
+        }
         entityName="Administrador"
         formData={formData}
         onInputChange={handleChange}
@@ -257,7 +273,7 @@ const Administradores: React.FC = () => {
           telephone: "Teléfono",
           password: formMode === "edit" ? "Cambiar contraseña" : "Contraseña",
         }}
-        mode={formMode}
+        excludeFields={formMode === "edit" ? ["email"] : []}
       />
 
       <DeleteModal

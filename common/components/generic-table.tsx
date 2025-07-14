@@ -39,6 +39,11 @@ interface GenericTableProps<T> {
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
   topRightComponent?: React.ReactNode;
+  showPagination?: boolean;
+  currentPage?: number;
+  itemsPerPage?: number;
+  totalItems?: number;
+  onPageChange?: (page: number) => void;
 }
 
 const GenericTable = <T,>({
@@ -50,38 +55,45 @@ const GenericTable = <T,>({
   onImportOpen,
   onCreateOpen,
   topRightComponent,
+  showPagination,
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  onPageChange,
 }: GenericTableProps<T>) => {
-  const itemsPerPage = 7;
-  const [currentPage, setCurrentPage] = useState(1);
+  // const itemsPerPage = 7;
+  // const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
   const { collapsed } = useSidebar();
 
+  const rowSpacing = 0;
+
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    setCurrentPage(1);
+    // setCurrentPage(1); 
   };
 
   const filteredData = data.filter((row) =>
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  // const startIndex = (currentPage - 1) * itemsPerPage;
+  // const endIndex = startIndex + itemsPerPage;
+  // const currentData = filteredData.slice(startIndex, endIndex);
+  // const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  const nextPage = () => {
-    if (endIndex < filteredData.length) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
+  // const nextPage = () => {
+  //   if (endIndex < filteredData.length) {
+  //     setCurrentPage((prev) => prev + 1);
+  //   }
+  // };
 
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
+  // const prevPage = () => {
+  //   if (currentPage > 1) {
+  //     setCurrentPage((prev) => prev - 1);
+  //   }
+  // };
 
   const marginLeft = collapsed ? "6.5rem" : "15.625rem";
 
@@ -152,6 +164,11 @@ const GenericTable = <T,>({
             size="sm"
             overflowX="hidden"
             overflowY="hidden"
+            sx={{
+              "td, th": {
+                py: rowSpacing,
+              },
+            }}
           >
             <Thead>
               <Tr>
@@ -163,10 +180,35 @@ const GenericTable = <T,>({
                 <Th></Th>
               </Tr>
             </Thead>
-            <Tbody>{currentData.map((row, index) => renderRow(row))}</Tbody>
+            <Tbody>
+              {/* Ya viene paginado desde el backend */}
+              {filteredData.map((row, index) => renderRow(row))}
+            </Tbody>
           </Table>
         </TableContainer>
 
+        {/* Agregado: paginación externa */}
+        {showPagination && currentPage !== undefined && totalItems !== undefined && (
+          <Flex justifyContent="space-between" mt={4}>
+            <Button
+              onClick={() => onPageChange?.(currentPage - 1)}
+              isDisabled={currentPage === 1}
+              leftIcon={<ChevronLeftIcon />}
+            />
+
+            <Text>
+              Página {currentPage} de {Math.ceil(totalItems / (itemsPerPage ?? 1))}
+            </Text>
+
+            <Button
+              onClick={() => onPageChange?.(currentPage + 1)}
+              isDisabled={(currentPage * (itemsPerPage ?? 1)) >= totalItems}
+              rightIcon={<ChevronRightIcon />}
+            />
+          </Flex>
+        )}
+
+        {/* 
         <Flex justifyContent="space-between" mt={2}>
           <Button
             onClick={prevPage}
@@ -182,6 +224,7 @@ const GenericTable = <T,>({
             rightIcon={<ChevronRightIcon />}
           ></Button>
         </Flex>
+        */}
       </Box>
     </Flex>
   );

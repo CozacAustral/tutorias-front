@@ -4,7 +4,7 @@ import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import { UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
-import EditModal from "../../common/components/modals/form-modal";
+import EditModal from "../../common/components/modals/edit-modal";
 import DeleteModal from "../../common/components/modals/detele-modal";
 import ImportModal from "../../common/components/modals/import-modal";
 import CreateStudentModal from "../../common/components/modals/create-student-modal";

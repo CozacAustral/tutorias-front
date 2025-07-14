@@ -43,13 +43,18 @@ export const UserService = {
     return res.data;
   },
 
-  async fetchAdminUsers(): Promise<User[]> {
+  async fetchAdminUsers(page: number, limit: number) {
     try {
-      const response = await axiosInstance.get<User[]>("/users/admins");
+      const response = await axiosInstance.get(`/users/admins`, {
+        params: {
+          currentPage: page,
+          resultsPerPage: limit,
+        },
+      });
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `Error al obtener los administradores: ${error.message || error}`
+        `Error al obtener administradores. ${error.message || error}`
       );
     }
   },
@@ -67,15 +72,18 @@ export const UserService = {
 
   async fetchStudentById(id: number): Promise<Student> {
     try {
-      const response = await axiosInstance.get<Student>(`${url_students}/${id}`);
+      const response = await axiosInstance.get<Student>(
+        `${url_students}/${id}`
+      );
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `No se pudo obtener el estudiante con ID ${id}. ${error.message || error}`
+        `No se pudo obtener el estudiante con ID ${id}. ${
+          error.message || error
+        }`
       );
     }
   },
-
 
   async fetchAllUsers(): Promise<User[]> {
     try {
