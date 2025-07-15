@@ -19,6 +19,7 @@ import {
   MenuList,
   MenuItem,
   IconButton,
+  Center,
 } from "@chakra-ui/react";
 
 import {
@@ -61,8 +62,6 @@ const GenericTable = <T,>({
   totalItems,
   onPageChange,
 }: GenericTableProps<T>) => {
-  // const itemsPerPage = 7;
-  // const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
   const { collapsed } = useSidebar();
@@ -70,30 +69,12 @@ const GenericTable = <T,>({
   const rowSpacing = 0;
 
   const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    // setCurrentPage(1); 
+    setSearchTerm(term); 
   };
 
   const filteredData = data.filter((row) =>
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // const startIndex = (currentPage - 1) * itemsPerPage;
-  // const endIndex = startIndex + itemsPerPage;
-  // const currentData = filteredData.slice(startIndex, endIndex);
-  // const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  // const nextPage = () => {
-  //   if (endIndex < filteredData.length) {
-  //     setCurrentPage((prev) => prev + 1);
-  //   }
-  // };
-
-  // const prevPage = () => {
-  //   if (currentPage > 1) {
-  //     setCurrentPage((prev) => prev - 1);
-  //   }
-  // };
 
   const marginLeft = collapsed ? "6.5rem" : "15.625rem";
 
@@ -181,15 +162,13 @@ const GenericTable = <T,>({
               </Tr>
             </Thead>
             <Tbody>
-              {/* Ya viene paginado desde el backend */}
               {filteredData.map((row, index) => renderRow(row))}
             </Tbody>
           </Table>
         </TableContainer>
 
-        {/* Agregado: paginación externa */}
         {showPagination && currentPage !== undefined && totalItems !== undefined && (
-          <Flex justifyContent="space-between" mt={4}>
+          <Flex justifyContent="space-between" alignItems="center" mt={4}>
             <Button
               onClick={() => onPageChange?.(currentPage - 1)}
               isDisabled={currentPage === 1}
@@ -208,23 +187,6 @@ const GenericTable = <T,>({
           </Flex>
         )}
 
-        {/* 
-        <Flex justifyContent="space-between" mt={2}>
-          <Button
-            onClick={prevPage}
-            isDisabled={currentPage === 1}
-            leftIcon={<ChevronLeftIcon />}
-          ></Button>
-          <Text>
-            Página {currentPage}/{totalPages}
-          </Text>
-          <Button
-            onClick={nextPage}
-            isDisabled={endIndex >= filteredData.length}
-            rightIcon={<ChevronRightIcon />}
-          ></Button>
-        </Flex>
-        */}
       </Box>
     </Flex>
   );

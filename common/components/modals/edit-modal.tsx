@@ -38,7 +38,7 @@ const EditModal: React.FC<EditModalProps> = ({
   formData,
   onInputChange,
   fieldLabels = {},
-  excludeFields = ["email"], // por defecto oculta email si está
+  excludeFields = ["email"], 
 }) => {
   const keys = Object.keys(formData).filter(
     (key) => !excludeFields.includes(key)
@@ -55,58 +55,28 @@ const EditModal: React.FC<EditModalProps> = ({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {keys.map((field, index) => {
-            const nextField = keys[index + 1];
-            const isEven = index % 2 === 0;
-
-            return isEven ? (
-              <HStack spacing={4} key={field} mt={4}>
-                <FormControl>
-                  <FormLabel>{fieldLabels[field] || field}</FormLabel>
-                  <Input
-                    type={
-                      typeof formData[field] === "string" &&
-                      formData[field].includes("-")
-                        ? "date"
-                        : "text"
-                    }
-                    name={field}
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    w="100%"
-                    h="50px"
-                    value={formData[field] as string | number}
-                    onChange={onInputChange}
-                  />
-                </FormControl>
-
-                {nextField && (
-                  <FormControl>
-                    <FormLabel>{fieldLabels[nextField] || nextField}</FormLabel>
-                    <Input
-                      type={
-                        typeof formData[nextField] === "string" &&
-                        formData[nextField].includes("-")
-                          ? "date"
-                          : "text"
-                      }
-                      name={nextField}
-                      borderColor="light_gray"
-                      bg="light_gray"
-                      borderWidth="4px"
-                      borderRadius="15px"
-                      w="100%"
-                      h="50px"
-                      value={formData[nextField] as string | number}
-                      onChange={onInputChange}
-                    />
-                  </FormControl>
-                )}
-              </HStack>
-            ) : null;
-          })}
+          {keys.map((field) => (
+            <FormControl key={field} mt={4}>
+              <FormLabel>{fieldLabels[field] || field}</FormLabel>
+              <Input
+                type={
+                  typeof formData[field] === "string" &&
+                  formData[field].includes("-")
+                    ? "date"
+                    : "text"
+                }
+                name={field}
+                borderColor="light_gray"
+                bg="light_gray"
+                borderWidth="4px"
+                borderRadius="15px"
+                w="100%"
+                h="50px"
+                value={formData[field] as string | number}
+                onChange={onInputChange}
+              />
+            </FormControl>
+          ))}
         </ModalBody>
 
         <ModalFooter>

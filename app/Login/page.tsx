@@ -171,52 +171,67 @@ const Login = () => {
 
               <FormControl>
                 <FormHelperText textAlign="center" mt={4}>
-                  ¿Olvidaste tu contraseña?{" "}
                   <Link
                     color="primary"
                     fontWeight="bold"
                     onClick={() => setMostrarRecuperacion(true)}
                     cursor="pointer"
                   >
-                    Recuperala aquí
+                    ¿Olvidaste tu contraseña?
                   </Link>
                 </FormHelperText>
               </FormControl>
             </Stack>
           </form>
         ) : (
-          <Box>
-            <Text mb={4}>Ingrese su correo para restablecer la contraseña</Text>
-            <FormControl>
+          <Stack
+            spacing={4}
+            alignItems="center"
+            justifyContent="center"
+            height="100%"
+          >
+            <Text fontSize="lg" fontWeight="medium" textAlign="center">
+              Ingrese su correo para restablecer la contraseña
+            </Text>
+
+            <FormControl width="100%">
               <Input
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                borderRadius="8px"
+                h="42px"
+                backgroundColor="light_gray"
+                paddingLeft="1.5rem"
+                padding="21px"
               />
             </FormControl>
+
             <Button
-              mt={4}
               colorScheme="blue"
               onClick={handleRecovery}
               width="100%"
+              maxW="300px"
+              height="42px"
             >
               Enviar mail de recuperación
             </Button>
+
             {recoveryMessage && (
-              <Text mt={3} color="green.500">
+              <Text mt={2} color="green.500" textAlign="center">
                 {recoveryMessage}
               </Text>
             )}
+
             <Button
               variant="link"
-              mt={3}
               onClick={() => setMostrarRecuperacion(false)}
               color="primary"
             >
               ← Volver al login
             </Button>
-          </Box>
+          </Stack>
         )}
       </Box>
     </Container>
