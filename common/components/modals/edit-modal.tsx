@@ -45,7 +45,7 @@ interface EditModalProps<t = any> {
   isOpen: boolean;
   onClose: () => void;
   entityName: string;
-  title: string; 
+  title: string;
   onConfirm: () => Promise<void>;
   formData: { [key: string]: t };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
@@ -64,59 +64,23 @@ const EditModal: React.FC<EditModalProps> = ({
   fieldLabels,
 }) => {
 
-  const toast = useToast();
-
-  const [careers, setCareers] = useState<Career[]>([]);
-  const [countries, setCountries] = useState<Country[]>([])
-
- 
-  useEffect(() => {
-    const loadCareers = async () => {
-      try {
-        const data = await UserService.fetchAllCareers()
-        setCareers(data)
-      } catch (error) {
-        toast({
-          title: 'Errro al cargar las carreras',
-          status: 'error'
-        });
-      }
-    };
-
-    const loadCountries = async () => {
-      try {
-        const data = await UserService.fetchAllCountries()
-        setCountries(data)
-      } catch (error) {
-        toast({
-          title: 'Error al cargar los paises de los estudiantes',
-          status: 'error'
-        });
-      }
-    }
-    if (isOpen) {
-      loadCountries();
-      loadCareers();
-    }
-  }, [isOpen]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl">
+    <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
-      <ModalContent maxW="51vw">
-        <ModalHeader>
-          <Text fontSize="5xl" color='black' marginTop={6}>
-            Editar {entityName}
-          </Text>
-        </ModalHeader>
+      <ModalContent maxW="51vw" maxH="95vh">
+        <Text fontSize="50px" color='black' marginTop='30px' marginLeft={8} marginBottom={1}>
+          Editar {entityName}
+        </Text>
         <ModalCloseButton />
-        <ModalBody>
-          <VStack spacing={4}>
+        <ModalBody paddingY={6}>
+          <VStack spacing={4} align='stretch'>
             <HStack spacing={4} width='100%'>
               <FormControl>
                 <FormLabel>Apellido/s</FormLabel>
                 <Input
-                  type="lastname"
+                  name="lastName"
+                  type="text"
                   borderColor="light_gray"
                   bg="light_gray"
                   borderWidth="4px"
@@ -124,14 +88,14 @@ const EditModal: React.FC<EditModalProps> = ({
                   h="50px"
                   value={formData.lastName}
                   onChange={onInputChange}
-                  placeholder="ApelLido/s del alumno seleccionado"
-                  isDisabled
+                  placeholder="Apellido/s del alumno seleccionado"
                 />
               </FormControl>
               <FormControl>
                 <FormLabel>Nombre</FormLabel>
                 <Input
-                  type="name"
+                  name="name"
+                  type="text"
                   borderColor="light_gray"
                   bg="light_gray"
                   borderWidth="4px"
@@ -140,7 +104,6 @@ const EditModal: React.FC<EditModalProps> = ({
                   value={formData.name}
                   onChange={onInputChange}
                   placeholder="Nombre del alumno seleccionado"
-                  isDisabled
                 />
               </FormControl>
             </HStack>
@@ -158,7 +121,6 @@ const EditModal: React.FC<EditModalProps> = ({
                   value={formData.email}
                   onChange={onInputChange}
                   placeholder="Correo del alumno seleccionado"
-                  isDisabled
                 />
               </FormControl>
               <FormControl>
@@ -174,9 +136,8 @@ const EditModal: React.FC<EditModalProps> = ({
                   value={formData.telephone}
                   onChange={onInputChange}
                   placeholder="Nro. De telefono del alumno seleccionado"
-                  isDisabled
                 />
-              </FormControl>e
+              </FormControl>
             </HStack>
             <FormControl width='100%'>
               <FormLabel>Observaciones</FormLabel>
@@ -194,17 +155,31 @@ const EditModal: React.FC<EditModalProps> = ({
             </FormControl>
           </VStack>
 
-          <Box mt={4}>
+          <Box mt={3}>
             <GenericTable
               data={formData.careers}
               TableHeader={['Carrera', 'Estado', 'Año de ingreso']}
               caption="Carreras"
               renderRow={renderCareerNow}
+              compact={true}
+              itemsPerPage={2}
+              showAddMenu={true}
+              minH='undefined'
+              paddingX={3}
+              paddingY={3}
+              fontSize="50px"
+              marginLeft="3px"
+              marginTop="1"
+              width="100%"
+              maxWidth="100%"
+              padding={2}
+              flex='undefined'
+              height="260px"
             />
           </Box>
         </ModalBody>
 
-        <ModalFooter>
+        <ModalFooter justifyContent='flex-end' pt={2}>
           <Button variant="ghost" onClick={onClose} mr={3}>
             Cancelar
           </Button>

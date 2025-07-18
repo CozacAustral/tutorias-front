@@ -1,5 +1,6 @@
 import { Career } from "./career.interface";
 import { CareerStudent } from "./careerStudent.interface";
+import { StudentCareer } from "./studentCareer.interface";
 import { User } from "./user.interface";
 
 export interface Student {
@@ -11,12 +12,7 @@ export interface Student {
   yearEntry: Date;
   observations?: string;
   careersId: number[];
-  careers: {
-    careerId: number;
-    name: string;
-    year: string;
-    active: boolean
-  }[]
+  careers: StudentCareer[]
   countryId: number;
   user: User;
   userId: number;

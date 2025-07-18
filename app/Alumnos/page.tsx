@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
-import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
+import { IconButton, Select, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import { UserService } from "../../services/admin-service";
 import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 import EditModal from "../../common/components/modals/edit-modal";
@@ -12,15 +12,23 @@ import { useRouter } from "next/navigation";
 import ViewStudentModal from "../../common/components/modals/view-student-modal";
 import { Student } from "../interfaces/student.interface";
 import { UpdateStudentDto } from "../interfaces/update-student";
-
+import { StudentCareer } from "../interfaces/studentCareer.interface";
+import { Career } from "../interfaces/career.interface";
+import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
+import SubjectModal from "../../common/components/modals/subject-student-modal";
+import { SubjectState } from '../enums/subject-state.enum'
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
+  const [subjects, setSubjects] = useState<SubjectCareerWithState[]>([]);
+  const [editedSubjects, setEditedSubjects] = useState<{ [subjectId: number]: string }>({});
+  const [editSubjectId, setEditSubjectId] = useState<number | null>(null);
+  const [openSubjectState, setOpenSubjectState] = useState(false);
   const toast = useToast();
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   const {
     isOpen: isEditModalOpen,
@@ -48,6 +56,12 @@ const Estudiantes: React.FC = () => {
     onClose: closeViewModal,
   } = useDisclosure();
 
+  const {
+    isOpen: isSubjectModalOpen,
+    onOpen: openSujectModal,
+    onClose: closeSubjectModal
+  } = useDisclosure()
+
 
 
   const [formData, setFormData] = useState<UpdateStudentDto>({
@@ -57,8 +71,8 @@ const Estudiantes: React.FC = () => {
     telephone: "",
     birthdate: new Date(),
     address: "",
-    yearEntry: new Date(),
-    observations: "",
+    year: new Date(),
+    observations: '',
     countryId: 1,
     email: '',
     careers: []
@@ -77,7 +91,6 @@ const Estudiantes: React.FC = () => {
       try {
         const fetchedStudents = await UserService.fetchAllStudents();
         setStudents(fetchedStudents);
-        console.log(fetchedStudents)
       } catch (error) {
         console.error('Error fetching students:', error);
         setError("No se pudieron cargar los estudiantes.");
@@ -85,7 +98,6 @@ const Estudiantes: React.FC = () => {
         setLoading(false);
       }
     };
-
     loadStudents();
   }, []);
 
@@ -95,22 +107,31 @@ const Estudiantes: React.FC = () => {
     openDeleteModal();
   }
 
-  const handleEditClick = (student: Student) => {
-    setSelectedStudent(student);
-    setFormData({
-      name: student.user.name || '',
-      lastName: student.user.lastName || '',
-      dni: student.dni || '',
-      telephone: student.telephone || '',
-      birthdate: student.birthdate || new Date(),
-      address: student.address || '',
-      yearEntry: student.yearEntry || new Date(),
-      observations: student.observations || "",
-      countryId: student.countryId,
-      email: student.user.email || '',
-      careers: student.careers
-    })
-    openEditModal();
+  const handleEditClick = async (student: Student) => {
+    try {
+      const studentSelected = await UserService.fetchStudent(student.id)
+      setSelectedStudent(studentSelected)
+      setFormData({
+        name: studentSelected.user.name || '',
+        lastName: studentSelected.user.lastName || '',
+        dni: studentSelected.dni || '',
+        telephone: studentSelected.telephone || '',
+        birthdate: studentSelected.birthdate || new Date(),
+        address: studentSelected.address || '',
+        year: studentSelected.yearEntry || new Date(),
+        observations: studentSelected.observations || "",
+        countryId: studentSelected.countryId,
+        email: studentSelected.user.email || '',
+        careers: studentSelected.careers
+      })
+      openEditModal();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo obtener los datos del estudiante',
+        status: 'error'
+      })
+    }
   };
 
 
@@ -126,37 +147,6 @@ const Estudiantes: React.FC = () => {
             ? parseInt(value)
             : value,
     }));
-  };
-
-  const handleEditConfirm = async () => {
-    if (selectedStudent) {
-      try {
-        await UserService.updateStudent(selectedStudent.id, formData);
-
-        const updateStudent = await UserService.fetchAllStudents();
-        setStudents(updateStudent);
-
-        toast({
-          title: "Tutor actualizado.",
-          description: "El tutor ha sido actualizado con éxito.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-
-        closeEditModal();
-
-      } catch (error) {
-        console.error("Error al editar estudiante:", error);
-        toast({
-          title: "Error",
-          description: "No se pudo editar el estudiante. Intenta de nuevo.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    }
   };
 
   const handleAddStudent = async () => {
@@ -204,6 +194,156 @@ const Estudiantes: React.FC = () => {
     setSelectedStudent(student);
     openViewModal();
   };
+
+  const handleStudentUpdate = async () => {
+    if (selectedStudent) {
+      try {
+        const newObservationStudent = await UserService.updateStudentModal(selectedStudent.id, formData.lastName, formData.name, formData.email, formData.telephone, formData.observations);
+        setFormData(newObservationStudent)
+
+        setStudents(prevStudents =>
+          prevStudents.map(student =>
+            student.id === selectedStudent.id
+              ? {
+                ...student,
+                user: {
+                  ...student.user,
+                  name: formData.name,
+                  lastName: formData.lastName,
+                  email: formData.email
+                },
+                telephone: formData.telephone,
+                observations: formData.observations
+              }
+              : student
+          )
+        );
+
+        toast({
+          title: "Alumno actualizado.",
+          description: "El alumno ha sido actualizado.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+
+        closeEditModal();
+
+      } catch (error) {
+        console.error("Error al editar estudiante:", error);
+        toast({
+          title: "Error",
+          description: "No se pudo editar el estudiante. Intenta de nuevo.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
+  const handleAllSubject = async (career: StudentCareer) => {
+    if (!selectedStudent?.id || !career?.careerId) {
+      toast({
+        title: 'Error',
+        description: 'Faltan datos del estudiante o de la carrera',
+        status: 'error'
+      });
+      return;
+    }
+
+    try {
+      const careerSelected = await UserService.fetchCareers(career.careerId)
+      setSelectedCareer(careerSelected)
+
+      const allSubjects = await UserService.fetchStudentSubject(selectedStudent?.id, careerSelected.id)
+      setSubjects(allSubjects)
+
+      openSujectModal();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo obtener las materias de la carrera',
+        status: 'error'
+      })
+    }
+  };
+
+  const handleEditSubject = async () => {
+    setOpenSubjectState(false)
+    setEditSubjectId(null)
+
+    if (selectedStudent) {
+      try {
+        const updates = Object.entries(editedSubjects)
+        if (updates.length > 0) {
+          await Promise.all(
+            updates.map(([subjectIdStr, newState]) =>
+              UserService.updateStateSubject(
+                selectedStudent.id,
+                parseInt(subjectIdStr),
+                newState
+              ))
+          );
+        }
+
+        setSubjects(prevSubject =>
+          prevSubject.map(subject => {
+            const newState = editedSubjects[subject.subjectId];
+            if (newState) {
+              return {
+                ...subject,
+                subjectState: newState,
+                updateAt: new Date()
+              };
+            }
+            return subject;
+          })
+        )
+
+        setEditedSubjects({})
+
+        toast({
+          title: "Los estados de las materias del alumno, han sido actualizadas.",
+          description: "Las materias ya tienen el nuevo estado.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error("Error al editar el estado de la materia:", error);
+        toast({
+          title: "Error",
+          description: "No se pudo editar el estado de la materia. Intenta de nuevo.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
+  }
+
+
+  const handleEditSubjectClick = async (subjectId: number) => {
+    if (editSubjectId !== null && editSubjectId !== subjectId) {
+      const previousSubjectId = editSubjectId
+      const newState = editedSubjects[previousSubjectId]
+
+      if (newState) {
+        setSubjects(prevSubject => prevSubject.map(subject => {
+          if (subject.subjectId === previousSubjectId) {
+            return {
+              ...subject,
+              subjectState: newState
+            }
+          }
+          return subject;
+        }))
+      }
+    }
+    setEditSubjectId(subjectId);
+    setOpenSubjectState(true)
+  }
 
 
   const renderStudentRow = (student: Student) => (
@@ -254,11 +394,11 @@ const Estudiantes: React.FC = () => {
     </Tr>
   );
 
-  const renderCareerRow = (career: any, index: number) => (
+  const renderCareerRow = (career: StudentCareer) => (
     <Tr key={career.careerId}>
       <Td>{career.name}</Td>
       <Td>{career.active ? 'Activa' : 'Inactiva'}</Td>
-      <Td>{career.yearEntry}</Td>
+      <Td>{career.year}</Td>
       <Td>
         <IconButton
           icon={<ViewIcon boxSize={5} />}
@@ -282,7 +422,7 @@ const Estudiantes: React.FC = () => {
             backgroundColor: "#318AE4",
             color: "White",
           }}
-        // onClick={() => handleEditClick(student)}
+          onClick={() => handleAllSubject(career)}
         />
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
@@ -295,12 +435,48 @@ const Estudiantes: React.FC = () => {
           }}
         // onClick={() => handleDeleteClick(student)}
         />
-
       </Td>
     </Tr>
   )
 
+  const renderSubjectRow = (subject: SubjectCareerWithState) => (
+    <Tr key={subject.subjectId}>
+      <Td>{subject.subjectName}</Td>
+      <Td>{subject.year}</Td>
+      <Td>
+        {editSubjectId === subject.subjectId && openSubjectState ? (
+          <Select value={editedSubjects[subject.subjectId] ?? subject.subjectState} onChange={e => setEditedSubjects(prev => ({ ...prev, [subject.subjectId]: e.target.value }))}>
+            <option value="APPROVED">{SubjectState.APPROVED}</option>
+            <option value="REGULARIZED">{SubjectState.REGULARIZED}</option>
+            <option value="FREE">{SubjectState.FREE}</option>
+            <option value="INPROGRESS">{SubjectState.INPROGRESS}</option>
+            <option value="NOTATTENDED">{SubjectState.NOTATTENDED}</option>
+            {/* <option value="RETAKING">{SubjectState.RETAKING}</option> */}
+          </Select>
+        ) : (
+          editedSubjects[subject.subjectId] || subject.subjectState
+        )}
 
+      </Td>
+      <Td>
+        {subject.updateAt ? new Date(subject.updateAt).toLocaleDateString() : '-'}
+      </Td>
+      <Td>
+        <IconButton
+          icon={<EditIcon boxSize={5} />}
+          aria-label="Edit"
+          mr={5}
+          backgroundColor="white"
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
+          onClick={() => handleEditSubjectClick(subject.subjectId)}
+        />
+      </Td>
+    </Tr>
+  )
 
   return (
     <>
@@ -318,10 +494,12 @@ const Estudiantes: React.FC = () => {
       ) : (
         <p>Loading...</p>
       )}
+
+
       <EditModal
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
-        onConfirm={handleEditConfirm}
+        onConfirm={handleStudentUpdate}
         formData={formData}
         onInputChange={handleChange}
         title="Editar Alumno"
@@ -335,6 +513,16 @@ const Estudiantes: React.FC = () => {
           observations: "Observaciones",
           careersId: "Carrera/s"
         }}
+      />
+
+      <SubjectModal
+        isOpen={isSubjectModalOpen}
+        onClose={closeSubjectModal}
+        onConfirm={handleEditSubject}
+        subjects={subjects}
+        renderSubjectNow={renderSubjectRow}
+        titleCareer={selectedCareer?.name}
+        entityName="Materias"
       />
 
       <ImportModal
