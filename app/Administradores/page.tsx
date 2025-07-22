@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   IconButton,
@@ -12,89 +12,141 @@ import {
 import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
 
 import GenericTable from "../../common/components/generic-table";
-import GenericCreateModal from "../../common/components/modals/create-modal-admin-tutores";
-import EditModal from "../../common/components/modals/edit-modal";
-
+import DeleteModal from "../../common/components/modals/detele-modal";
 import { UserService } from "../../services/admin-service";
 import { User } from "../interfaces/user.interface";
-import DeleteModal from "../../common/components/modals/detele-modal";
+import { useSidebar } from "../contexts/SidebarContext";
+import EditModal from "../../common/components/modals/edit-modal";
 
 const Administradores: React.FC = () => {
   const [users, setUsers] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const { collapsed } = useSidebar();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isEditOpen,
-    onOpen: onEditOpen,
-    onClose: onEditClose,
-  } = useDisclosure();
-
   const {
     isOpen: isDeleteOpen,
     onOpen: onDeleteOpen,
     onClose: onDeleteClose,
   } = useDisclosure();
 
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [editForm, setEditForm] = useState<Record<string, any>>({});
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [formData, setFormData] = useState({
+    name: "",
+    lastName: "",
+    email: "",
+    password: "",
+    telephone: "",
+  });
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [adminToDelete, setAdminToDelete] = useState<User | null>(null);
-
   const toast = useToast();
+  const [admins, setAdmins] = useState<User[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
 
+  const [itemsPerPage, setItemsPerPage] = useState(7);
+  const [currentPage, setCurrentPage] = useState(1);
   const TableHeader = ["Nombre", "Apellido/s", "Correo", "Área", "Acciones"];
 
-  const fetchUsers = async () => {
+  const fetchAdminUsers = async (page: number, itemsPerPage: number) => {
     try {
-      const data = await UserService.fetchAllUsers();
-      setUsers(data);
+      const res = await UserService.fetchAdminUsers(page, itemsPerPage);
+      setUsers(res.data);
+      setTotal(res.total);
+      setItemsPerPage(res.limit);
+      setCurrentPage(page);
     } catch (err) {
       setError("Fallo al cargar los usuarios.");
       console.error(err);
     }
   };
 
+  const calledRef = useRef(false);
   useEffect(() => {
-    fetchUsers();
+    if (calledRef.current) return;
+    calledRef.current = true;
+    fetchAdminUsers(1, itemsPerPage);
   }, []);
 
-  const handleEditClick = (admin: User) => {
-    setEditingUser(admin);
-    setEditForm({
-      name: admin.name,
-      lastName: admin.lastName,
-      email: admin.email,
-      telephone: (admin as any).telephone, // ← asegurate que 'telephone' existe
-      password: "",
-    });
-    onEditOpen();
-  };
-
-  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEditSubmit = async () => {
-    if (!editingUser) return;
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      lastName: "",
+      email: "",
+      password: "",
+      telephone: "",
+    });
+    setEditingUserId(null);
+    setFormMode("create");
+  };
 
-    const { name, lastName, password, telephone } = editForm;
-
+  const handleSubmit = async () => {
     try {
-      await UserService.updateUser({ name, lastName, password, telephone });
+      if (formMode === "create") {
+        await UserService.createUser({ ...formData, roleId: 1 });
+        toast({
+          title: "Administrador creado",
+          status: "success",
+          duration: 4000,
+          isClosable: true,
+        });
+      } else if (formMode === "edit" && editingUserId !== null) {
+        const { email, ...restData } = formData;
+        await UserService.updateUser(editingUserId, {
+          ...restData,
+          password: formData.password || undefined,
+        });
+        toast({
+          title: "Administrador actualizado",
+          status: "success",
+          duration: 4000,
+          isClosable: true,
+        });
+      }
+      fetchAdminUsers(currentPage, itemsPerPage);
+      onClose();
+      resetForm();
+    } catch (err) {
       toast({
-        title: "Administrador actualizado",
-        status: "success",
+        title: "Error",
+        description: "Operación fallida",
+        status: "error",
         duration: 4000,
         isClosable: true,
       });
-      fetchUsers();
-      onEditClose();
-    } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleCreateClick = () => {
+    setFormMode("create");
+    resetForm();
+    onOpen();
+  };
+
+  const handleEditClick = async (admin: User) => {
+    try {
+      const fetchedUser = await UserService.fetchUserById(admin.id);
+      setFormData({
+        name: fetchedUser.name,
+        lastName: fetchedUser.lastName,
+        email: fetchedUser.email,
+        telephone: (fetchedUser as any).telephone || "",
+        password: "",
+      });
+      setFormMode("edit");
+      setEditingUserId(fetchedUser.id);
+      onOpen();
+    } catch (error) {
+      console.error("❌ Error al obtener el usuario por ID:", error);
       toast({
-        title: "Error",
-        description: "No se pudo actualizar el administrador.",
+        title: "Error al obtener los datos",
+        description: "No se pudo obtener el administrador para editar.",
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -118,7 +170,7 @@ const Administradores: React.FC = () => {
         duration: 4000,
         isClosable: true,
       });
-      fetchUsers();
+      fetchAdminUsers(currentPage, itemsPerPage);
     } catch (err) {
       console.error(err);
       toast({
@@ -168,36 +220,31 @@ const Administradores: React.FC = () => {
     </Tr>
   );
 
-  const adminFields = [
-    { name: "name", label: "Nombre", required: true },
-    { name: "lastName", label: "Apellido", required: true },
-    { name: "email", label: "Correo", type: "email", required: true },
-    { name: "telephone", label: "Teléfono", type: "tel", required: true },
-    { name: "password", label: "Contraseña", type: "password", required: true },
-  ];
-
   return (
     <>
       {error && <p>{error}</p>}
-      <Box px={10} pt={5}>
+      <Box pl={collapsed ? "6.5rem" : "17rem"} px={15}>
         {users ? (
           <GenericTable
             data={users}
             TableHeader={TableHeader}
             renderRow={renderAdminRow}
             caption="Administradores"
+            showPagination={true}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={total}
+            onPageChange={(page) => fetchAdminUsers(page, itemsPerPage)}
             topRightComponent={
               <IconButton
                 aria-label="Crear administrador"
                 icon={<AddIcon />}
-                onClick={onOpen}
+                onClick={handleCreateClick}
                 backgroundColor="#318AE4"
                 color="white"
                 borderRadius="50%"
                 boxSize="40px"
-                _hover={{
-                  backgroundColor: "#2563eb",
-                }}
+                _hover={{ backgroundColor: "#2563eb" }}
               />
             }
           />
@@ -206,30 +253,27 @@ const Administradores: React.FC = () => {
         )}
       </Box>
 
-      <GenericCreateModal
-        isOpen={isOpen}
-        onClose={onClose}
-        onCreateSuccess={fetchUsers}
-        title="Administrador"
-        fields={adminFields}
-        createFn={(data) => UserService.createUser({ ...data, roleId: 1 })}
-      />
-
       <EditModal
-        isOpen={isEditOpen}
-        onClose={onEditClose}
-        onConfirm={handleEditSubmit}
+        isOpen={isOpen}
+        onClose={() => {
+          onClose();
+          resetForm();
+        }}
+        onConfirm={handleSubmit}
+        title={
+          formMode === "edit" ? "Editar Administrador" : "Crear Administrador"
+        }
         entityName="Administrador"
-        title="Editar Administrador"
-        formData={editForm}
-        onInputChange={handleEditChange}
+        formData={formData}
+        onInputChange={handleChange}
         fieldLabels={{
           name: "Nombre",
           lastName: "Apellido",
           email: "Correo",
           telephone: "Teléfono",
-          password: "Contraseña",
+          password: formMode === "edit" ? "Cambiar contraseña" : "Contraseña",
         }}
+        excludeFields={formMode === "edit" ? ["email"] : []}
       />
 
       <DeleteModal

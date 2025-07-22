@@ -18,7 +18,7 @@ import {
   InputGroup,
   InputRightElement,
 } from "@chakra-ui/react";
-import { login, sendRecoveryEmail } from "./api"; // Asegurate de agregar esta función
+import { login, sendRecoveryEmail } from "./api";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -81,7 +81,7 @@ const Login = () => {
         borderRadius="15px"
         shadow="md"
         width={{ base: "90%", sm: "70%", md: "50%", lg: "40%" }}
-        height='500px'
+        height="500px"
         maxW="500px"
       >
         {!mostrarRecuperacion ? (
@@ -92,9 +92,9 @@ const Login = () => {
                 alt="Image-login"
                 width="100%"
                 maxWidth="450px"
-                height='150px'
+                height="150px"
                 objectFit="none"
-                objectPosition='top'
+                objectPosition="top"
               />
 
               {error && (
@@ -104,53 +104,53 @@ const Login = () => {
               )}
 
               <FormControl width="100%">
-                  <Input
-                    borderRadius="8px"
-                    h="42px"
-                    backgroundColor="light_gray"
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    paddingLeft="1.5rem"
-                    width="100%"
-                    marginTop='10px'
-                    padding='21px'
-                  />
-              </FormControl>
-
-              <FormControl width="100%">
-                <InputGroup>
                 <Input
                   borderRadius="8px"
                   h="42px"
                   backgroundColor="light_gray"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   paddingLeft="1.5rem"
                   width="100%"
-                  marginBottom={'30px'}
-                  marginTop='17px'
-                  padding='21px'
+                  marginTop="10px"
+                  padding="21px"
                 />
-                <InputRightElement height={'100%'}>
-                  <IconButton
-                  aria-label="mostrar/ocultar contrasena"
-                  icon={showPassword ? <HiEyeOff /> : <HiEye />}
-                  onClick={handleClick}
-                  position="absolute"
-                  right="10px"
-                  backgroundColor="light_gray"
-                  top="39%"
-                  transform="translateY(-50%)"
-                  variant="link"
-                  color="gray.900"
-                  fontSize="24px"
-                  pointerEvents={'auto'}
-                />
-                </InputRightElement>
+              </FormControl>
+
+              <FormControl width="100%">
+                <InputGroup>
+                  <Input
+                    borderRadius="8px"
+                    h="42px"
+                    backgroundColor="light_gray"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Contraseña"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    paddingLeft="1.5rem"
+                    width="100%"
+                    marginBottom="30px"
+                    marginTop="17px"
+                    padding="21px"
+                  />
+                  <InputRightElement height="100%">
+                    <IconButton
+                      aria-label="mostrar/ocultar contraseña"
+                      icon={showPassword ? <HiEyeOff /> : <HiEye />}
+                      onClick={handleClick}
+                      position="absolute"
+                      right="10px"
+                      backgroundColor="light_gray"
+                      top="39%"
+                      transform="translateY(-50%)"
+                      variant="link"
+                      color="gray.900"
+                      fontSize="24px"
+                      pointerEvents="auto"
+                    />
+                  </InputRightElement>
                 </InputGroup>
               </FormControl>
 
@@ -163,7 +163,7 @@ const Login = () => {
                 maxW="300px"
                 height="42px"
                 mt={5}
-                margin={'6px'}
+                margin="6px"
                 isLoading={isLoading}
               >
                 Iniciar Sesión
@@ -171,52 +171,67 @@ const Login = () => {
 
               <FormControl>
                 <FormHelperText textAlign="center" mt={4}>
-                  ¿Olvidaste tu contraseña?{" "}
                   <Link
                     color="primary"
                     fontWeight="bold"
                     onClick={() => setMostrarRecuperacion(true)}
                     cursor="pointer"
                   >
-                    Recuperala aquí
+                    ¿Olvidaste tu contraseña?
                   </Link>
                 </FormHelperText>
               </FormControl>
             </Stack>
           </form>
         ) : (
-          <Box>
-            <Text mb={4}>Ingrese su correo para restablecer la contraseña</Text>
-            <FormControl>
+          <Stack
+            spacing={4}
+            alignItems="center"
+            justifyContent="center"
+            height="100%"
+          >
+            <Text fontSize="lg" fontWeight="medium" textAlign="center">
+              Ingrese su correo para restablecer la contraseña
+            </Text>
+
+            <FormControl width="100%">
               <Input
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                borderRadius="8px"
+                h="42px"
+                backgroundColor="light_gray"
+                paddingLeft="1.5rem"
+                padding="21px"
               />
             </FormControl>
+
             <Button
-              mt={4}
               colorScheme="blue"
               onClick={handleRecovery}
               width="100%"
+              maxW="300px"
+              height="42px"
             >
               Enviar mail de recuperación
             </Button>
+
             {recoveryMessage && (
-              <Text mt={3} color="green.500">
+              <Text mt={2} color="green.500" textAlign="center">
                 {recoveryMessage}
               </Text>
             )}
+
             <Button
               variant="link"
-              mt={3}
               onClick={() => setMostrarRecuperacion(false)}
               color="primary"
             >
               ← Volver al login
             </Button>
-          </Box>
+          </Stack>
         )}
       </Box>
     </Container>

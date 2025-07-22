@@ -20,9 +20,17 @@ export const UserService = {
     }
   },
 
-  async updateUser(updatedData: Partial<User>): Promise<void> {
+  async updateUser(
+    id: number,
+    updatedData: {
+      name?: string;
+      lastName?: string;
+      telephone?: string;
+      password?: string;
+    }
+  ): Promise<void> {
     try {
-      await axiosInstance.patch(`${url}/patch-me`, updatedData);
+      await axiosInstance.patch(`users/${id}`, updatedData);
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el usuario. ${error.message || error}`
@@ -33,6 +41,33 @@ export const UserService = {
   async createUser(newUser: CreateUser) {
     const res = await axiosInstance.post("/users", newUser);
     return res.data;
+  },
+
+  async fetchAdminUsers(page: number, limit: number) {
+    try {
+      const response = await axiosInstance.get(`/users/admins`, {
+        params: {
+          currentPage: page,
+          resultsPerPage: limit,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `Error al obtener administradores. ${error.message || error}`
+      );
+    }
+  },
+
+  async fetchUserById(id: number): Promise<User> {
+    try {
+      const response = await axiosInstance.get<User>(`/users/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `No se pudo obtener el usuario con ID ${id}. ${error.message || error}`
+      );
+    }
   },
 
   async fetchStudentById(id: number): Promise<Student> {

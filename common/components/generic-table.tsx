@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Box,
-  ChakraProvider,
   Flex,
   Table,
   TableContainer,
@@ -13,7 +12,6 @@ import {
   Text,
   Button,
   InputGroup,
-  InputLeftElement,
   InputRightElement,
   Input,
   Menu,
@@ -21,16 +19,17 @@ import {
   MenuList,
   MenuItem,
   IconButton,
+  Center,
 } from "@chakra-ui/react";
 
 import {
-  SmallAddIcon,
   Search2Icon,
   TriangleDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
+import { useSidebar } from "../../app/contexts/SidebarContext";
 
 interface GenericTableProps<T> {
   data: T[];
@@ -41,6 +40,11 @@ interface GenericTableProps<T> {
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
   topRightComponent?: React.ReactNode;
+  showPagination?: boolean;
+  currentPage?: number;
+  itemsPerPage?: number;
+  totalItems?: number;
+  onPageChange?: (page: number) => void;
 }
 
 const GenericTable = <T,>({
@@ -52,53 +56,39 @@ const GenericTable = <T,>({
   onImportOpen,
   onCreateOpen,
   topRightComponent,
+  showPagination,
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  onPageChange,
 }: GenericTableProps<T>) => {
-  const itemsPerPage = 3;
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const { collapsed } = useSidebar();
+
+  const rowSpacing = 0;
+
   const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    setCurrentPage(1);
+    setSearchTerm(term); 
   };
 
   const filteredData = data.filter((row) =>
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  const nextPage = () => {
-    if (endIndex < filteredData.length) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
-
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
+  const marginLeft = collapsed ? "6.5rem" : "15.625rem";
 
   return (
     <Flex
-      justifyContent="center"
-      alignItems="center"
-      minHeight="100vh"
+      justifyContent="flex-start"
+      alignItems="flex-start"
+      minHeight="100dvh"
       flexDirection="column"
-      mt="-20"
+      ml={marginLeft}
+      pt={8}
     >
-      <Box width="100%" maxWidth="1200px" mb={4}>
-        <Text
-          fontSize="6xl"
-          color="black"
-          marginLeft="-25"
-          marginTop="-30"
-          marginBottom="3"
-        >
+      <Box width="100%" maxWidth="1200px">
+        <Text fontSize="6xl" color="black" marginLeft="5" marginBottom="3">
           {caption}
         </Text>
       </Box>
@@ -108,7 +98,7 @@ const GenericTable = <T,>({
         backgroundColor="white"
         borderRadius="20px"
         p={4}
-        mt="-25"
+        mt="0"
       >
         <Flex
           mb={4}
@@ -117,8 +107,8 @@ const GenericTable = <T,>({
           justifyContent="space-between"
         >
           <Flex gap={2} width="100%">
-            {/* buscador, ordenar y filtrar */}
             <Search onSearch={handleSearch} />
+
             <Menu>
               <MenuButton as={InputGroup} width="30%" mr={2}>
                 <Input placeholder="Ordenar por..." readOnly />
@@ -146,15 +136,20 @@ const GenericTable = <T,>({
             </Menu>
           </Flex>
 
-          {/* A la derecha, el nuevo botón si viene desde el padre */}
           {topRightComponent && <Box ml={4}>{topRightComponent}</Box>}
         </Flex>
+
         <TableContainer>
           <Table
             variant="simple"
-            size="md"
-            overflowX={"hidden"}
-            overflowY={"hidden"}
+            size="sm"
+            overflowX="hidden"
+            overflowY="hidden"
+            sx={{
+              "td, th": {
+                py: rowSpacing,
+              },
+            }}
           >
             <Thead>
               <Tr>
@@ -166,25 +161,32 @@ const GenericTable = <T,>({
                 <Th></Th>
               </Tr>
             </Thead>
-            <Tbody>{currentData.map((row, index) => renderRow(row))}</Tbody>
+            <Tbody>
+              {filteredData.map((row, index) => renderRow(row))}
+            </Tbody>
           </Table>
         </TableContainer>
-        <Flex justifyContent="space-between" mt={4}>
-          <Button
-            onClick={prevPage}
-            isDisabled={currentPage === 1}
-            leftIcon={<ChevronLeftIcon />}
-          ></Button>
-          <Text>
-            {" "}
-            Página {currentPage}/{totalPages}
-          </Text>
-          <Button
-            onClick={nextPage}
-            isDisabled={endIndex >= filteredData.length}
-            rightIcon={<ChevronRightIcon />}
-          ></Button>
-        </Flex>
+
+        {showPagination && currentPage !== undefined && totalItems !== undefined && (
+          <Flex justifyContent="space-between" alignItems="center" mt={4}>
+            <Button
+              onClick={() => onPageChange?.(currentPage - 1)}
+              isDisabled={currentPage === 1}
+              leftIcon={<ChevronLeftIcon />}
+            />
+
+            <Text>
+              Página {currentPage} de {Math.ceil(totalItems / (itemsPerPage ?? 1))}
+            </Text>
+
+            <Button
+              onClick={() => onPageChange?.(currentPage + 1)}
+              isDisabled={(currentPage * (itemsPerPage ?? 1)) >= totalItems}
+              rightIcon={<ChevronRightIcon />}
+            />
+          </Flex>
+        )}
+
       </Box>
     </Flex>
   );

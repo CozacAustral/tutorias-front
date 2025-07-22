@@ -51,7 +51,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
       ...prevData,
       [name]: 
         name === "birthdate" || name === "yearEntry" 
-          ? new Date(value).toISOString().split('T')[0]  // yyyy-MM-dd
+          ? new Date(value).toISOString().split('T')[0]  
           : name === "careerId" || name === "countryId" 
             ? parseInt(value) 
             : value,

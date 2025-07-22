@@ -90,7 +90,7 @@ const GenericCreateModal: React.FC<GenericCreateModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="lg">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Crear {title}</ModalHeader>
+        <ModalHeader> {title}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={4} align="stretch">
@@ -111,7 +111,7 @@ const GenericCreateModal: React.FC<GenericCreateModalProps> = ({
 
         <ModalFooter>
           <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
-            Crear
+            {title.toLowerCase().includes("editar") ? "Guardar" : "Crear"}
           </Button>
           <Button variant="ghost" onClick={onClose}>
             Cancelar
