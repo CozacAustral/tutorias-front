@@ -40,6 +40,7 @@ import { SmallAddIcon, TriangleDownIcon } from "@chakra-ui/icons";
 import GenericTable from "../generic-table";
 import { title } from "process";
 import { Student } from "../../../app/interfaces/student.interface";
+import { StudentCareer } from "../../../app/interfaces/studentCareer.interface";
 
 interface EditModalProps<t = any> {
   isOpen: boolean;
@@ -51,6 +52,7 @@ interface EditModalProps<t = any> {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   renderCareerNow: (career: any, index: number) => React.ReactNode
   fieldLabels?: { [key: string]: string };
+  createOpen: () => void
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -61,10 +63,9 @@ const EditModal: React.FC<EditModalProps> = ({
   formData,
   onInputChange,
   renderCareerNow,
-  fieldLabels,
+  createOpen
 }) => {
-
-
+  
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
@@ -161,6 +162,7 @@ const EditModal: React.FC<EditModalProps> = ({
               TableHeader={['Carrera', 'Estado', 'Año de ingreso']}
               caption="Carreras"
               renderRow={renderCareerNow}
+              onCreateOpen={createOpen}
               compact={true}
               itemsPerPage={2}
               showAddMenu={true}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { IconButton, Select, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import { UserService } from "../../services/admin-service";
@@ -17,9 +17,13 @@ import { Career } from "../interfaces/career.interface";
 import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
 import SubjectModal from "../../common/components/modals/subject-student-modal";
 import { SubjectState } from '../enums/subject-state.enum'
+import CareerModal from "../../common/components/modals/create-career-student-modal";
+import { CreateCareer } from "../interfaces/create-career.interface";
+import { ResponseCreateCareer } from "../interfaces/response-create-career.interface";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
+  const [careers, setCareers] = useState<Career[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
@@ -27,6 +31,7 @@ const Estudiantes: React.FC = () => {
   const [editedSubjects, setEditedSubjects] = useState<{ [subjectId: number]: string }>({});
   const [editSubjectId, setEditSubjectId] = useState<number | null>(null);
   const [openSubjectState, setOpenSubjectState] = useState(false);
+
   const toast = useToast();
   const [loading, setLoading] = useState(true);
 
@@ -62,6 +67,11 @@ const Estudiantes: React.FC = () => {
     onClose: closeSubjectModal
   } = useDisclosure()
 
+  const {
+    isOpen: isCreateCareerModalOpen,
+    onOpen: openCreateCareerModal,
+    onClose: closeCreateCareerModal
+  } = useDisclosure()
 
 
   const [formData, setFormData] = useState<UpdateStudentDto>({
@@ -77,6 +87,13 @@ const Estudiantes: React.FC = () => {
     email: '',
     careers: []
   });
+
+
+  const [careerData, setCareerData] = useState<CreateCareer>({
+    name: '',
+    yearOfThePlan: 0,
+    studentId: 0
+  })
 
   const TableHeader = [
     "Nombre",
@@ -149,6 +166,15 @@ const Estudiantes: React.FC = () => {
     }));
   };
 
+  const handleChangeCreateCareer = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+
+    setCareerData(prev => ({
+      ...prev,
+      [name]: name === "yearOfThePlan" ? parseInt(e.target.value) : value
+    }))
+  };
+
   const handleAddStudent = async () => {
     const fetchedStudents = await UserService.fetchAllStudents();
     setStudents(fetchedStudents);
@@ -188,6 +214,17 @@ const Estudiantes: React.FC = () => {
 
   const handleCreateClick = () => {
     openCreateModal();
+  };
+
+  const handleCreateCareerClick = () => {
+    if (selectedStudent?.id) {
+      setCareerData({
+        name: '',
+        yearOfThePlan: new Date().getFullYear(),
+        studentId: selectedStudent.id
+      });
+      openCreateCareerModal();
+    }
   };
 
   const handleViewClick = (student: Student) => {
@@ -300,7 +337,7 @@ const Estudiantes: React.FC = () => {
             return subject;
           })
         )
-
+ 
         setEditedSubjects({})
 
         toast({
@@ -342,7 +379,52 @@ const Estudiantes: React.FC = () => {
       }
     }
     setEditSubjectId(subjectId);
-    setOpenSubjectState(true)
+    setOpenSubjectState(true);
+  }
+
+  const handleCreateCareer = async () => {
+    if (selectedStudent?.id) {
+      try {
+        const newCareer = await UserService.createCareer(careerData)
+        setCareerData({
+          name: newCareer.name,
+          yearOfThePlan: newCareer.yearOfThenPlan,
+          studentId: selectedStudent?.id
+        })
+
+        setFormData(prevFormData => ({
+          ...prevFormData,
+          careers: [...prevFormData.careers, {
+            name: careerData.name,
+            year: careerData.yearOfThePlan,
+            active: true,
+            careerId: newCareer.id
+          }]
+        }));
+        toast({
+          title: 'Carrera creada',
+          description: 'La carrera fue creada con exito',
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
+
+        closeCreateCareerModal();
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Error en la creacion de la carrera',
+          status: 'error',
+          duration: 5000,
+          isClosable: true
+        })
+      }
+    }
+  }
+
+  const handleCloseModalSubject = () => {
+    setEditedSubjects({})
+    closeSubjectModal();
   }
 
 
@@ -444,7 +526,7 @@ const Estudiantes: React.FC = () => {
       <Td>{subject.subjectName}</Td>
       <Td>{subject.year}</Td>
       <Td>
-        {editSubjectId === subject.subjectId && openSubjectState ? (
+        {editedSubjects[subject.subjectId] !== undefined ? (
           <Select value={editedSubjects[subject.subjectId] ?? subject.subjectState} onChange={e => setEditedSubjects(prev => ({ ...prev, [subject.subjectId]: e.target.value }))}>
             <option value="APPROVED">{SubjectState.APPROVED}</option>
             <option value="REGULARIZED">{SubjectState.REGULARIZED}</option>
@@ -466,13 +548,21 @@ const Estudiantes: React.FC = () => {
           icon={<EditIcon boxSize={5} />}
           aria-label="Edit"
           mr={5}
-          backgroundColor="white"
+          backgroundColor={editSubjectId === subject.subjectId ? "#318AE4" : "white"}
           _hover={{
             borderRadius: 15,
             backgroundColor: "#318AE4",
             color: "White",
           }}
-          onClick={() => handleEditSubjectClick(subject.subjectId)}
+          onClick={() => {
+            setEditSubjectId(subject.subjectId)
+            setEditedSubjects(prev => ({
+              ...prev,
+              [subject.subjectId]: subject.subjectState
+            }))
+            handleEditSubjectClick(subject.subjectId)
+          }
+          }
         />
       </Td>
     </Tr>
@@ -505,6 +595,7 @@ const Estudiantes: React.FC = () => {
         title="Editar Alumno"
         entityName="Alumno"
         renderCareerNow={renderCareerRow}
+        createOpen={handleCreateCareerClick}
         fieldLabels={{
           lastName: "Apellido/s",
           name: "Nombre",
@@ -517,12 +608,20 @@ const Estudiantes: React.FC = () => {
 
       <SubjectModal
         isOpen={isSubjectModalOpen}
-        onClose={closeSubjectModal}
+        onClose={handleCloseModalSubject}
         onConfirm={handleEditSubject}
         subjects={subjects}
         renderSubjectNow={renderSubjectRow}
         titleCareer={selectedCareer?.name}
         entityName="Materias"
+      />
+
+      <CareerModal
+        isOpen={isCreateCareerModalOpen}
+        onClose={closeCreateCareerModal}
+        onConfirm={handleCreateCareer}
+        careerData={careerData}
+        handleChange={handleChangeCreateCareer}
       />
 
       <ImportModal

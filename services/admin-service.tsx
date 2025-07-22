@@ -1,7 +1,9 @@
 import { Career } from "../app/interfaces/career.interface";
 import { CareerStudent } from "../app/interfaces/careerStudent.interface";
 import { Country } from "../app/interfaces/country.interface";
+import { CreateCareer } from "../app/interfaces/create-career.interface";
 import { CreateStudent } from "../app/interfaces/CreateStudent";
+import { ResponseCreateCareer } from "../app/interfaces/response-create-career.interface";
 import { ResponseUpdateSubject } from "../app/interfaces/response-update-subject.interface";
 import { Student } from "../app/interfaces/student.interface";
 import { SubjectCareerWithState } from "../app/interfaces/subject-career-student.interface";
@@ -79,6 +81,21 @@ export const UserService = {
       return response.data;
     } catch (error: any) {
       throw new Error(`Error al crear el estudiante: ${error.message || error}`);
+    }
+  },
+
+  async createCareer(careerData: CreateCareer): Promise<ResponseCreateCareer> {
+    console.log('CARRERA MANDADA AL BACK: ', careerData)
+    try {
+      const response = await axiosInstance.post(urlCareers,
+        {
+          'name': careerData.name,
+          'yearOfThePlan': careerData.yearOfThePlan,
+          'studentId': careerData.studentId
+        });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Error al crear la carrera: ${error.message || error}`);
     }
   },
 
