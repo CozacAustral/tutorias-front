@@ -90,7 +90,7 @@ export const UserService = {
       const response = await axiosInstance.post(urlCareers,
         {
           'name': careerData.name,
-          'yearOfThePlan': careerData.yearOfThePlan,
+          'yearOfThePlan': careerData.yearOfAdmission,
           'studentId': careerData.studentId
         });
       return response.data;

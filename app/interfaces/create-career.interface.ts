@@ -1,5 +1,5 @@
 export interface CreateCareer {
     name: string
-    yearOfThePlan: number
+    yearOfAdmission: number
     studentId: number;
 }

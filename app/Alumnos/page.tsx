@@ -91,7 +91,7 @@ const Estudiantes: React.FC = () => {
 
   const [careerData, setCareerData] = useState<CreateCareer>({
     name: '',
-    yearOfThePlan: 0,
+    yearOfAdmission: 0,
     studentId: 0
   })
 
@@ -166,12 +166,12 @@ const Estudiantes: React.FC = () => {
     }));
   };
 
-  const handleChangeCreateCareer = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeCreateCareer = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
 
     setCareerData(prev => ({
       ...prev,
-      [name]: name === "yearOfThePlan" ? parseInt(e.target.value) : value
+      [name]: name === "yearOfAdmission" ? parseInt(e.target.value) : value
     }))
   };
 
@@ -220,7 +220,7 @@ const Estudiantes: React.FC = () => {
     if (selectedStudent?.id) {
       setCareerData({
         name: '',
-        yearOfThePlan: new Date().getFullYear(),
+        yearOfAdmission: new Date().getFullYear(),
         studentId: selectedStudent.id
       });
       openCreateCareerModal();
@@ -388,7 +388,7 @@ const Estudiantes: React.FC = () => {
         const newCareer = await UserService.createCareer(careerData)
         setCareerData({
           name: newCareer.name,
-          yearOfThePlan: newCareer.yearOfThenPlan,
+          yearOfAdmission: newCareer.yearOfThenPlan,
           studentId: selectedStudent?.id
         })
 
@@ -396,7 +396,7 @@ const Estudiantes: React.FC = () => {
           ...prevFormData,
           careers: [...prevFormData.careers, {
             name: careerData.name,
-            year: careerData.yearOfThePlan,
+            year: careerData.yearOfAdmission,
             active: true,
             careerId: newCareer.id
           }]
