@@ -143,7 +143,7 @@ const Login = () => {
                       position="absolute"
                       right="10px"
                       backgroundColor="light_gray"
-                      top="39%"
+                      top="43%"
                       transform="translateY(-50%)"
                       variant="link"
                       color="gray.900"
