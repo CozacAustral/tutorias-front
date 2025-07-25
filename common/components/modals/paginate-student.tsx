@@ -25,10 +25,9 @@ import {
 } from "@chakra-ui/react";
 
 import { SmallAddIcon, Search2Icon, TriangleDownIcon, ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import Search from "../../app/ui/search";
+import Search from "../../../app/ui/search";
 
-
-interface GenericTableProps<T> {
+interface PaginateStudentProps<T> {
   data: T[];
   caption: string;
   TableHeader: string[];
@@ -36,8 +35,17 @@ interface GenericTableProps<T> {
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
-  compact?: boolean 
-  itemsPerPage?: number
+
+  currentPage: number,
+  totalItems: number,
+  itemsPerPage?: number,
+  onPageChange: (page: number) => void,
+  searchTerm?: string,
+  onSearch?: (term: string) => void,
+  orderBy?: [string, 'ASC' | 'DESC'],
+  onOrderChange?: (field: string, direction: 'ASC' | 'DESC') => void,
+
+  compact?: boolean,
   minH?: string,
   paddingX?: number,
   paddingY?: number,
@@ -52,7 +60,7 @@ interface GenericTableProps<T> {
   widthTable?: number
 }
 
-const GenericTable = <T,>({
+const PaginateStudent = <T,>({
   data,
   caption,
   TableHeader,
@@ -60,8 +68,17 @@ const GenericTable = <T,>({
   showAddMenu = false,
   onImportOpen,
   onCreateOpen,
+
+  currentPage,
+  totalItems,
+  itemsPerPage = 10,
+  onPageChange,
+  searchTerm,
+  onSearch,
+  orderBy,
+  onOrderChange,
+
   compact,
-  itemsPerPage = 12,
   minH,
   paddingX,
   paddingY,
@@ -75,36 +92,24 @@ const GenericTable = <T,>({
   height,
   widthTable
 
-}: GenericTableProps<T>) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("")
+}: PaginateStudentProps<T>) => {
 
-  const handleSearch = (term: string) => {
-    setSearchTerm(term)
-    setCurrentPage(1)
-  }
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
 
-  const filteredData = data.filter((row) =>
-    JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const orderOptions = [
+    { label: 'De la A - Z', field: 'name', direction: 'ASC' as const },
+    { label: 'De la Z - A', field: 'name', direction: 'DESC' as const },
+  ];
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex)
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  const nextPage = () => {
-    if (endIndex < filteredData.length) {
-      setCurrentPage((prev) => prev + 1);
+  const getCurrentOrderLabel = () => {
+    if(!orderBy){
+      return 'Order por...'
     }
-  };
-
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1)
-    }
+    const current = orderOptions.find(
+      option => option.field === orderBy[0] && option.direction === orderBy[1]
+    )
+    return current ? current.label : 'Order por...'
   }
-
 
   return (
     <Box
@@ -140,18 +145,28 @@ const GenericTable = <T,>({
         { caption && (
           <Flex mb={4} width="100%" flexWrap='wrap' gap='2px'>
             {/*Componete busqueda o search */}
-            <Search onSearch={handleSearch} />
+            <Search onSearch={(term) => {onSearch?.(term)}} />
 
             <Menu>
               <MenuButton as={InputGroup} width="30%" mr={2}>
-                <Input placeholder="Ordenar por..." readOnly />
+                <Input placeholder={getCurrentOrderLabel()} value={getCurrentOrderLabel()} readOnly/>
                 <InputRightElement pointerEvents="none">
                   <TriangleDownIcon color="black" />
                 </InputRightElement>
               </MenuButton>
               <MenuList>
-                <MenuItem>De la A - Z</MenuItem>
-                <MenuItem>De la Z - A</MenuItem>
+                {orderOptions.map(( option, index) => (
+                  <MenuItem 
+                  key={index} 
+                  onClick={() => onOrderChange?.(option.field, option.direction)} 
+                  bg={orderBy && orderBy[0] === option.field && orderBy[1] === option.direction ? 'gray.100' : 'white'}
+                  >
+                    {option.label}
+                  </MenuItem>
+                ))}
+                <MenuItem onClick={() => onOrderChange?.('createdAt', 'DESC')}>
+                  Por defecto
+                </MenuItem>
               </MenuList>
             </Menu>
             <Menu>
@@ -207,9 +222,10 @@ const GenericTable = <T,>({
                 </Th>
               </Tr>
             </Thead>
-            <Tbody>{currentData.map((row, index) => renderRow(row, index))}
-              {compact && currentData.length < itemsPerPage &&
-                Array.from({ length: itemsPerPage - currentData.length }).map((_, index) => (
+            <Tbody>
+              {data.map((row, index) => renderRow(row, index))}
+              {compact && data.length < itemsPerPage &&
+                Array.from({ length: itemsPerPage - data.length }).map((_, index) => (
                   <Tr key={`empty-${index}`} height="40px">
                     {TableHeader.map((_, colIndex) => (
                       <Td key={colIndex}>&nbsp;</Td>
@@ -224,16 +240,16 @@ const GenericTable = <T,>({
         {compact ?
           <Flex justifyContent="space-between" alignItems='center' marginTop={compact ? 0 : 2}>
             <Button
-              onClick={prevPage}
+              onClick={() => onPageChange(currentPage - 1)}
               isDisabled={currentPage === 1}
               leftIcon={<ChevronLeftIcon />}
               variant='ghost'
             >
             </Button>
-            <Text> Página {currentPage}/{totalPages}</Text>
+            <Text> Página {currentPage} / {totalPages} </Text>
             <Button
-              onClick={nextPage}
-              isDisabled={endIndex >= filteredData.length}
+              onClick={() => onPageChange(currentPage + 1)}
+              isDisabled={currentPage >= totalPages}
               rightIcon={<ChevronRightIcon />}
               variant='ghost'
             >
@@ -241,16 +257,16 @@ const GenericTable = <T,>({
           </Flex> : (
             <Flex justifyContent="space-between" alignItems='center' marginTop={2}>
               <Button
-                onClick={prevPage}
+                onClick={() => onPageChange(currentPage - 1)}
                 isDisabled={currentPage === 1}
                 leftIcon={<ChevronLeftIcon />}
                 variant='ghost'
               >
               </Button>
-              <Text> Página {currentPage}/{totalPages}</Text>
+              <Text> Página {currentPage}/{totalPages} </Text>
               <Button
-                onClick={nextPage}
-                isDisabled={endIndex >= filteredData.length}
+                onClick={() => onPageChange(currentPage + 1)}
+                isDisabled={currentPage >= totalPages}
                 rightIcon={<ChevronRightIcon />}
                 variant='ghost'
               >
@@ -262,4 +278,4 @@ const GenericTable = <T,>({
   );
 };
 
-export default GenericTable;
+export default PaginateStudent;

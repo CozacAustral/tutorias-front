@@ -27,74 +27,17 @@ interface CreateStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddStudent: () => void;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  careers: Career[]
+  countries: Country[]
+  studentData: CreateStudent
 }
 
 
-const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose, onAddStudent })  => {
+const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose, onAddStudent, handleChange, careers, countries, studentData })  => {
   const toast = useToast();
-  const [studentData, setStudentData] = useState<CreateStudent>({
-    name: '',
-    lastName: '',
-    dni: '',
-    email: '',
-    telephone: '',
-    birthdate: new Date().toISOString(),
-    address: '',
-    yearEntry: new Date().toISOString(),
-    observations: '',
-    countryId: 1,
-    careerId: 1,
-  });
-
-  const [careers, setCareers] = useState<Career[]>([]);
-  const [countries, setCountries] = useState<Country[]>([])
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const loadCareers = async() => {
-      try {
-        const data = await UserService.fetchAllCareers()
-        setCareers(data)
-      } catch(error) {
-        toast({ 
-          title: 'Errro al cargar las carreras',
-          status: 'error'
-      });
-    }
-  };
-
-  const loadCountries = async() => {
-    try {
-      const data = await UserService.fetchAllCountries()
-      setCountries(data)
-    } catch(error){
-      toast({
-        title: 'Error al cargar los paises de los estudiantes',
-        status: 'error'
-      });
-    }
-  }
-  if(isOpen) {
-    loadCareers();
-    loadCountries();
-  }
-}, [isOpen]);
-
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-  
-    setStudentData((prevData) => ({
-      ...prevData,
-      [name]: 
-        name === "birthdate" || name === "yearEntry" 
-          ? new Date(value).toISOString().split('T')[0]  // yyyy-MM-dd
-          : name === "careerId" || name === "countryId" 
-            ? parseInt(value) 
-            : value,
-    }));
-  };
-  
 
   const handleSubmit = async () => {
     try {
@@ -304,7 +247,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 borderRadius="15px"
                 w="100%"
                 h="50px"
-                defaultValue={studentData.countryId}
+                value={studentData.countryId}
                 onChange={handleChange}
               >
                 {countries.map((country) => (
@@ -325,7 +268,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 borderRadius="15px"
                 w="100%"
                 h="50px"
-                defaultValue={studentData.careerId}
+                value={studentData.careerId}
                 onChange={handleChange}
               >
                 {careers.map((career) => (

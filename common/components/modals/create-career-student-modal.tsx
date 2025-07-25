@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { CreateCareer } from "../../../app/interfaces/create-career.interface";
+import { AssignedCareer } from "../../../app/interfaces/create-career.interface";
 import {
   Button,
   FormControl,
@@ -24,8 +24,9 @@ interface CreateCareerModal<t = any> {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => Promise<void>;
-  careerData: CreateCareer;
+  careerData: AssignedCareer;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  careers: Career[]
 }
 
 const CareerModal: React.FC<CreateCareerModal> = ({
@@ -34,32 +35,15 @@ const CareerModal: React.FC<CreateCareerModal> = ({
   onConfirm,
   handleChange,
   careerData,
+  careers
 }) => {
   const [error, setError] = useState("");
-  const [careers, setCareers] = useState<Career[]>([]);
-
-  useEffect(() => {
-    const loadCareers = async () => {
-      try {
-        const data = await UserService.fetchAllCareers();
-        setCareers(data);
-      } catch (error) {
-        Toast({
-          title: "Error al cargar las carreras",
-          status: "error",
-        });
-      }
-      if (isOpen) {
-        loadCareers();
-      }
-    };
-  }, [isOpen]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl">
       <ModalOverlay />
       <ModalContent maxW="51vw">
-        <ModalHeader>Crear Carrera</ModalHeader>
+        <ModalHeader>Asignar nueva carrera</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={4} align="stretch">
@@ -67,14 +51,14 @@ const CareerModal: React.FC<CreateCareerModal> = ({
               <FormControl isRequired mt={4}>
                 <FormLabel>Carrera</FormLabel>
                 <Select
-                  name="careerData.name"
+                  name="careerId"
                   borderColor="light_gray"
                   bg="Very_Light_Gray"
                   borderWidth="4px"
                   borderRadius="15px"
                   w="100%"
                   h="50px"
-                  value={careerData.name}
+                  value={careerData.careerId}
                   onChange={handleChange}
                   placeholder="Seleccione una carrera"
                   focusBorderColor={error ? "red" : undefined}
@@ -94,7 +78,7 @@ const CareerModal: React.FC<CreateCareerModal> = ({
               <FormControl isRequired mt={4}>
                 <FormLabel>Año de inicio de carrera</FormLabel>
                 <Input
-                  name="careerData.yearOfAdmission"
+                  name="yearOfAdmission"
                   type="number"
                   borderColor="light_gray"
                   bg="Very_Light_Gray"

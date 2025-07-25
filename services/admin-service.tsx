@@ -1,9 +1,11 @@
 import { Career } from "../app/interfaces/career.interface";
 import { CareerStudent } from "../app/interfaces/careerStudent.interface";
 import { Country } from "../app/interfaces/country.interface";
-import { CreateCareer } from "../app/interfaces/create-career.interface";
+import { AssignedCareer } from "../app/interfaces/create-career.interface";
 import { CreateStudent } from "../app/interfaces/CreateStudent";
+import { QueryParamsDto } from "../app/interfaces/query-params-dto";
 import { ResponseCreateCareer } from "../app/interfaces/response-create-career.interface";
+import { ResponsePaginateStudent } from "../app/interfaces/response-paginate";
 import { ResponseUpdateSubject } from "../app/interfaces/response-update-subject.interface";
 import { Student } from "../app/interfaces/student.interface";
 import { SubjectCareerWithState } from "../app/interfaces/subject-career-student.interface";
@@ -84,15 +86,15 @@ export const UserService = {
     }
   },
 
-  async createCareer(careerData: CreateCareer): Promise<ResponseCreateCareer> {
-    console.log('CARRERA MANDADA AL BACK: ', careerData)
+  async createCareer(careerData: AssignedCareer): Promise<ResponseCreateCareer> {
     try {
       const response = await axiosInstance.post(urlCareers,
         {
-          'name': careerData.name,
-          'yearOfThePlan': careerData.yearOfAdmission,
-          'studentId': careerData.studentId
-        });
+          'careerId': careerData.careerId,
+          'studentId': careerData.studentId,
+          'yearOfAdmission': careerData.yearOfAdmission
+        }
+      );
       return response.data;
     } catch (error: any) {
       throw new Error(`Error al crear la carrera: ${error.message || error}`);
@@ -131,9 +133,11 @@ export const UserService = {
     }
   },
 
-  async fetchAllStudents(): Promise<Student[]> {
+  async fetchAllStudents(params?: QueryParamsDto): Promise<ResponsePaginateStudent> {
     try {
-      const response = await axiosInstance.get<Student[]>(urlStudents);
+      const response = await axiosInstance.get<{students: Student[]; totalCount: number}>(urlStudents , {
+        params: params
+      });
       return response.data;
     } catch (error: any) {
       throw new Error(`Error al obtener los estudiantes: ${error.message || error}`);

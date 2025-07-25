@@ -1,5 +1,5 @@
-export interface CreateCareer {
-    name: string
-    yearOfAdmission: number
+export interface AssignedCareer {
+    careerId: number
     studentId: number;
+    yearOfAdmission: number;
 }

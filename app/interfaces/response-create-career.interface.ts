@@ -1,5 +1,7 @@
 export interface ResponseCreateCareer {
     id: number
-    name: string
-    yearOfThenPlan: number
+    careerId: number
+    studentId: number;
+    yearOfAdmission: number
+    active: boolean
 }
