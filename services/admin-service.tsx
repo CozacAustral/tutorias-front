@@ -10,6 +10,24 @@ const url_tutors = "tutors";
 const url_students = "students";
 
 export const UserService = {
+  async getStudentsByTutor(tutorId: number): Promise<Student[]> {
+    const response = await axiosInstance.get(`/tutors/get-students/${tutorId}`);
+    return response.data;
+  },
+
+  async deleteAssignment(dto: { tutorId: number; studentId: number }) {
+    return axiosInstance.delete("/users/delete-assignment", {
+      data: dto,
+    });
+  },
+
+  async createTutor(tutorData: any): Promise<void> {
+    try {
+      await axiosInstance.post(url_tutors, tutorData);
+    } catch (error: any) {
+      throw new Error(`Error al crear el tutor: ${error.message || error}`);
+    }
+  },
   async deleteUser(id: number | string): Promise<void> {
     try {
       await axiosInstance.delete(`/users/${id}`);
