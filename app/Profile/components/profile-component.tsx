@@ -22,32 +22,40 @@ import {
   useToast,
   Text,
   Spinner,
-  Heading
+  Heading,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Cookies from "js-cookie";
 import { AuthService } from "../../../services/auth-service";
+import { UserService } from "../../../services/admin-service";
+import { PatchMeUser } from "../../interfaces/patch-me-user.interface";
 const jwt = require("jsonwebtoken");
-interface UserDataProps {
-  name: string;
-  lastName: string
-  email: string;
-  departamentId: number;
-  telephone: number;
-}
-
 
 const ProfileComponent = () => {
   const [role, setRole] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [userData, setUserData] = useState<UserDataProps | null>(null);
+  const [userData, setUserData] = useState<PatchMeUser>({
+    name: "",
+    lastName: "",
+    email: "",
+    telephone: "",
+    departamentId: 0,
+  });
   const [isDelete, setIsDelete] = useState(false);
+  const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
+  const [success, setSuccess] = useState(false);
+
   const toast = useToast();
   const router = useRouter();
+
+  const nameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const telephoneRef = useRef<HTMLInputElement>(null);
 
   const toggleEdit = () => {
     setIsEditing(!isEditing);
@@ -57,15 +65,57 @@ const ProfileComponent = () => {
     setIsEditing(false);
   };
 
-  const saveChanges = () => {
-    setIsEditing(false);
-    toast({
-      title: "Tu perfil fue actualizado con éxito",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-      position: "bottom",
-    });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    if (!userData?.name) {
+      setError("Debes ingresar el nuevo nombre del perfil");
+      nameRef.current?.focus();
+      return;
+    }
+
+    if (!userData?.lastName) {
+      setError("Debes ingresar el nuevo apellido del perfil");
+      lastNameRef.current?.focus();
+      return;
+    }
+
+    if (!userData?.email) {
+      setError("Debes ingresar el nuevo mail del perfil");
+      emailRef.current?.focus();
+      return;
+    }
+
+    if (!userData?.telephone) {
+      setError("Debes ingresar el nuevo telefono del perfil");
+      telephoneRef.current?.focus();
+      return;
+    }
+
+    try {
+      await UserService.patchMeUser(userData);
+      setSuccess(true);
+      toast({
+        title: "Estudiante editado",
+        description: "El estudiante fue editado con exitos",
+        duration: 3000,
+        isClosable: true,
+        status: "success",
+      });
+      setIsEditing(false);
+    } catch (error) {
+      setError("Error al actualizar el perfil");
+      setSuccess(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setUserData((prevUserData) => ({
+      ...prevUserData,
+      [name]: value,
+    }));
   };
 
   const handleDelete = () => {
@@ -92,6 +142,7 @@ const ProfileComponent = () => {
 
     try {
       const decodedToken = jwt.decode(token);
+      console.log("INFORMACION DEL TOKEN", decodedToken);
       setRole(decodedToken.role);
     } catch (error) {
       console.error("Error al decodificar el token:", error);
@@ -100,8 +151,8 @@ const ProfileComponent = () => {
 
   if (isLoading) {
     return (
-      <Box textAlign='center' padding='20px'>
-        <Spinner size="xl"  color="blue"  borderWidth='3px' />
+      <Box textAlign="center" padding="20px">
+        <Spinner size="xl" color="blue" borderWidth="3px" />
         <Text>Cargando datos...</Text>
       </Box>
     );
@@ -109,7 +160,7 @@ const ProfileComponent = () => {
 
   if (!userData) {
     return (
-      <Box textAlign='center' padding='20px'>
+      <Box textAlign="center" padding="20px">
         <Text>No se pudieron obtener los datos del usuario</Text>
       </Box>
     );
@@ -118,15 +169,16 @@ const ProfileComponent = () => {
   return (
     <Container maxWidth="1200px" w="100%" h="auto" p={4}>
       <Heading
-      as="h1"
-      fontFamily="'Montserrat', sans-serif"
-      fontWeight="500"
-      fontSize="4rem"
-      textAlign={{ base: "center", md: "left" }}
-      mb={6}
+        as="h1"
+        fontFamily="'Montserrat', sans-serif"
+        fontWeight="500"
+        fontSize="4rem"
+        textAlign={{ base: "center", md: "left" }}
+        mb={6}
       >
         Mi Perfil
       </Heading>
+
       <Box
         bg="white"
         w="800px"
@@ -206,81 +258,138 @@ const ProfileComponent = () => {
           </ModalContent>
         </Modal>
 
-        <VStack spacing={4} align="stretch">
-          <HStack spacing={4} w="100%">
-            <FormControl>
-              <FormLabel htmlFor="nombre">Nombre:</FormLabel>
-              <Input
-                id="nombre"
-                type="text"
-                name="nombre"
-                borderColor="light_gray"
-                value={userData.name || 'Nombre no existente'}
-                bg={isEditing ? "light_gray" : "paleGray"}
-                isReadOnly={!isEditing}
-                borderWidth="3px"
-                borderRadius="15px"
-                w="90%"
-                h="50px"
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel htmlFor="apellido">Apellido:</FormLabel>
-              <Input
-                id="apellido"
-                type="text"
-                name="apellido"
-                value={userData.lastName || 'Apellido no existente'}
-                bg={isEditing ? "light_gray" : "paleGray"}
-                isReadOnly={!isEditing}
-                borderColor="light_gray"
-                borderWidth="3px"
-                borderRadius="15px"
-                w="90%"
-                h="50px"
-              />
-            </FormControl>
-          </HStack>
-        </VStack>
+        {error && isEditing ? (
+          <Text color="red" textAlign="center" marginBottom="30px">
+            {error}
+          </Text>
+        ) : undefined}
 
-        <VStack spacing={4} align="stretch">
-          <HStack spacing={4} w="100%">
-            <FormControl>
-              <FormLabel htmlFor="email">Correo:</FormLabel>
-              <Input
-                id="email"
-                type="email"
-                name="email"
-                value={userData.email || 'correo no encontradp'}
-                bg="paleGray"
-                isReadOnly
-                borderColor="light_gray"
-                borderWidth="3px"
-                borderRadius="15px"
-                w="90%"
-                h="50px"
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel htmlFor="tel">Nro. de Teléfono:</FormLabel>
-              <Input
-                id="tel"
-                type="tel"
-                name="tel"
-                value={userData.telephone || 'numero no encontrado'}
-                bg={isEditing ? "light_gray" : "paleGray"}
-                isReadOnly={!isEditing}
-                borderColor="light_gray"
-                borderWidth="3px"
-                borderRadius="15px"
-                w="90%"
-                h="50px"
-              />
-            </FormControl>
-          </HStack>
-        </VStack>
+        <form onSubmit={handleSubmit}>
+          <VStack spacing={4} align="stretch">
+            <HStack spacing={4} w="100%">
+              <FormControl>
+                <FormLabel>Nombre:</FormLabel>
+                <Input
+                  id="name"
+                  type="text"
+                  name="name"
+                  borderColor="light_gray"
+                  value={userData.name}
+                  onChange={handleInputChange}
+                  ref={nameRef}
+                  bg={isEditing ? "light_gray" : "paleGray"}
+                  isReadOnly={!isEditing}
+                  focusBorderColor={success ? "red" : undefined}
+                  borderWidth="3px"
+                  borderRadius="15px"
+                  w="90%"
+                  h="50px"
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Apellido:</FormLabel>
+                <Input
+                  id="lastName"
+                  type="text"
+                  name="lastName"
+                  value={userData.lastName}
+                  onChange={handleInputChange}
+                  ref={lastNameRef}
+                  bg={isEditing ? "light_gray" : "paleGray"}
+                  isReadOnly={!isEditing}
+                  focusBorderColor={success ? "red" : undefined}
+                  borderColor="light_gray"
+                  borderWidth="3px"
+                  borderRadius="15px"
+                  w="90%"
+                  h="50px"
+                />
+              </FormControl>
+            </HStack>
+          </VStack>
 
-        {(role === 1 || role === 2) && (
+          <VStack spacing={4} align="stretch">
+            <HStack spacing={4} w="100%">
+              <FormControl>
+                <FormLabel>Correo:</FormLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={userData.email}
+                  onChange={handleInputChange}
+                  ref={emailRef}
+                  bg={isEditing ? "light_gray" : "paleGray"}
+                  isReadOnly={!isEditing}
+                  focusBorderColor={success ? "red" : undefined}
+                  borderColor="light_gray"
+                  borderWidth="3px"
+                  borderRadius="15px"
+                  w="90%"
+                  h="50px"
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Nro. de Teléfono:</FormLabel>
+                <Input
+                  id="telephone"
+                  type="tel"
+                  name="telephone"
+                  value={userData.telephone}
+                  onChange={handleInputChange}
+                  ref={telephoneRef}
+                  bg={isEditing ? "light_gray" : "paleGray"}
+                  isReadOnly={!isEditing}
+                  focusBorderColor={success ? "red" : undefined}
+                  borderColor="light_gray"
+                  borderWidth="3px"
+                  borderRadius="15px"
+                  w="90%"
+                  h="50px"
+                />
+              </FormControl>
+            </HStack>
+          </VStack>
+
+          <Box mt={2} py={8}>
+            {!isEditing ? (
+            <Flex justify="flex-start" align="center" w="100%">
+              <Button
+                color="primary"
+                _hover={{ bg: "light_gray" }}
+                onClick={handleChangePassword}
+              >
+                Cambiar contraseña
+              </Button>
+            </Flex>
+            ) : (
+              <Flex justify="flex-end" align="center" width="100%" px={9}>
+                  <HStack spacing={4}>
+                    <Button
+                      bg="gray"
+                      color="black"
+                      w="150px"
+                      borderRadius="6px"
+                      onClick={cancelEdit}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      bg="primary"
+                      color="white"
+                      w="150px"
+                      borderRadius="6px"
+                    >
+                      Guardar Perfil
+                    </Button>
+                  </HStack>
+              </Flex>
+            )}
+          </Box>
+        </form>
+
+        {role === 2 && (
           <VStack spacing={4} align="stretch">
             <HStack spacing={4} w="100%" align="center">
               <FormControl>
@@ -289,7 +398,7 @@ const ProfileComponent = () => {
                   id="area"
                   type="text"
                   name="area"
-                  value={userData.departamentId  || 'no esta disponible'}
+                  value={userData.departamentId || "no esta disponible"}
                   bg={isEditing ? "light_gray" : "paleGray"}
                   isReadOnly={!isEditing}
                   borderColor="light_gray"
@@ -310,43 +419,6 @@ const ProfileComponent = () => {
             </HStack>
           </VStack>
         )}
-
-<Button
-          color="primary"
-          w="160px"
-          _hover={{ bg: "light_gray" }}
-          mt={4}
-          onClick={handleChangePassword}
-        >
-          Cambiar contraseña
-        </Button>
-
-        <Flex direction="row" justify="flex-end" p={4}>
-          {isEditing && (
-            <HStack spacing={4}>
-              <Button
-                bg="gray"
-                color="black"
-                w="150px"
-                h="40px"
-                borderRadius="6px"
-                onClick={cancelEdit}
-              >
-                Cancelar
-              </Button>
-              <Button
-                bg="primary"
-                color="white"
-                w="150px"
-                h="40px"
-                borderRadius="6px"
-                onClick={saveChanges}
-              >
-                Guardar Perfil
-              </Button>
-            </HStack>
-          )}
-        </Flex>
       </Box>
     </Container>
   );
