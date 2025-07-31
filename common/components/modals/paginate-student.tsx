@@ -121,15 +121,15 @@ const PaginateStudent = <T,>({
       flexDirection="column"
       alignItems="center"
       width="100%"
-      paddingX={paddingX ? paddingX : 4}
-      paddingY={paddingY ? paddingY : 4}
+      paddingX={paddingX ? paddingX : [2, 4, 6]}
+      paddingY={paddingY ? paddingY : [2, 4, 6]}
     >
-      <Box width="100%" maxWidth="1200px" mb={4}>
+      <Box width="100%" maxWidth={maxWidth ? maxWidth : ["100%", "900px", "1200px"]} mb={4}>
         <Text
-          fontSize={fontSize ? fontSize : "6xl"}
-          color="black"
-          marginLeft={marginLeft ? marginLeft : "-25"}
-          marginTop={marginTop ? marginTop : "7"}
+          fontSize={fontSize ? fontSize : ["2xl", "4xl", "6xl"]}
+          marginLeft={marginLeft ? marginLeft : ["0", "-10", "-25"]}
+          marginTop={marginTop ? marginTop : ["4", "6", "7"]}
+          color='black'
         >
           {caption}
         </Text>
@@ -218,7 +218,7 @@ const PaginateStudent = <T,>({
             </Box>
           </Flex>
         )}
-        <TableContainer marginBottom={4} width={widthTable ? 900 : undefined}>
+        <TableContainer overflowX="auto" marginBottom={4} width={widthTable ? widthTable : "100%"}>
           <Table variant="simple" size="sm">
             <Thead>
               <Tr>
