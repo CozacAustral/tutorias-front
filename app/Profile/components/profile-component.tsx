@@ -67,7 +67,8 @@ const ProfileComponent = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+    setError('');
+
     if (!userData?.name) {
       setError("Debes ingresar el nuevo nombre del perfil");
       nameRef.current?.focus();
@@ -87,17 +88,17 @@ const ProfileComponent = () => {
     }
 
     if (!userData?.telephone) {
-      setError("Debes ingresar el nuevo telefono del perfil");
+      setError("Debes ingresar el nuevo teléfono del perfil");
       telephoneRef.current?.focus();
       return;
     }
-
+    
     try {
       await UserService.patchMeUser(userData);
       setSuccess(true);
       toast({
         title: "Estudiante editado",
-        description: "El estudiante fue editado con exitos",
+        description: "El estudiante fue editado con exito",
         duration: 3000,
         isClosable: true,
         status: "success",
@@ -259,13 +260,13 @@ const ProfileComponent = () => {
         </Modal>
 
         {error && isEditing ? (
-          <Text color="red" textAlign="center" marginBottom="30px">
+          <Text color="red" textAlign="center" marginBottom="30px" fontSize='19px'>
             {error}
           </Text>
         ) : undefined}
 
         <form onSubmit={handleSubmit}>
-          <VStack spacing={4} align="stretch">
+          <VStack spacing={4} align="stretch" marginBottom='20px'>
             <HStack spacing={4} w="100%">
               <FormControl>
                 <FormLabel>Nombre:</FormLabel>
@@ -279,7 +280,7 @@ const ProfileComponent = () => {
                   ref={nameRef}
                   bg={isEditing ? "light_gray" : "paleGray"}
                   isReadOnly={!isEditing}
-                  focusBorderColor={success ? "red" : undefined}
+                  focusBorderColor={error ? "red" : undefined}
                   borderWidth="3px"
                   borderRadius="15px"
                   w="90%"
@@ -297,7 +298,7 @@ const ProfileComponent = () => {
                   ref={lastNameRef}
                   bg={isEditing ? "light_gray" : "paleGray"}
                   isReadOnly={!isEditing}
-                  focusBorderColor={success ? "red" : undefined}
+                  focusBorderColor={error ? "red" : undefined}
                   borderColor="light_gray"
                   borderWidth="3px"
                   borderRadius="15px"
@@ -321,7 +322,7 @@ const ProfileComponent = () => {
                   ref={emailRef}
                   bg={isEditing ? "light_gray" : "paleGray"}
                   isReadOnly={!isEditing}
-                  focusBorderColor={success ? "red" : undefined}
+                  focusBorderColor={error ? "red" : undefined}
                   borderColor="light_gray"
                   borderWidth="3px"
                   borderRadius="15px"
@@ -340,7 +341,7 @@ const ProfileComponent = () => {
                   ref={telephoneRef}
                   bg={isEditing ? "light_gray" : "paleGray"}
                   isReadOnly={!isEditing}
-                  focusBorderColor={success ? "red" : undefined}
+                  focusBorderColor={error ? "red" : undefined}
                   borderColor="light_gray"
                   borderWidth="3px"
                   borderRadius="15px"
