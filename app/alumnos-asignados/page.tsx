@@ -21,20 +21,28 @@ const AlumnosAsignados: React.FC = () => {
 
   const TableHeader = ["Nombre", "Apellido", "Correo", "Acciones"];
 
+  const [tutorName, setTutorName] = useState<string>("");
+
   useEffect(() => {
     if (!tutorId) return;
 
-    const fetchStudents = async () => {
+    const fetchStudentsAndTutor = async () => {
       try {
         const data = await UserService.getStudentsByTutor(tutorId);
         setStudents(data);
+
+        const tutor = await UserService.fetchUserById(tutorId);
+        setTutorName(`${tutor.name}`);
       } catch (error) {
-        console.error("Error al cargar estudiantes:", error);
+        console.error(
+          "Error al cargar datos del tutor o sus estudiantes:",
+          error
+        );
         setError("No se pudo cargar la lista.");
       }
     };
 
-    fetchStudents();
+    fetchStudentsAndTutor();
   }, [tutorId]);
 
   const refreshStudents = async () => {
@@ -95,12 +103,12 @@ const AlumnosAsignados: React.FC = () => {
           icon={<DeleteIcon boxSize={5} />}
           aria-label="Eliminar"
           backgroundColor="white"
-          onClick={() => handleDeleteAssignment(student.id)}
           _hover={{
             borderRadius: 15,
-            backgroundColor: "red.500",
-            color: "white",
+            backgroundColor: "#318AE4",
+            color: "White",
           }}
+          onClick={() => handleDeleteAssignment(student.id)}
         />
       </Td>
     </Tr>
@@ -113,10 +121,11 @@ const AlumnosAsignados: React.FC = () => {
         <GenericTable
           data={students}
           TableHeader={TableHeader}
-          caption="Alumnos asignados al tutor"
+          caption={`Alumnos asignados al tutor ${tutorName}`}
           renderRow={renderStudentRow}
           topRightComponent={
             <IconButton
+              borderRadius="50%"
               icon={<AddIcon />}
               aria-label="Agregar estudiante"
               colorScheme="blue"
