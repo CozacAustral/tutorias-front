@@ -3,23 +3,27 @@ import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { FaUser } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 import DeleteModal from "../../common/components/modals/detele-modal";
 import EditModal from "../../common/components/modals/edit-modal";
+import AssignedStudentsModal from "../../common/components/modals/assigned-students-modal";
+import TutorCreateModal from "../../common/components/modals/tutor-create-modal";
 
 import { UserService } from "../../services/admin-service";
-import { Tutors } from "../interfaces/tutors.interface";
-import TutorCreateModal from "../../common/components/modals/tutor-create-modal";
-import { FaUser } from "react-icons/fa";
+import { ResponseTutor } from "../interfaces/response-tutor.interface";
 import { Student } from "../interfaces/student.interface";
-import AssignedStudentsModal from "../../common/components/modals/assigned-students-modal";
 
 const Tutores: React.FC = () => {
-  const [tutors, setTutors] = useState<Tutors[] | null>(null);
+  const [tutors, setTutors] = useState<ResponseTutor[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTutor, setSelectedTutor] = useState<Tutors | null>(null);
+  const [selectedTutor, setSelectedTutor] = useState<ResponseTutor | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const router = useRouter();
 
   const [studentsModalOpen, setStudentsModalOpen] = useState(false);
   const [studentsModalLoading, setStudentsModalLoading] = useState(false);
@@ -34,13 +38,11 @@ const Tutores: React.FC = () => {
     onOpen: openEditModal,
     onClose: closeEditModal,
   } = useDisclosure();
-
   const {
     isOpen: isDeleteModalOpen,
     onOpen: openDeleteModal,
     onClose: closeDeleteModal,
   } = useDisclosure();
-
   const {
     isOpen: isCreateModalOpen,
     onOpen: openCreateModal,
@@ -48,11 +50,11 @@ const Tutores: React.FC = () => {
   } = useDisclosure();
 
   const [formData, setFormData] = useState({
-    name: " ",
-    sex: " ",
+    name: "",
+    email: "",
   });
 
-  const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento"];
+  const TableHeader = ["Nombre", "Apellido", "Correo"];
 
   const loadTutors = async () => {
     try {
@@ -72,19 +74,16 @@ const Tutores: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleOpenStudentsModal = async (tutor: Tutors) => {
+  const handleOpenStudentsModal = async (tutor: ResponseTutor) => {
     setStudentsModalOpen(true);
     setStudentsModalLoading(true);
     setStudentsTutorName(`${tutor.user.name} ${tutor.user.lastName}`);
-    setStudentsTutorId(tutor.id);
+    setStudentsTutorId(tutor.user.id);
     try {
-      const data = await UserService.getStudentsByTutor(tutor.id);
+      const data = await UserService.getStudentsByTutor(tutor.user.id);
       setStudentsOfTutor(data);
     } catch (err) {
       toast({
@@ -100,11 +99,11 @@ const Tutores: React.FC = () => {
     }
   };
 
-  const handleEditClick = (tutor: Tutors) => {
+  const handleEditClick = (tutor: ResponseTutor) => {
     setSelectedTutor(tutor);
     setFormData({
       name: tutor.user.name,
-      sex: tutor.sex,
+      email: tutor.user.email,
     });
     openEditModal();
   };
@@ -112,7 +111,9 @@ const Tutores: React.FC = () => {
   const handleEditConfirm = async () => {
     if (selectedTutor) {
       try {
-        await UserService.updateTutor(selectedTutor.id, formData);
+        await UserService.updateTutor(selectedTutor.user.id, {
+          user: formData,
+        });
         await loadTutors();
         toast({
           title: "Tutor actualizado.",
@@ -134,7 +135,7 @@ const Tutores: React.FC = () => {
     }
   };
 
-  const handleDeleteClick = (tutor: Tutors) => {
+  const handleDeleteClick = (tutor: ResponseTutor) => {
     setSelectedTutor(tutor);
     openDeleteModal();
   };
@@ -142,8 +143,10 @@ const Tutores: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (selectedTutor) {
       try {
-        await UserService.deleteTutor(selectedTutor.id);
-        setTutors(tutors?.filter((user) => user.id !== selectedTutor.id) || []);
+        await UserService.deleteTutor(selectedTutor.user.id);
+        setTutors(
+          tutors?.filter((t) => t.user.id !== selectedTutor.user.id) || []
+        );
         toast({
           title: "Tutor eliminado.",
           description: "El tutor ha sido eliminado correctamente.",
@@ -164,12 +167,11 @@ const Tutores: React.FC = () => {
     }
   };
 
-  const renderStudentRow = (tutor: Tutors) => (
+  const renderStudentRow = (tutor: ResponseTutor) => (
     <Tr key={tutor.user.id}>
       <Td>{tutor.user.name}</Td>
       <Td>{tutor.user.lastName}</Td>
       <Td>{tutor.user.email}</Td>
-      <Td>{tutor.category}</Td>
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -193,7 +195,9 @@ const Tutores: React.FC = () => {
             backgroundColor: "#318AE4",
             color: "White",
           }}
-          onClick={() => handleOpenStudentsModal(tutor)}
+          onClick={() =>
+            router.push(`/alumnos-asignados?tutorId=${tutor.user.id}`)
+          }
         />
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
@@ -260,6 +264,7 @@ const Tutores: React.FC = () => {
         onCreateSuccess={loadTutors}
         createFn={UserService.createTutor}
       />
+
       {studentsTutorId !== null && (
         <AssignedStudentsModal
           isOpen={studentsModalOpen}

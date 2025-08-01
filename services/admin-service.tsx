@@ -1,15 +1,25 @@
 import { CreateStudent } from "../app/interfaces/CreateStudent";
 import { CreateUser } from "../app/interfaces/createUser";
 import { Student } from "../app/interfaces/student.interface";
-import { Tutors } from "../app/interfaces/tutors.interface";
+import { Tutors } from "../app/interfaces/create.tutors.interface";
 import { User } from "../app/interfaces/user.interface";
 import axiosInstance from "../axiosConfig";
+import { ResponseTutor } from "../app/interfaces/response-tutor.interface";
 
 const url = "users";
 const url_tutors = "tutors";
 const url_students = "students";
 
 export const UserService = {
+  async getStudentsWithoutTutor(): Promise<Student[]> {
+    const res = await axiosInstance.get("/students/without-tutor");
+    return res.data;
+  },
+
+  async assignStudentsToTutor(dto: { tutorId: number; studentsIds: number[] }) {
+    await axiosInstance.post("/users/create-assignment", dto);
+  },
+
   async getStudentsByTutor(tutorId: number): Promise<Student[]> {
     const response = await axiosInstance.get(`/tutors/get-students/${tutorId}`);
     return response.data;
@@ -154,15 +164,9 @@ export const UserService = {
     }
   },
 
-  async fetchAllTutors(): Promise<Tutors[]> {
-    try {
-      const response = await axiosInstance.get<Tutors[]>(url_tutors);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        `Error al obtener los tutores: ${error.message || error}`
-      );
-    }
+  async fetchAllTutors(): Promise<ResponseTutor[]> {
+    const response = await axiosInstance.get<ResponseTutor[]>(url_tutors);
+    return response.data;
   },
 
   async fetchAllStudents(): Promise<Student[]> {

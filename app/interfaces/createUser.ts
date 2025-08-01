@@ -1,4 +1,4 @@
-// interfaces/create-user.interface.ts
+
 export interface CreateUser {
   email: string;
   password: string;
