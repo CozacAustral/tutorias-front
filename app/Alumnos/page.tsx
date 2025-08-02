@@ -1,5 +1,5 @@
 "use client";
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import {
   IconButton,
@@ -236,7 +236,7 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
 
@@ -645,15 +645,14 @@ const Estudiantes: React.FC = () => {
               }))
             }
           >
-            <option value="APPROVED">{SubjectState.APPROVED}</option>
-            <option value="REGULARIZED">{SubjectState.REGULARIZED}</option>
-            <option value="FREE">{SubjectState.FREE}</option>
-            <option value="INPROGRESS">{SubjectState.INPROGRESS}</option>
-            <option value="NOTATTENDED">{SubjectState.NOTATTENDED}</option>
-            {/* <option value="RETAKING">{SubjectState.RETAKING}</option> */}
+            {Object.entries(SubjectState).map(([key, value]) => (
+              <option key={key} value={key}>
+                {value}
+              </option>
+            ))}
           </Select>
         ) : (
-          editedSubjects[subject.subjectId] || subject.subjectState
+          SubjectState[(editedSubjects[subject.subjectId] || subject.subjectState) as keyof typeof SubjectState]  
         )}
       </Td>
       <Td>

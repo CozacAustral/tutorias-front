@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ChangeEventHandler, useEffect, useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -30,7 +30,8 @@ import {
   Th,
   Tbody,
   Box,
-  Td
+  Td,
+  Textarea,
 } from "@chakra-ui/react";
 import { UserService } from "../../../services/admin-service";
 import { Career } from "../../../app/interfaces/career.interface";
@@ -49,10 +50,12 @@ interface EditModalProps<t = any> {
   title: string;
   onConfirm: () => Promise<void>;
   formData: { [key: string]: t };
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  renderCareerNow: (career: any, index: number) => React.ReactNode
+  onInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => void;
+  renderCareerNow: (career: any, index: number) => React.ReactNode;
   fieldLabels?: { [key: string]: string };
-  createOpen: () => void
+  createOpen: () => void;
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -63,135 +66,152 @@ const EditModal: React.FC<EditModalProps> = ({
   formData,
   onInputChange,
   renderCareerNow,
-  createOpen
+  createOpen,
 }) => {
-  
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
-      <ModalContent maxW="51vw" maxH="95vh">
-        <Text fontSize="50px" color='black' marginTop='30px' marginLeft={8} marginBottom={1}>
+      <ModalContent
+        maxW="80vw"
+        maxH="98vh"
+        display="flex"
+        flexDirection="column"
+        padding={0}
+      >
+        <ModalHeader fontSize="28px" color="black" pl={6} fontWeight="bold">
           Editar {entityName}
-        </Text>
+        </ModalHeader>
         <ModalCloseButton />
-        <ModalBody paddingY={6}>
-          <VStack spacing={4} align='stretch'>
-            <HStack spacing={4} width='100%'>
-              <FormControl>
-                <FormLabel>Apellido/s</FormLabel>
-                <Input
-                  name="lastName"
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  h="50px"
-                  value={formData.lastName}
-                  onChange={onInputChange}
-                  placeholder="Apellido/s del alumno seleccionado"
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Nombre</FormLabel>
-                <Input
-                  name="name"
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  h="50px"
-                  value={formData.name}
-                  onChange={onInputChange}
-                  placeholder="Nombre del alumno seleccionado"
-                />
-              </FormControl>
-            </HStack>
-            <HStack spacing={4} width='100%'>
-              <FormControl>
-                <FormLabel>Correo</FormLabel>
-                <Input
-                  name="email"
-                  type="email"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  h="50px"
-                  value={formData.email}
-                  onChange={onInputChange}
-                  placeholder="Correo del alumno seleccionado"
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Nro. De Telefono</FormLabel>
-                <Input
-                  name="telephone"
-                  type="tel"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  h="50px"
-                  value={formData.telephone}
-                  onChange={onInputChange}
-                  placeholder="Nro. De telefono del alumno seleccionado"
-                />
-              </FormControl>
-            </HStack>
-            <FormControl width='100%'>
+        <ModalBody paddingY={2} flex="1" display="flex" flexDirection="column" minH={0}>
+          <VStack spacing={6} align="stretch" flex="1">
+            <HStack spacing={4} align="flex-start">
+              <VStack spacing={4} align="stretch" flex={2}>
+                <HStack spacing={4} flexWrap="wrap">
+                   <FormControl flex={1} minW="200px">
+                  <FormLabel>Apellido/s</FormLabel>
+                  <Input
+                    name="lastName"
+                    type="text"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    h="50px"
+                    value={formData.lastName}
+                    onChange={onInputChange}
+                    placeholder="Apellido/s del alumno seleccionado"
+                  />
+                </FormControl>
+                <FormControl flex={1} minW="200px">
+                  <FormLabel>Nombre</FormLabel>
+                  <Input
+                    name="name"
+                    type="text"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    h="50px"
+                    value={formData.name}
+                    onChange={onInputChange}
+                    placeholder="Nombre del alumno seleccionado"
+                  />
+                </FormControl>
+              </HStack>
+
+              <HStack spacing={4} flexWrap="wrap">
+                <FormControl flex={1} minW="200px">
+                  <FormLabel>Correo</FormLabel>
+                  <Input
+                    name="email"
+                    type="email"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    h="50px"
+                    value={formData.email}
+                    onChange={onInputChange}
+                    placeholder="Correo del alumno seleccionado"
+                  />
+                </FormControl>
+                <FormControl flex={1} minW="200px">
+                  <FormLabel>Nro. De Telefono</FormLabel>
+                  <Input
+                    name="telephone"
+                    type="tel"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    h="50px"
+                    value={formData.telephone}
+                    onChange={onInputChange}
+                    placeholder="Nro. De telefono del alumno seleccionado"
+                  />
+                </FormControl>
+              </HStack>
+            </VStack>
+             <FormControl flex={1} minW="200px">
               <FormLabel>Observaciones</FormLabel>
-              <Input
+              <Textarea
                 name="observations"
-                type="text"
                 borderColor="light_gray"
                 bg="light_gray"
                 borderWidth="4px"
                 borderRadius="15px"
-                h="50px"
+                h="145px"
                 value={formData.observations}
                 onChange={onInputChange}
+                py={3}
+                px={4}
               />
-            </FormControl>
-          </VStack>
+            </FormControl>           
+          </HStack>
 
-          <Box mt={3}>
-            <GenericTable
-              data={formData.careers}
-              TableHeader={['Carrera', 'Estado', 'Año de ingreso']}
-              caption="Carreras"
-              renderRow={renderCareerNow}
-              onCreateOpen={createOpen}
-              compact={true}
-              itemsPerPage={2}
-              showAddMenu={true}
-              minH='undefined'
-              paddingX={3}
-              paddingY={3}
-              fontSize="50px"
-              marginLeft="3px"
-              marginTop="1"
+          <Box
               width="100%"
-              maxWidth="100%"
-              padding={2}
-              flex='undefined'
-              height="260px"
-            />
-          </Box>
+              flex="1"
+              overflow="hidden"
+              display="flex"
+              flexDirection="column"
+            >
+              <GenericTable
+                data={formData.careers}
+                TableHeader={["Carrera", "Estado", "Año de ingreso"]}
+                caption="Carreras"
+                renderRow={renderCareerNow}
+                onCreateOpen={createOpen}
+                compact={true}
+                itemsPerPage={2}
+                showAddMenu={true}
+                isInModal={true}
+                careerModalEdit={true}
+                minH="auto"
+                paddingX={0}
+                paddingY={2}
+                fontSize="2xl"
+                marginLeft="-4"
+                marginTop="0"
+                width="100%"
+                maxWidth="100%"
+                padding={1}
+                height="100%"
+              />
+            </Box>
+          </VStack>  
         </ModalBody>
 
-        <ModalFooter justifyContent='flex-end' pt={2}>
-          <Button variant="ghost" onClick={onClose} mr={3}>
+        <ModalFooter justifyContent="flex-end" flexShrink={0}>
+          <Button variant="ghost" onClick={onClose} mr={4}>
             Cancelar
           </Button>
           <Button bg="primary" color="white" onClick={onConfirm}>
             Guardar
           </Button>
         </ModalFooter>
-
       </ModalContent>
-    </Modal >
+    </Modal>
   );
 };
 

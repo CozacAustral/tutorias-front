@@ -21,11 +21,15 @@ import {
   MenuList,
   MenuItem,
   IconButton,
+  ModalHeader,
+  ModalContent,
+  HStack,
 
 } from "@chakra-ui/react";
 
 import { SmallAddIcon, Search2Icon, TriangleDownIcon, ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
+import CareerModal from "./modals/create-career-student-modal";
 
 
 interface GenericTableProps<T> {
@@ -49,7 +53,10 @@ interface GenericTableProps<T> {
   padding?: number,
   flex?: string,
   height?: string,
-  widthTable?: number
+  widthTable?: number,
+  isInModal?: boolean
+  careerModalEdit?: boolean
+  subjectModalEdit?: boolean
 }
 
 const GenericTable = <T,>({
@@ -73,8 +80,10 @@ const GenericTable = <T,>({
   padding,
   flex,
   height,
-  widthTable
-
+  widthTable,
+  isInModal = false,
+  careerModalEdit = false,
+  subjectModalEdit = false
 }: GenericTableProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("")
@@ -105,112 +114,141 @@ const GenericTable = <T,>({
     }
   }
 
+  const widthAccordingToModal = (index: number) => {
+    if(careerModalEdit) {
+      return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
+    }
+
+    if(subjectModalEdit) {
+      return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
+    }
+
+    return index === 0 ? "40%" : `${60 / (TableHeader.length - 1)}%`;
+  }
+
 
   return (
     <Box
-      minH={minH ? minH : '100vh'}
+      overflow="hidden"
+      minH={minH ?? (isInModal ? "auto" : "100vh")}
+      maxHeight={isInModal ? "calc(100vh - 200px)" : undefined}
       display="flex"
       flexDirection="column"
       alignItems="center"
       width='100%'
       paddingX={paddingX ? paddingX : 4}
-      paddingY={paddingY ? paddingY : 4}
+      paddingY={paddingY ?? (isInModal ? 0 : 4)}
     >
-      <Box width="100%" maxWidth="1200px" mb={4}>
-        <Text
-          fontSize={fontSize ? fontSize : "6xl"}
-          color="black"
-          marginLeft={marginLeft ? marginLeft : "-25"}
-          marginTop={marginTop ? marginTop : "7"}
-        >
-          {caption}
-        </Text>
-      </Box>
+      {!isInModal && (
+        <Box width="100%" maxWidth="1200px" mb={4}>
+          <Text
+            fontSize={fontSize ? fontSize : "6xl"}
+            color="black"
+            marginLeft={marginLeft ? marginLeft : "0"}
+            marginTop={marginTop ? marginTop : "7"}
+            fontWeight={600}
+          >
+            {caption}
+          </Text>
+        </Box>
+      )}
+      
       <Box
-        width={width ? width : "100vw"}
-        maxWidth={maxWidth ? maxWidth: "1210px"}
+        width={width ?? "100%"}
+        maxWidth={maxWidth ? maxWidth: (isInModal ? "100%" : "1210px")}
         backgroundColor="white"
         borderRadius="20px"
-        padding={padding ? padding : 4}
+        padding={padding ?? 4}
         display='flex'
         flexDirection='column'
-        flex={flex ? flex : '1'}
-        height={height ? height : undefined}
+        flex={isInModal ? '1' : (flex ? flex : '1')}
+        height={height ? height : (isInModal ? "100%" : undefined)}
       >
         { caption && (
-          <Flex mb={4} width="100%" flexWrap='wrap' gap='2px'>
-            {/*Componete busqueda o search */}
-            <Search onSearch={handleSearch} />
+            <Flex 
+              mb={4} 
+              width="100%"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Text
+                fontSize={isInModal ? "28px" : (fontSize ? fontSize : "2xl")}
+                color="black"
+                fontWeight="bold"
+                marginLeft={marginLeft}
+              >
+                {caption}
+              </Text>
 
-            <Menu>
-              <MenuButton as={InputGroup} width="30%" mr={2}>
-                <Input placeholder="Ordenar por..." readOnly />
-                <InputRightElement pointerEvents="none">
-                  <TriangleDownIcon color="black" />
-                </InputRightElement>
-              </MenuButton>
-              <MenuList>
-                <MenuItem>De la A - Z</MenuItem>
-                <MenuItem>De la Z - A</MenuItem>
-              </MenuList>
-            </Menu>
-            <Menu>
-              <MenuButton as={InputGroup} width="30%" mr={2}>
-                <Input placeholder="Filtrar por..." readOnly />
-                <InputRightElement pointerEvents="none">
-                  <TriangleDownIcon color="black" />
-                </InputRightElement>
-              </MenuButton>
-              <MenuList>
-                <MenuItem>Carrera</MenuItem>
-                <MenuItem>Año de Ingreso</MenuItem>
-              </MenuList>
-            </Menu>
+            <HStack spacing={2}>
+              <Box width={isInModal ? "140px" : "auto"}>
+                <Search onSearch={handleSearch} />
+              </Box>
 
-            {showAddMenu && compact ? (
+              <Menu>
+                <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
+                  <Input placeholder="Ordenar por..." readOnly size="md"/>
+                  <InputRightElement pointerEvents="none">
+                    <TriangleDownIcon color="black" />
+                  </InputRightElement>
+                </MenuButton>
+                <MenuList>
+                  <MenuItem>De la A - Z</MenuItem>
+                  <MenuItem>De la Z - A</MenuItem>
+                </MenuList>
+              </Menu>
+
+              <Menu>
+                <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
+                  <Input placeholder="Filtrar por..." readOnly size="md"/>
+                  <InputRightElement pointerEvents="none">
+                    <TriangleDownIcon color="black" />
+                  </InputRightElement>
+                </MenuButton>
+                <MenuList>
+                  <MenuItem>Carrera</MenuItem>
+                  <MenuItem>Año de Ingreso</MenuItem>
+                </MenuList>
+              </Menu>
+
+              {showAddMenu && compact ? (
               <Menu>
                 <MenuButton
                   as={IconButton}
                   aria-label="Opciones"
                   icon={<SmallAddIcon />}
+                  size="md"
                 />
                 <MenuList>
                   <MenuItem onClick={onCreateOpen}>Agregar {caption.slice(0, -1)}</MenuItem>
                 </MenuList>
               </Menu>
             ) : (
-              <Menu>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="Opciones"
-                  icon={<SmallAddIcon />}
-                />
-                <MenuList>
-                  <MenuItem onClick={onCreateOpen}>Agregar Alumno</MenuItem>
-                  <MenuItem onClick={onImportOpen}>Importar Alumnos</MenuItem>
-                </MenuList>
-              </Menu>
+              undefined
             )}
-          </Flex>
+            </HStack>
+            </Flex>
         )}
-        <TableContainer marginBottom={4} width={widthTable ? 900 : undefined}>
-          <Table variant='simple' size='sm'>
+
+        <TableContainer>
+          <Table variant='simple' size='sm' style={ careerModalEdit && subjectModalEdit ? { tableLayout: 'fixed', width: '100%' } : undefined}>  
             <Thead>
-              <Tr>
-                {TableHeader.map((header, index) => (
-                  <Th key={index} fontWeight={600} color="#B5B7C0">
+              <Tr >
+                {TableHeader.map((header, index) => ( 
+                  <Th key={index} color="#B5B7C0" width={widthAccordingToModal(index)} >
                     {header}
                   </Th>
                 ))}
-                <Th>
+                <Th width="200px">  
                   Acciones
                 </Th>
               </Tr>
             </Thead>
-            <Tbody>{currentData.map((row, index) => renderRow(row, index))}
+            <Tbody>
+              {currentData.map((row, index) => renderRow(row, index))}
               {compact && currentData.length < itemsPerPage &&
                 Array.from({ length: itemsPerPage - currentData.length }).map((_, index) => (
-                  <Tr key={`empty-${index}`} height="40px">
+                  <Tr key={`empty-${index}`} height="57px">
                     {TableHeader.map((_, colIndex) => (
                       <Td key={colIndex}>&nbsp;</Td>
                     ))}
@@ -221,13 +259,23 @@ const GenericTable = <T,>({
             </Tbody>
           </Table>
         </TableContainer>
-        {compact ?
-          <Flex justifyContent="space-between" alignItems='center' marginTop={compact ? 0 : 2}>
+
+      {compact && (
+         <Flex 
+            justifyContent="space-between" 
+            alignItems='center' 
+            marginTop={1}
+            marginBottom={2} 
+            flexShrink={0} 
+            minHeight="40px"
+            paddingX={2}
+          >
             <Button
               onClick={prevPage}
               isDisabled={currentPage === 1}
               leftIcon={<ChevronLeftIcon />}
               variant='ghost'
+              size={isInModal ? "sm" : "md"}
             >
             </Button>
             <Text> Página {currentPage}/{totalPages}</Text>
@@ -236,27 +284,11 @@ const GenericTable = <T,>({
               isDisabled={endIndex >= filteredData.length}
               rightIcon={<ChevronRightIcon />}
               variant='ghost'
+              size={isInModal ? "sm" : "md"}
             >
             </Button>
-          </Flex> : (
-            <Flex justifyContent="space-between" alignItems='center' marginTop={2}>
-              <Button
-                onClick={prevPage}
-                isDisabled={currentPage === 1}
-                leftIcon={<ChevronLeftIcon />}
-                variant='ghost'
-              >
-              </Button>
-              <Text> Página {currentPage}/{totalPages}</Text>
-              <Button
-                onClick={nextPage}
-                isDisabled={endIndex >= filteredData.length}
-                rightIcon={<ChevronRightIcon />}
-                variant='ghost'
-              >
-              </Button>
-            </Flex>
-          )}
+          </Flex> 
+        )}
       </Box>
     </Box>
   );

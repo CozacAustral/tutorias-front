@@ -116,50 +116,58 @@ const PaginateStudent = <T,>({
 
   return (
     <Box
-      minH={minH ? minH : "100vh"}
+      minH={minH ? minH : "auto"}
       display="flex"
       flexDirection="column"
       alignItems="center"
+      justifyContent="flex-start"
       width="100%"
-      paddingX={paddingX ? paddingX : [2, 4, 6]}
-      paddingY={paddingY ? paddingY : [2, 4, 6]}
+      paddingX={paddingX ? paddingX : "16px"}
+      paddingY={paddingY ? paddingY : "16px"}
+      paddingLeft="160px"
     >
-      <Box width="100%" maxWidth={maxWidth ? maxWidth : ["100%", "900px", "1200px"]} mb={4}>
+      <Box width="100%" maxWidth={maxWidth ? maxWidth : "95vw"} mb={4}>
         <Text
-          fontSize={fontSize ? fontSize : ["2xl", "4xl", "6xl"]}
-          marginLeft={marginLeft ? marginLeft : ["0", "-10", "-25"]}
-          marginTop={marginTop ? marginTop : ["4", "6", "7"]}
+          fontSize={fontSize ? fontSize : "5xl"}
+          marginLeft={marginLeft ? marginLeft : "35px"}
+          marginTop={marginTop ? marginTop : "10px"}
+          marginBottom="5px"
           color='black'
         >
           {caption}
         </Text>
       </Box>
       <Box
-        width={width ? width : "100vw"}
-        maxWidth={maxWidth ? maxWidth : "1210px"}
+        alignSelf="center"
+        width={width ? width : "100%"}
+        maxWidth={maxWidth ? maxWidth : "95vw"}
         backgroundColor="white"
         borderRadius="20px"
-        padding={padding ? padding : 4}
+        padding={padding ? padding : "16px"}
         display="flex"
         flexDirection="column"
-        flex={flex ? flex : "1"}
-        height={height ? height : undefined}
+        flex={flex ? flex : "0 1 auto"}
+        height={height ? height : "auto"}
       >
         {caption && (
-          <Flex mb={8} width="100%" flexWrap="wrap" gap="60px">
-            {/*Componete busqueda o search */}
-            <Search
+          <Flex mb={8} alignItems="center" justifyContent="flex-end" gap="25px" maxWidth="80vw">
+            <Box>
+              <Search
               onSearch={(term) => {
                 onSearch?.(term);
               }}
-            />
-
-            <Menu>
-              <MenuButton as={InputGroup} width="30%" mr={2}>
+              />
+            </Box>
+    
+            <Box width="200px">
+              <Menu>
+              <MenuButton as={InputGroup} width="100%">
                 <Input
                   placeholder={getCurrentOrderLabel()}
                   value={getCurrentOrderLabel()}
-                  readOnly
+                  readOnly  
+                  fontSize="sm"
+                  size="md"
                 />
                 <InputRightElement pointerEvents="none">
                   <TriangleDownIcon color="black" />
@@ -175,9 +183,7 @@ const PaginateStudent = <T,>({
                     bg={
                       orderBy &&
                       orderBy[0] === option.field &&
-                      orderBy[1] === option.direction
-                        ? "gray.100"
-                        : "white"
+                      orderBy[1] === option.direction ? "gray.100" : "white"
                     }
                   >
                     {option.label}
@@ -187,14 +193,17 @@ const PaginateStudent = <T,>({
                   Por defecto
                 </MenuItem>
               </MenuList>
-            </Menu>
-            <Box ml='250px'>
+             </Menu>
+            </Box>
+          
+            <Box>
               {showAddMenu && compact ? (
                 <Menu>
                   <MenuButton
                     as={IconButton}
                     aria-label="Opciones"
                     icon={<SmallAddIcon />}
+                    size="sm"
                   />
                   <MenuList>
                     <MenuItem onClick={onCreateOpen}>
@@ -208,6 +217,7 @@ const PaginateStudent = <T,>({
                     as={IconButton}
                     aria-label="Opciones"
                     icon={<SmallAddIcon />}
+                    size="md"
                   />
                   <MenuList>
                     <MenuItem onClick={onCreateOpen}>Agregar Alumno</MenuItem>
@@ -218,12 +228,12 @@ const PaginateStudent = <T,>({
             </Box>
           </Flex>
         )}
-        <TableContainer overflowX="auto" marginBottom={4} width={widthTable ? widthTable : "100%"}>
+        <TableContainer marginBottom={4} width="100%" maxWidth="1100px" overflowY="auto">
           <Table variant="simple" size="sm">
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
-                  <Th key={index} fontWeight={600} color="#B5B7C0">
+                  <Th key={index} fontWeight={500} color="#B5B7C0" py={2}>
                     {header}
                   </Th>
                 ))}
@@ -236,7 +246,7 @@ const PaginateStudent = <T,>({
                 data.length < itemsPerPage &&
                 Array.from({ length: itemsPerPage - data.length }).map(
                   (_, index) => (
-                    <Tr key={`empty-${index}`} height="40px">
+                    <Tr key={`empty-${index}`} height="50px">
                       {TableHeader.map((_, colIndex) => (
                         <Td key={colIndex}>&nbsp;</Td>
                       ))}
@@ -251,14 +261,18 @@ const PaginateStudent = <T,>({
           <Flex
             justifyContent="space-between"
             alignItems="center"
-            marginTop={compact ? 0 : 2}
+            marginTop={compact ? 0 : 1}
+            paddingX="8px"
+            width="100%"
           >
             <Button
               onClick={() => onPageChange(currentPage - 1)}
               isDisabled={currentPage === 1}
               leftIcon={<ChevronLeftIcon />}
               variant="ghost"
-            ></Button>
+              size="sm"
+            >
+            </Button>
             <Text>
               {" "}
               Página {currentPage} / {totalPages}{" "}
@@ -268,6 +282,7 @@ const PaginateStudent = <T,>({
               isDisabled={currentPage >= totalPages}
               rightIcon={<ChevronRightIcon />}
               variant="ghost"
+              size="sm"
             ></Button>
           </Flex>
         ) : (
