@@ -87,7 +87,7 @@ const EditModal: React.FC<EditModalProps> = ({
             <HStack spacing={4} align="flex-start">
               <VStack spacing={4} align="stretch" flex={2}>
                 <HStack spacing={4} flexWrap="wrap">
-                   <FormControl flex={1} minW="200px">
+                  <FormControl flex={1} minW="200px">
                   <FormLabel>Apellido/s</FormLabel>
                   <Input
                     name="lastName"

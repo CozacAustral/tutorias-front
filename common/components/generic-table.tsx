@@ -166,10 +166,12 @@ const GenericTable = <T,>({
       >
         { caption && (
             <Flex 
-              mb={4} 
+              mb={7} 
               width="100%"
               justifyContent="space-between"
               alignItems="center"
+              flexWrap={{ base: "wrap", lg: "nowrap" }}
+              gap={{ base: 2, md: 4 }}
             >
               <Text
                 fontSize={isInModal ? "28px" : (fontSize ? fontSize : "2xl")}
@@ -180,7 +182,7 @@ const GenericTable = <T,>({
                 {caption}
               </Text>
 
-            <HStack spacing={2}>
+            <HStack spacing={2} gap="20px">
               <Box width={isInModal ? "140px" : "auto"}>
                 <Search onSearch={handleSearch} />
               </Box>
@@ -231,7 +233,7 @@ const GenericTable = <T,>({
         )}
 
         <TableContainer>
-          <Table variant='simple' size='sm' style={ careerModalEdit && subjectModalEdit ? { tableLayout: 'fixed', width: '100%' } : undefined}>  
+          <Table variant='simple' size='sm' style={ careerModalEdit && subjectModalEdit ? { tableLayout: 'fixed', width: '100%' } : undefined} marginBottom={2}>  
             <Thead>
               <Tr >
                 {TableHeader.map((header, index) => ( 
