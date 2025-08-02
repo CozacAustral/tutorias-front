@@ -228,8 +228,9 @@ const PaginateStudent = <T,>({
             </Box>
           </Flex>
         )}
-        <TableContainer marginBottom={4} width="100%" maxWidth="1100px" overflowY="auto">
-          <Table variant="simple" size="sm">
+
+        <TableContainer  marginBottom={4} width="100%" maxWidth={{ base: "0", lg: "1400px" }} overflowY="auto" overflowX="auto" display="flex" justifyContent="center" margin="0 auto">
+          <Table variant="simple" size="sm" width="100%">
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
@@ -257,6 +258,8 @@ const PaginateStudent = <T,>({
             </Tbody>
           </Table>
         </TableContainer>
+
+        
         {compact ? (
           <Flex
             justifyContent="space-between"
