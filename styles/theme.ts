@@ -10,11 +10,14 @@ const customTheme = extendTheme({
     Very_Light_Gray: "#F9F9F9",
   },
 
-  breakpoints: {
-    ...baseTheme.breakpoints,
-    notebook: '64em',
-    lg: '80em'
-  }
+   breakpoints: {
+    base: "0em",        
+    sm: "30em",         
+    md: "48em",         
+    notebook: "85.375em", 
+    desktop: "90em",      
+    xl: "120em",      
+  },
 });
 
 export default customTheme;

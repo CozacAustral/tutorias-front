@@ -35,7 +35,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
   subjects,
   renderSubjectNow,
 }) => {
-    const itemsPerPage = useBreakpointValue({ notebook: 4 , lg: 8});
+    const itemsPerPage = useBreakpointValue({ base: 2, md: 3, notebook: 4 , desktop: 8});
     
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
