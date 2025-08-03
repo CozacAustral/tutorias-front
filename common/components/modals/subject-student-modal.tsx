@@ -35,7 +35,8 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
   subjects,
   renderSubjectNow,
 }) => {
-    const itemsPerPage = useBreakpointValue({ base: 4, lg: 8 });
+    const itemsPerPage = useBreakpointValue({ notebook: 4 , lg: 8});
+    
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
@@ -114,7 +115,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
         <ModalFooter
           justifyContent="flex-end"
           pt={2}
-          pb={5}
+          pb={9}
           mt="auto"
           position="sticky"
           bottom={0}
