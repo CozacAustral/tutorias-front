@@ -132,7 +132,7 @@ const PaginateStudent = <T,>({
           marginLeft={marginLeft ? marginLeft : "35px"}
           marginTop={marginTop ? marginTop : "10px"}
           marginBottom="5px"
-          color='black'
+          color="black"
         >
           {caption}
         </Text>
@@ -150,52 +150,62 @@ const PaginateStudent = <T,>({
         height={height ? height : "auto"}
       >
         {caption && (
-          <Flex mb={8} alignItems="center" justifyContent="flex-end" gap="25px" maxWidth="80vw">
+          <Flex
+            mb={8}
+            alignItems="center"
+            justifyContent="flex-end"
+            gap="25px"
+            maxWidth="80vw"
+          >
             <Box>
               <Search
-              onSearch={(term) => {
-                onSearch?.(term);
-              }}
+                onSearch={(term) => {
+                  onSearch?.(term);
+                }}
               />
             </Box>
-    
+
             <Box width="200px">
               <Menu>
-              <MenuButton as={InputGroup} width="100%">
-                <Input
-                  placeholder={getCurrentOrderLabel()}
-                  value={getCurrentOrderLabel()}
-                  readOnly  
-                  fontSize="sm"
-                  size="md"
-                />
-                <InputRightElement pointerEvents="none">
-                  <TriangleDownIcon color="black" />
-                </InputRightElement>
-              </MenuButton>
-              <MenuList>
-                {orderOptions.map((option, index) => (
+                <MenuButton as={InputGroup} width="100%">
+                  <Input
+                    placeholder={getCurrentOrderLabel()}
+                    value={getCurrentOrderLabel()}
+                    readOnly
+                    fontSize="sm"
+                    size="md"
+                  />
+                  <InputRightElement pointerEvents="none">
+                    <TriangleDownIcon color="black" />
+                  </InputRightElement>
+                </MenuButton>
+                <MenuList>
+                  {orderOptions.map((option, index) => (
+                    <MenuItem
+                      key={index}
+                      onClick={() =>
+                        onOrderChange?.(option.field, option.direction)
+                      }
+                      bg={
+                        orderBy &&
+                        orderBy[0] === option.field &&
+                        orderBy[1] === option.direction
+                          ? "gray.100"
+                          : "white"
+                      }
+                    >
+                      {option.label}
+                    </MenuItem>
+                  ))}
                   <MenuItem
-                    key={index}
-                    onClick={() =>
-                      onOrderChange?.(option.field, option.direction)
-                    }
-                    bg={
-                      orderBy &&
-                      orderBy[0] === option.field &&
-                      orderBy[1] === option.direction ? "gray.100" : "white"
-                    }
+                    onClick={() => onOrderChange?.("createdAt", "DESC")}
                   >
-                    {option.label}
+                    Por defecto
                   </MenuItem>
-                ))}
-                <MenuItem onClick={() => onOrderChange?.("createdAt", "DESC")}>
-                  Por defecto
-                </MenuItem>
-              </MenuList>
-             </Menu>
+                </MenuList>
+              </Menu>
             </Box>
-          
+
             <Box>
               {showAddMenu && compact ? (
                 <Menu>
@@ -229,7 +239,16 @@ const PaginateStudent = <T,>({
           </Flex>
         )}
 
-        <TableContainer  marginBottom={4} width="100%" maxWidth={{ base: "0", lg: "1400px" }} overflowY="auto" overflowX="auto" display="flex" justifyContent="center" margin="0 auto">
+        <TableContainer
+          marginBottom={4}
+          width="100%"
+          maxWidth={{ base: "0", lg: "1400px" }}
+          overflowY="auto"
+          overflowX="auto"
+          display="flex"
+          justifyContent="center"
+          margin="0 auto"
+        >
           <Table variant="simple" size="sm" width="100%">
             <Thead>
               <Tr>
@@ -259,7 +278,6 @@ const PaginateStudent = <T,>({
           </Table>
         </TableContainer>
 
-        
         {compact ? (
           <Flex
             justifyContent="space-between"
@@ -274,8 +292,7 @@ const PaginateStudent = <T,>({
               leftIcon={<ChevronLeftIcon />}
               variant="ghost"
               size="sm"
-            >
-            </Button>
+            ></Button>
             <Text>
               {" "}
               Página {currentPage} / {totalPages}{" "}
@@ -289,28 +306,37 @@ const PaginateStudent = <T,>({
             ></Button>
           </Flex>
         ) : (
-          <Flex
-            justifyContent="space-between"
-            alignItems="center"
-            marginTop={2}
+            <TableContainer
+            width="100%"
+            maxWidth={{ base: "0", lg: "1400px" }}
+            margin="0 auto"
+            overflowX="visible"
+            overflowY="visible"
           >
-            <Button
-              onClick={() => onPageChange(currentPage - 1)}
-              isDisabled={currentPage === 1}
-              leftIcon={<ChevronLeftIcon />}
-              variant="ghost"
-            ></Button>
-            <Text>
-              {" "}
-              Página {currentPage}/{totalPages}{" "}
-            </Text>
-            <Button
-              onClick={() => onPageChange(currentPage + 1)}
-              isDisabled={currentPage >= totalPages}
-              rightIcon={<ChevronRightIcon />}
-              variant="ghost"
-            ></Button>
-          </Flex>
+            <Flex
+              justifyContent="space-between"
+              alignItems="center"
+              marginTop={2}
+              width="100%"
+            >
+              <Button
+                onClick={() => onPageChange(currentPage - 1)}
+                isDisabled={currentPage === 1}
+                leftIcon={<ChevronLeftIcon />}
+                variant="ghost"
+              ></Button>
+              <Text>
+                {" "}
+                Página {currentPage}/{totalPages}{" "}
+              </Text>
+              <Button
+                onClick={() => onPageChange(currentPage + 1)}
+                isDisabled={currentPage >= totalPages}
+                rightIcon={<ChevronRightIcon />}
+                variant="ghost"
+              ></Button>
+            </Flex>
+          </TableContainer>
         )}
       </Box>
     </Box>
