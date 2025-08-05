@@ -27,9 +27,9 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Cookies from "js-cookie";
-import { AuthService } from "../../../services/auth-service"
+import { AuthService } from "../../../services/auth-service";
 import { UserService } from "../../../services/admin-service";
-import { PatchMeUser } from "../../../app/interfaces/patch-me-user.interface";
+import { PatchMeUser } from '../../../app/interfaces/patch-me-user.interface'
 
 const jwt = require("jsonwebtoken");
 
