@@ -1,4 +1,4 @@
-import { EditIcon } from "@chakra-ui/icons";
+import { EditIcon } from "@chakra-ui/icons"
 import {
   Modal,
   Box,
