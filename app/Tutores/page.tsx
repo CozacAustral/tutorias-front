@@ -4,7 +4,7 @@ import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { FaUser } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import DeleteModal from "../../common/components/modals/detele-modal";
 import EditModal from "../../common/components/modals/edit-modal";
@@ -25,6 +25,10 @@ const Tutores: React.FC = () => {
   const toast = useToast();
   const router = useRouter();
 
+  const searchParams = useSearchParams();
+  const pageFromQuery = Number(searchParams.get("page")) || 1;
+  const [page, setPage] = useState(pageFromQuery);
+
   const [studentsModalOpen, setStudentsModalOpen] = useState(false);
   const [studentsModalLoading, setStudentsModalLoading] = useState(false);
   const [studentsOfTutor, setStudentsOfTutor] = useState<Student[] | null>(
@@ -32,6 +36,9 @@ const Tutores: React.FC = () => {
   );
   const [studentsTutorName, setStudentsTutorName] = useState<string>("");
   const [studentsTutorId, setStudentsTutorId] = useState<number | null>(null);
+
+  const [total, setTotal] = useState(0);
+  const resultsPerPage = 7;
 
   const {
     isOpen: isEditModalOpen,
@@ -56,10 +63,15 @@ const Tutores: React.FC = () => {
 
   const TableHeader = ["Nombre", "Apellido", "Correo"];
 
-  const loadTutors = async () => {
+  const loadTutors = async (currentPage = 1) => {
     try {
-      const fetchedTutors = await UserService.fetchAllTutors();
-      setTutors(fetchedTutors);
+      const res = await UserService.fetchAllTutors({
+        currentPage,
+        resultsPerPage,
+      });
+      setTutors(res.data);
+      setTotal(res.total);
+      setPage(currentPage);
     } catch (error) {
       console.error("Error fetching tutors:", error);
       setError("No se pudieron cargar los tutores.");
@@ -69,7 +81,9 @@ const Tutores: React.FC = () => {
   };
 
   useEffect(() => {
-    loadTutors();
+    const savedPage = Number(localStorage.getItem("currentTutoresPage")) || 1;
+    loadTutors(savedPage);
+    localStorage.removeItem("currentTutoresPage");
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,8 +97,11 @@ const Tutores: React.FC = () => {
     setStudentsTutorName(`${tutor.user.name} ${tutor.user.lastName}`);
     setStudentsTutorId(tutor.user.id);
     try {
-      const data = await UserService.getStudentsByTutor(tutor.user.id);
-      setStudentsOfTutor(data);
+      const res = await UserService.getStudentsByTutor(tutor.user.id, {
+        currentPage: 1,
+        resultsPerPage: 10,
+      });
+      setStudentsOfTutor(res.data);
     } catch (err) {
       toast({
         title: "Error",
@@ -195,9 +212,12 @@ const Tutores: React.FC = () => {
             backgroundColor: "#318AE4",
             color: "White",
           }}
-          onClick={() =>
-            router.push(`/alumnos-asignados?tutorId=${tutor.user.id}`)
-          }
+          onClick={() => {
+            localStorage.setItem("currentTutoresPage", page.toString());
+            router.push(
+              `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`
+            );
+          }}
         />
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
@@ -223,6 +243,11 @@ const Tutores: React.FC = () => {
           TableHeader={TableHeader}
           caption="Tutores"
           renderRow={renderStudentRow}
+          showPagination={true}
+          currentPage={page}
+          itemsPerPage={resultsPerPage}
+          totalItems={total}
+          onPageChange={(newPage) => loadTutors(newPage)}
           topRightComponent={
             <IconButton
               icon={<AddIcon />}

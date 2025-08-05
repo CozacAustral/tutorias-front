@@ -1,16 +1,29 @@
 "use client";
-import { useDisclosure, useToast, Td, Tr, IconButton } from "@chakra-ui/react";
+import {
+  useDisclosure,
+  useToast,
+  Td,
+  Tr,
+  IconButton,
+  HStack,
+  Text,
+} from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Student } from "../interfaces/student.interface";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
 import AvailableStudentsModal from "../../common/components/modals/AvailableStudentsModal";
-import { AddIcon } from "@chakra-ui/icons";
+import { AddIcon, ArrowBackIcon } from "@chakra-ui/icons";
 import { DeleteIcon } from "@chakra-ui/icons";
+import { useRouter } from "next/navigation";
 
 const AlumnosAsignados: React.FC = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const initialPage = Number(searchParams.get("page") || 1);
+  const [page, setPage] = useState(initialPage);
+
   const tutorId = Number(searchParams.get("tutorId"));
 
   const [students, setStudents] = useState<Student[] | null>(null);
@@ -23,13 +36,22 @@ const AlumnosAsignados: React.FC = () => {
 
   const [tutorName, setTutorName] = useState<string>("");
 
+  const [total, setTotal] = useState(0);
+  const resultsPerPage = 7;
+  const [search, setSearch] = useState("");
+
   useEffect(() => {
     if (!tutorId) return;
 
     const fetchStudentsAndTutor = async () => {
       try {
-        const data = await UserService.getStudentsByTutor(tutorId);
-        setStudents(data);
+        const res = await UserService.getStudentsByTutor(tutorId, {
+          currentPage: page,
+          resultsPerPage,
+          search,
+        });
+        setStudents(res.data);
+        setTotal(res.total);
 
         const tutor = await UserService.fetchUserById(tutorId);
         setTutorName(`${tutor.name}`);
@@ -43,12 +65,17 @@ const AlumnosAsignados: React.FC = () => {
     };
 
     fetchStudentsAndTutor();
-  }, [tutorId]);
+  }, [tutorId, page, search]);
 
   const refreshStudents = async () => {
     try {
-      const data = await UserService.getStudentsByTutor(tutorId);
-      setStudents(data);
+      const res = await UserService.getStudentsByTutor(tutorId, {
+        currentPage: page,
+        resultsPerPage,
+        search,
+      });
+      setStudents(res.data);
+      setTotal(res.total);
     } catch {
       toast({
         title: "Error",
@@ -121,8 +148,42 @@ const AlumnosAsignados: React.FC = () => {
         <GenericTable
           data={students}
           TableHeader={TableHeader}
-          caption={`Alumnos asignados al tutor ${tutorName}`}
+          caption={
+            <HStack
+              spacing={3}
+              overflow="hidden"
+              whiteSpace="nowrap"
+              textOverflow="ellipsis"
+            >
+              <IconButton
+                icon={<ArrowBackIcon />}
+                aria-label="Volver"
+                onClick={() => {
+                  const fromPage = searchParams.get("fromPage");
+                  const page = fromPage || 1;
+                  router.push(`/tutores?page=${page}`);
+                }}
+                variant="ghost"
+                colorScheme="blue"
+                flexShrink={0}
+              />
+              <Text
+                fontWeight="bold"
+                fontSize="4xl"
+                overflow="hidden"
+                textOverflow="ellipsis"
+                whiteSpace="nowrap"
+              >
+                Alumnos asignados al tutor {tutorName}
+              </Text>
+            </HStack>
+          }
           renderRow={renderStudentRow}
+          showPagination={true}
+          currentPage={page}
+          itemsPerPage={resultsPerPage}
+          totalItems={total}
+          onPageChange={(newPage) => setPage(newPage)}
           topRightComponent={
             <IconButton
               borderRadius="50%"
@@ -141,18 +202,6 @@ const AlumnosAsignados: React.FC = () => {
         onClose={onClose}
         tutorId={tutorId}
         onAssignSuccess={handleAsignacionExitosa}
-      />
-      <IconButton
-        icon={<AddIcon />}
-        aria-label="Agregar estudiante"
-        colorScheme="blue"
-        borderRadius="full"
-        position="fixed"
-        bottom="24px"
-        right="24px"
-        boxShadow="lg"
-        size="lg"
-        onClick={onOpen}
       />
     </>
   );

@@ -11,17 +11,48 @@ const url_tutors = "tutors";
 const url_students = "students";
 
 export const UserService = {
-  async getStudentsWithoutTutor(): Promise<Student[]> {
-    const res = await axiosInstance.get("/students/without-tutor");
-    return res.data;
-  },
+async getStudentsWithoutTutor(
+  page = 1,
+  limit = 7,
+  search?: string
+): Promise<{
+  data: Student[];
+  total: number;
+  page: number;
+  limit: number;
+}> {
+  const params = new URLSearchParams();
+  params.append("currentPage", page.toString());
+  params.append("resultsPerPage", limit.toString());
+  if (search) params.append("search", search);
+
+  const res = await axiosInstance.get(`/students/without-tutor?${params}`);
+  return res.data;
+},
 
   async assignStudentsToTutor(dto: { tutorId: number; studentsIds: number[] }) {
     await axiosInstance.post("/users/create-assignment", dto);
   },
 
-  async getStudentsByTutor(tutorId: number): Promise<Student[]> {
-    const response = await axiosInstance.get(`/tutors/get-students/${tutorId}`);
+  async getStudentsByTutor(
+    tutorId: number,
+    query: {
+      search?: string;
+      currentPage?: number;
+      resultsPerPage?: number;
+    }
+  ): Promise<{
+    data: Student[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const response = await axiosInstance.get(
+      `/tutors/get-students/${tutorId}`,
+      {
+        params: query,
+      }
+    );
     return response.data;
   },
 
@@ -164,8 +195,21 @@ export const UserService = {
     }
   },
 
-  async fetchAllTutors(): Promise<ResponseTutor[]> {
-    const response = await axiosInstance.get<ResponseTutor[]>(url_tutors);
+  async fetchAllTutors(query: {
+    search?: string;
+    departmentName?: string;
+    orderBy?: [string, "asc" | "desc"];
+    currentPage?: number;
+    resultsPerPage?: number;
+  }): Promise<{
+    data: ResponseTutor[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const response = await axiosInstance.get("/tutors", {
+      params: query,
+    });
     return response.data;
   },
 

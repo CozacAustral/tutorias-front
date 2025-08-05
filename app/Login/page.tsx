@@ -41,10 +41,9 @@ const Login = () => {
       const data = await login(email, password);
       Cookies.set("authTokens", data.accessToken, { expires: 7 });
       setError("");
-      router.push("/");
+      router.push("/profile");
     } catch (error) {
       setError("Error en la autenticación");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -165,6 +164,8 @@ const Login = () => {
                 mt={5}
                 margin="6px"
                 isLoading={isLoading}
+                loadingText="Cargando..."
+                spinnerPlacement="start"
               >
                 Iniciar Sesión
               </Button>

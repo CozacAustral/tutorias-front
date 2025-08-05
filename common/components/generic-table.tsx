@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import {
   Box,
   Flex,
@@ -33,7 +33,7 @@ import { useSidebar } from "../../app/contexts/SidebarContext";
 
 interface GenericTableProps<T> {
   data: T[];
-  caption: string;
+  caption: ReactNode;
   TableHeader: string[];
   renderRow: (row: T) => React.ReactNode;
   showAddMenu?: boolean;
