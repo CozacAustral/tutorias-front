@@ -80,11 +80,10 @@ const Tutores: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const savedPage = Number(localStorage.getItem("currentTutoresPage")) || 1;
-    loadTutors(savedPage);
-    localStorage.removeItem("currentTutoresPage");
-  }, []);
+useEffect(() => {
+  loadTutors(pageFromQuery);
+}, [pageFromQuery]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

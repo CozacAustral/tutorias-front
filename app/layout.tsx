@@ -13,7 +13,6 @@ type LayoutProps = {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
 const pathname = usePathname();
 
-// Ojo acá: detectamos la raíz de forma estricta
 const noSideBarRoutes = ["/login", "/reset-password"];
 const isRoot = pathname === "/";
 const shouldShowSideBar = !isRoot && !noSideBarRoutes.includes(pathname);

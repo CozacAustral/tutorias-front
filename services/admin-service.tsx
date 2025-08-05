@@ -11,22 +11,19 @@ const url_tutors = "tutors";
 const url_students = "students";
 
 export const UserService = {
-async getStudentsWithoutTutor(
-  page = 1,
-  limit = 7,
-  search?: string
-): Promise<{
-  data: Student[];
-  total: number;
-  page: number;
-  limit: number;
-}> {
+getStudentsWithoutTutor: async (
+  page: number,
+  search: string = "",
+  resultsPerPage: number = 7
+) => {
   const params = new URLSearchParams();
   params.append("currentPage", page.toString());
-  params.append("resultsPerPage", limit.toString());
-  if (search) params.append("search", search);
+  params.append("resultsPerPage", resultsPerPage.toString());
+  if (search) {
+    params.append("search", search);
+  }
 
-  const res = await axiosInstance.get(`/students/without-tutor?${params}`);
+  const res = await axiosInstance.get(`/students/without-tutor?${params.toString()}`);
   return res.data;
 },
 
