@@ -1,5 +1,6 @@
 'use client'
-import { InputGroup, InputLeftElement, Input } from "@chakra-ui/react";
+import { SearchIcon } from "@chakra-ui/icons";
+import { InputGroup, InputLeftElement, Input, InputRightElement } from "@chakra-ui/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -27,13 +28,14 @@ const Search: React.FC<SearchProps> = ( {onSearch} ) => {
 
     return (
         <InputGroup width="100%" mr={2}>
-        <InputLeftElement pointerEvents="none">
-        </InputLeftElement>
         <Input
             placeholder="Buscar"
             onChange={(e) => handleSearch(e.target.value)}
             defaultValue={searchParams.get("query")?.toString()}
         />
+        <InputRightElement pointerEvents="none" marginRight="7px">
+            <SearchIcon color="gray.400" />
+        </InputRightElement>
         </InputGroup>
         );
 }
