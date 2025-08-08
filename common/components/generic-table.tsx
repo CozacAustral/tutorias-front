@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Box,
-  ChakraProvider,
   Flex,
   Table,
   TableContainer,
@@ -13,7 +12,6 @@ import {
   Text,
   Button,
   InputGroup,
-  InputLeftElement,
   InputRightElement,
   Input,
   Menu,

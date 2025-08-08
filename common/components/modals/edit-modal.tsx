@@ -46,8 +46,8 @@ import { StudentCareer } from "../../../app/interfaces/studentCareer.interface";
 interface EditModalProps<t = any> {
   isOpen: boolean;
   onClose: () => void;
-  entityName: string;
   title: string;
+  entityName: string;
   onConfirm: () => Promise<void>;
   formData: { [key: string]: t };
   onInputChange: (
@@ -61,8 +61,9 @@ interface EditModalProps<t = any> {
 const EditModal: React.FC<EditModalProps> = ({
   isOpen,
   onClose,
-  onConfirm,
+  title,
   entityName,
+  onConfirm,
   formData,
   onInputChange,
   renderCareerNow,

@@ -4,6 +4,7 @@ import customTheme from "../styles/theme";
 import SideBar from "../common/components/side-bar";
 import { usePathname } from "next/navigation";
 import "../styles/globals.css";
+import { SidebarProvider } from "./contexts/SidebarContext";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -14,6 +15,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   
   const noSideBarRoutes = ['/login', '/reset-password']
   const shouldShowSideBar = !noSideBarRoutes.some((route) => pathname.startsWith(route))
+
+  const noSideBarRoutes = ["/login", "/reset-password"];
+  const shouldShowSideBar = !noSideBarRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
 
   return (
     <html lang="es">

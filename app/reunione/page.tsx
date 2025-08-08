@@ -2,6 +2,7 @@
 import {
   Button,
   Card,
+  Flex,
   FormControl,
   FormLabel,
   Heading,
@@ -78,7 +79,8 @@ const Reuniones = () => {
   const finalRef = useRef(null);
 
   return (
-    <>
+    <Flex ml="15.625rem" direction="column" minHeight="100vh">
+    
       <Heading
         as="h1"
         size="3xl"
@@ -185,7 +187,7 @@ const Reuniones = () => {
           </Table>
         </TableContainer>
       </Card>
-    </>
+    </Flex>
   );
 };
 

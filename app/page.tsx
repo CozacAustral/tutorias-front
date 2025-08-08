@@ -1,12 +1,28 @@
-import { redirect } from "next/navigation";
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Container } from "@chakra-ui/react";
+import { AuthService } from "../services/auth-service";
 
 export default function Page() {
-  const isAuthenticated = true;
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
-  if (!isAuthenticated) {
-    redirect("/login");
-  }
+  useEffect(() => {
+    const verificarSesion = async () => {
+      const userInfo = await AuthService.getUserInfo();
+
+      if (!userInfo || userInfo.status === 401 || userInfo.success === false) {
+        router.replace("/login"); 
+      } else {
+        setLoading(false); 
+      }
+    };
+
+    verificarSesion();
+  }, []);
+
+  if (loading) return null; 
 
   return (
     <Container
@@ -16,6 +32,6 @@ export default function Page() {
       backgroundSize="contain"
       backgroundPosition="center"
       backgroundRepeat="no-repeat"
-    ></Container>
+    />
   );
 }

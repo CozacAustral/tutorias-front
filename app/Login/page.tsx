@@ -1,7 +1,7 @@
 "use client";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import { HiEye, HiEyeOff } from "react-icons/hi"; 
+import { HiEye, HiEyeOff } from "react-icons/hi";
 import React, { useState } from "react";
 import {
   Stack,
@@ -15,8 +15,10 @@ import {
   FormHelperText,
   Container,
   IconButton,
+  InputGroup,
+  InputRightElement,
 } from "@chakra-ui/react";
-import { login } from "./api";
+import { login, sendRecoveryEmail } from "./api";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -24,6 +26,9 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
+  const [recoveryMessage, setRecoveryMessage] = useState("");
 
   const router = useRouter();
   const handleClick = () => setShowPassword(!showPassword);
@@ -36,11 +41,22 @@ const Login = () => {
       const data = await login(email, password);
       Cookies.set("authTokens", data.accessToken, { expires: 7 });
       setError("");
-      router.push("/"); // Redirige al usuario al dashboard
+      router.push("/");
     } catch (error) {
       setError("Error en la autenticación");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRecovery = async () => {
+    try {
+      await sendRecoveryEmail(email);
+      setRecoveryMessage(
+        "Si el correo existe, se ha enviado un mail para restablecer la contraseña."
+      );
+    } catch {
+      setRecoveryMessage("Hubo un error al enviar el correo.");
     }
   };
 
@@ -61,93 +77,162 @@ const Login = () => {
         textAlign="center"
         backgroundColor="softPink"
         p={6}
-        borderRadius="10px"
+        pt={10}
+        borderRadius="15px"
         shadow="md"
         width={{ base: "90%", sm: "70%", md: "50%", lg: "40%" }}
+        height="500px"
         maxW="500px"
       >
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={4} alignItems="center">
-            <Image
-              src="/images/LoginFormImage.png"
-              alt="Image-login"
-              width="100%"
-              maxWidth="450px"
-              height="auto"
-              objectFit="contain"
-            />
+        {!mostrarRecuperacion ? (
+          <form onSubmit={handleSubmit}>
+            <Stack spacing={4} alignItems="center">
+              <Image
+                src="/images/australCreatePassword.png"
+                alt="Image-login"
+                width="100%"
+                maxWidth="450px"
+                height="150px"
+                objectFit="none"
+                objectPosition="top"
+              />
 
-            {error && (
-              <Text color="red.500" textAlign="center">
-                {error}
-              </Text>
-            )}
+              {error && (
+                <Text color="red.500" textAlign="center">
+                  {error}
+                </Text>
+              )}
+
+              <FormControl width="100%">
+                <Input
+                  borderRadius="8px"
+                  h="42px"
+                  backgroundColor="light_gray"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  paddingLeft="1.5rem"
+                  width="100%"
+                  marginTop="10px"
+                  padding="21px"
+                />
+              </FormControl>
+
+              <FormControl width="100%">
+                <InputGroup>
+                  <Input
+                    borderRadius="8px"
+                    h="42px"
+                    backgroundColor="light_gray"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Contraseña"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    paddingLeft="1.5rem"
+                    width="100%"
+                    marginBottom="30px"
+                    marginTop="17px"
+                    padding="21px"
+                  />
+                  <InputRightElement height="100%">
+                    <IconButton
+                      aria-label="mostrar/ocultar contraseña"
+                      icon={showPassword ? <HiEyeOff /> : <HiEye />}
+                      onClick={handleClick}
+                      position="absolute"
+                      right="10px"
+                      backgroundColor="light_gray"
+                      top="39%"
+                      transform="translateY(-50%)"
+                      variant="link"
+                      color="gray.900"
+                      fontSize="24px"
+                      pointerEvents="auto"
+                    />
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
+
+              <Button
+                borderRadius="8px"
+                type="submit"
+                backgroundColor="primary"
+                color="white"
+                width="100%"
+                maxW="300px"
+                height="42px"
+                mt={5}
+                margin="6px"
+                isLoading={isLoading}
+              >
+                Iniciar Sesión
+              </Button>
+
+              <FormControl>
+                <FormHelperText textAlign="center" mt={4}>
+                  <Link
+                    color="primary"
+                    fontWeight="bold"
+                    onClick={() => setMostrarRecuperacion(true)}
+                    cursor="pointer"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </FormHelperText>
+              </FormControl>
+            </Stack>
+          </form>
+        ) : (
+          <Stack
+            spacing={4}
+            alignItems="center"
+            justifyContent="center"
+            height="100%"
+          >
+            <Text fontSize="lg" fontWeight="medium" textAlign="center">
+              Ingrese su correo para restablecer la contraseña
+            </Text>
 
             <FormControl width="100%">
               <Input
-                borderRadius="3px"
-                h="42px"
-                backgroundColor="light_gray"
                 type="email"
-                placeholder="Email"
+                placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                paddingLeft="1.5rem"
-                width="100%"
-              />
-            </FormControl>
-
-            <FormControl width="100%">
-              <Input
-                borderRadius="3px"
+                borderRadius="8px"
                 h="42px"
                 backgroundColor="light_gray"
-                type={showPassword ? "text" : "password"}
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 paddingLeft="1.5rem"
-                width="100%"
-              />
-              <IconButton
-              aria-label="mostrar/ocultar contrasena"
-              icon={showPassword ? <HiEyeOff/> : <HiEye/>}
-              onClick={handleClick}
-              position='absolute'
-              right='10px'
-              backgroundColor="light_gray"
-              top="50%"
-              transform="translateY(-50%)"
-              variant="link"
-              color="gray.900"
-              fontSize="24px"
+                padding="21px"
               />
             </FormControl>
 
             <Button
-              borderRadius="5px"
-              type="submit"
-              backgroundColor="primary"
-              color="white"
+              colorScheme="blue"
+              onClick={handleRecovery}
               width="100%"
               maxW="300px"
               height="42px"
-              mt={4}
-              isLoading={isLoading}
             >
-              Iniciar Sesión
+              Enviar mail de recuperación
             </Button>
 
-            <FormControl>
-              <FormHelperText textAlign="center" mt={4}>
-                Si olvidaste tu contraseña, recupérala{" "}
-                <Link href="" color="primary" fontWeight="bold">
-                  aquí
-                </Link>
-              </FormHelperText>
-            </FormControl>
+            {recoveryMessage && (
+              <Text mt={2} color="green.500" textAlign="center">
+                {recoveryMessage}
+              </Text>
+            )}
+
+            <Button
+              variant="link"
+              onClick={() => setMostrarRecuperacion(false)}
+              color="primary"
+            >
+              ← Volver al login
+            </Button>
           </Stack>
-        </form>
+        )}
       </Box>
     </Container>
   );

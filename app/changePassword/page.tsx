@@ -16,7 +16,7 @@ const CambiarContraseña = () => {
   const router = useRouter();
 
   const handleBack = () => {
-    router.replace("/Profile");
+    router.replace("/profile");
   };
   return (
     <Container maxWidth="931px" w="100%" h="auto" p={4}>

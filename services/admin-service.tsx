@@ -3,6 +3,7 @@ import { CareerStudent } from "../app/interfaces/careerStudent.interface";
 import { Country } from "../app/interfaces/country.interface";
 import { AssignedCareer } from "../app/interfaces/create-career.interface";
 import { CreateStudent } from "../app/interfaces/CreateStudent";
+import { CreateUser } from "../app/interfaces/createUser";
 import { QueryParamsDto } from "../app/interfaces/query-params-dto";
 import { ResponseCreateCareer } from "../app/interfaces/response-create-career.interface";
 import { ResponsePaginateStudent } from "../app/interfaces/response-paginate";
@@ -22,6 +23,65 @@ const urlCareers = 'careers'
 const urlCountries = 'countries'
 
 export const UserService = {
+  async deleteUser(id: number | string): Promise<void> {
+    try {
+      await axiosInstance.delete(`/users/${id}`);
+    } catch (error: any) {
+      throw new Error(
+        `No se pudo eliminar el usuario con ID ${id}. ${error.message || error}`
+      );
+    }
+  },
+
+  async updateUser(
+    id: number,
+    updatedData: {
+      name?: string;
+      lastName?: string;
+      telephone?: string;
+      password?: string;
+    }
+  ): Promise<void> {
+    try {
+      await axiosInstance.patch(`users/${id}`, updatedData);
+    } catch (error: any) {
+      throw new Error(
+        `No se pudo actualizar el usuario. ${error.message || error}`
+      );
+    }
+  },
+
+  async createUser(newUser: CreateUser) {
+    const res = await axiosInstance.post("/users", newUser);
+    return res.data;
+  },
+
+  async fetchAdminUsers(page: number, limit: number) {
+    try {
+      const response = await axiosInstance.get(`/users/admins`, {
+        params: {
+          currentPage: page,
+          resultsPerPage: limit,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `Error al obtener administradores. ${error.message || error}`
+      );
+    }
+  },
+
+  async fetchUserById(id: number): Promise<User> {
+    try {
+      const response = await axiosInstance.get<User>(`/users/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `No se pudo obtener el usuario con ID ${id}. ${error.message || error}`
+      );
+    }
+  },
 
   async fetchAllCareers(): Promise<Career[]> {
     try {
@@ -55,7 +115,11 @@ export const UserService = {
       const response = await axiosInstance.get<Student>(`${urlStudents}/${id}`);
       return response.data;
     } catch (error: any) {
-      throw new Error(`No se pudo obtener el estudiante con ID ${id}. ${error.message || error}`);
+      throw new Error(
+        `No se pudo obtener el estudiante con ID ${id}. ${
+          error.message || error
+        }`
+      );
     }
   },
 
@@ -64,7 +128,9 @@ export const UserService = {
       const response = await axiosInstance.get<User[]>(urlUsers);
       return response.data;
     } catch (error: any) {
-      throw new Error(`Error al obtener los usuarios: ${error.message || error}`);
+      throw new Error(
+        `Error al obtener los usuarios: ${error.message || error}`
+      );
     }
   },
 
@@ -82,7 +148,9 @@ export const UserService = {
       const response = await axiosInstance.post(urlStudents, studentData);
       return response.data;
     } catch (error: any) {
-      throw new Error(`Error al crear el estudiante: ${error.message || error}`);
+      throw new Error(
+        `Error al crear el estudiante: ${error.message || error}`
+      );
     }
   },
 
@@ -108,11 +176,13 @@ export const UserService = {
     try {
       await axiosInstance.post(`${urlStudents}/upload-students`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-        }
+          "Content-Type": "multipart/form-data",
+        },
       });
     } catch (error: any) {
-      throw new Error(`Error al importar estudiantes: ${error.message || error}`);
+      throw new Error(
+        `Error al importar estudiantes: ${error.message || error}`
+      );
     }
   },
 
@@ -120,7 +190,11 @@ export const UserService = {
     try {
       await axiosInstance.delete(`${urlTutors}/${tutorId}`);
     } catch (error: any) {
-      throw new Error(`No se pudo eliminar al tutor con ID ${tutorId}. ${error.message || error}`);
+      throw new Error(
+        `No se pudo eliminar al tutor con ID ${tutorId}. ${
+          error.message || error
+        }`
+      );
     }
   },
 
@@ -129,7 +203,9 @@ export const UserService = {
       const response = await axiosInstance.get<Tutors[]>(urlTutors);
       return response.data;
     } catch (error: any) {
-      throw new Error(`Error al obtener los tutores: ${error.message || error}`);
+      throw new Error(
+        `Error al obtener los tutores: ${error.message || error}`
+      );
     }
   },
 
@@ -140,7 +216,9 @@ export const UserService = {
       });
       return response.data;
     } catch (error: any) {
-      throw new Error(`Error al obtener los estudiantes: ${error.message || error}`);
+      throw new Error(
+        `Error al obtener los estudiantes: ${error.message || error}`
+      );
     }
   },
 
@@ -158,7 +236,11 @@ export const UserService = {
       const response = await axiosInstance.patch(`${urlStudents}/${studentId}`, updatedData);
       return response.data;
     } catch (error: any) {
-      throw new Error(`No se pudo actualizar el estudiante con ID ${studentId}. ${error.message || error}`);
+      throw new Error(
+        `No se pudo actualizar el estudiante con ID ${studentId}. ${
+          error.message || error
+        }`
+      );
     }
   },
 
@@ -174,7 +256,11 @@ export const UserService = {
     try {
       await axiosInstance.patch(`${urlTutors}/${tutorId}`, updateData);
     } catch (error: any) {
-      throw new Error(`No se pudo actualizar el tutor con ID ${tutorId}. ${error.message || error}`);
+      throw new Error(
+        `No se pudo actualizar el tutor con ID ${tutorId}. ${
+          error.message || error
+        }`
+      );
     }
   },
 
