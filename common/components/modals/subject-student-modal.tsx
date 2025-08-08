@@ -35,7 +35,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
   subjects,
   renderSubjectNow,
 }) => {
-    const itemsPerPage = useBreakpointValue({ base: 2, md: 3, notebook: 4 , desktop: 8});
+    const itemsPerPage = useBreakpointValue({ base: 3, md: 4, notebook: 5 , desktop: 8});
     
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -62,7 +62,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
         </Text>
         <ModalCloseButton />
         <ModalBody
-          paddingY={2}
+          paddingY={3}
           flex="1"
           display="flex"
           flexDirection="column"
@@ -114,12 +114,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
 
         <ModalFooter
           justifyContent="flex-end"
-          pt={2}
-          pb={9}
-          mt="auto"
           position="sticky"
-          bottom={0}
-          zIndex={10}
           gap={3}
         >
           <Button variant="ghost" onClick={onClose} mr={3}>

@@ -82,7 +82,7 @@ const EditModal: React.FC<EditModalProps> = ({
           Editar {entityName}
         </ModalHeader>
         <ModalCloseButton />
-        <ModalBody paddingY={2} flex="1" display="flex" flexDirection="column" minH={0}>
+        <ModalBody flex="1" display="flex" flexDirection="column" minH={0}>
           <VStack spacing={6} align="stretch" flex="1">
             <HStack spacing={4} align="flex-start">
               <VStack spacing={4} align="stretch" flex={2}>
@@ -183,26 +183,26 @@ const EditModal: React.FC<EditModalProps> = ({
                 renderRow={renderCareerNow}
                 onCreateOpen={createOpen}
                 compact={true}
-                itemsPerPage={2}
+                itemsPerPage={2}  
                 showAddMenu={true}
                 isInModal={true}
                 careerModalEdit={true}
                 minH="auto"
                 paddingX={0}
-                paddingY={2}
+                paddingY={0}
                 fontSize="2xl"
                 marginLeft="-4"
                 marginTop="0"
                 width="100%"
                 maxWidth="100%"
-                padding={1}
+                padding={0}
                 height="100%"
               />
             </Box>
           </VStack>  
         </ModalBody>
 
-        <ModalFooter justifyContent="flex-end" flexShrink={0}>
+        <ModalFooter justifyContent="flex-end" flexShrink={0} pb={3}>
           <Button variant="ghost" onClick={onClose} mr={4}>
             Cancelar
           </Button>
