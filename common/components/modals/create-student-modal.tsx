@@ -17,47 +17,27 @@ import {
   HStack,
   Select,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import { UserService } from "../../../services/admin-service";
+import { useEffect, useState } from "react";
 import { CreateStudent } from "../../../app/interfaces/CreateStudent";
+import { UserService } from '../../../services/admin-service'
+import { Career } from "../../../app/interfaces/career.interface";
+import { Country } from "../../../app/interfaces/country.interface";
 
 interface CreateStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddStudent: () => void;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  careers: Career[]
+  countries: Country[]
+  studentData: CreateStudent
 }
 
 
-const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose, onAddStudent })  => {
+const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose, onAddStudent, handleChange, careers, countries, studentData })  => {
   const toast = useToast();
-  const [studentData, setStudentData] = useState<CreateStudent>({
-    name: '',
-    lastName: '',
-    dni: '',
-    email: '',
-    telephone: '',
-    birthdate: new Date().toISOString(),
-    address: '',
-    yearEntry: new Date().toISOString(),
-    observations: '',
-    countryId: 1,
-    careerId: 1,
-  });
+  const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-  
-    setStudentData((prevData) => ({
-      ...prevData,
-      [name]: 
-        name === "birthdate" || name === "yearEntry" 
-          ? new Date(value).toISOString().split('T')[0]  
-          : name === "careerId" || name === "countryId" 
-            ? parseInt(value) 
-            : value,
-    }));
-  };
-  
 
   const handleSubmit = async () => {
     try {
@@ -102,7 +82,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
 
           <VStack spacing={4} align="stretch">
           <HStack spacing={4} w="100%">
-              <FormControl isRequired>
+              <FormControl isRequired mt={4}>
                 <FormLabel>Nombre</FormLabel>
                 <Input
                   name="name"
@@ -116,6 +96,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.name}
                   onChange={handleChange}
                   placeholder="Escribe el nombre del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -131,6 +112,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.lastName}
                   onChange={handleChange}
                   placeholder="Escribe el apellido del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               </HStack>
@@ -153,6 +135,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.dni}
                   onChange={handleChange}
                   placeholder="Escribe el DNI del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -168,6 +151,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.email}
                   onChange={handleChange}
                   placeholder="Escribe el email del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               </HStack>
@@ -189,6 +173,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.telephone}
                   onChange={handleChange}
                   placeholder="Ingrese el telefono del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -205,6 +190,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.birthdate}
                   onChange={handleChange}
                   placeholder="Ingrese la fecha de nacimiento del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               </HStack>
@@ -226,6 +212,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.address}
                   onChange={handleChange}
                   placeholder="Ingrese la direccion del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               <FormControl isRequired mt={4}>
@@ -242,6 +229,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                   value={studentData.yearEntry}
                   onChange={handleChange}
                   placeholder="Ingrese el año de ingreso del estudiante"
+                  focusBorderColor={error ? 'red' : undefined}
                 />
               </FormControl>
               </HStack>
@@ -249,7 +237,7 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
 
               <VStack spacing={4} align="stretch">
               <HStack spacing={4} w="100%">
-              <FormControl isRequired>
+              <FormControl isRequired mt={4}>
               <FormLabel>País</FormLabel>
               <Select
                 name="countryId"
@@ -257,17 +245,20 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 bg="Very_Light_Gray"
                 borderWidth="4px"
                 borderRadius="15px"
-                defaultValue={studentData.countryId}
+                w="100%"
+                h="50px"
+                value={studentData.countryId}
                 onChange={handleChange}
               >
-                <option value={1}>Argentina</option>
-                <option value={2}>Brasil</option>
-                <option value={3}>Chile</option>
-                <option value={4}>Paraguay</option>
+                {countries.map((country) => (
+                  <option key={country.id} value={country.id}>
+                      {country.name}
+                  </option>
+                ))}
               </Select>
             </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired mt={4}>
               <FormLabel>Carrera</FormLabel>
               <Select
                 name="careerId"
@@ -275,24 +266,28 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
                 bg="Very_Light_Gray"
                 borderWidth="4px"
                 borderRadius="15px"
-                defaultValue={studentData.careerId}
+                w="100%"
+                h="50px"
+                value={studentData.careerId}
                 onChange={handleChange}
               >
-                <option value={1}>Administración de Empresas</option>
-                <option value={2}>Tecnicatura en Programación</option>
-                <option value={3}>Abogacía</option>
+                {careers.map((career) => (
+                  <option key={career.id} value={career.id}>
+                      {career.name}
+                  </option>
+                ))}
               </Select>
             </FormControl>
               </HStack>
               </VStack>
-              <FormControl>
+              <FormControl isRequired mt={4}>
                 <FormLabel>Observaciones</FormLabel>
                 <Input
                 type="text"
                 name="observations"
                 borderColor="light_gray"
-                  bg="Very_Light_Gray"
-                  borderWidth="4px"
+                bg="Very_Light_Gray"
+                borderWidth="4px"
                 borderRadius="15px"
                 w="100%"
                 h="50px"
@@ -302,10 +297,12 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({ isOpen, onClose
               </FormControl>
           </ModalBody>
           <ModalFooter>
+            <Button variant="ghost" onClick={onClose}> 
+              Cancelar
+            </Button>
             <Button colorScheme="blue" mr={3} type="submit" onClick={handleSubmit}>
               Guardar
             </Button>
-            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
