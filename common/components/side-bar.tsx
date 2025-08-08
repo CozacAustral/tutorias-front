@@ -1,4 +1,4 @@
-"use client";
+  "use client";
 import { useState, useEffect } from "react";
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import {
@@ -90,10 +90,10 @@ const SideBar = () => {
                 justifyContent={collapsed ? "center" : "flex-start"}
               >
                 <Image
-                  src="/icons/MyProfile.svg"
+                  src="/icons/Myprofile.svg"
                   width={30}
                   height={30}
-                  alt="Profile"
+                  alt="profile"
                   priority
                 />
                 {!collapsed && <Text ml="0.5rem">Mi Perfil</Text>}
@@ -201,12 +201,12 @@ const SideBar = () => {
                     align="center"
                     p="0.5rem"
                     bg={
-                      isActiveLink("/alumnosAsignados")
+                      isActiveLink("/alumnos-asignados")
                         ? "secondary"
                         : "primary"
                     }
                     color={
-                      isActiveLink("/alumnosAsignados") ? "white" : "#fff3e9"
+                      isActiveLink("/alumnos-asignados") ? "white" : "#fff3e9"
                     }
                     borderRadius="6px"
                     transition="background-color 0.1s ease-in-out"

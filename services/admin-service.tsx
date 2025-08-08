@@ -1,5 +1,6 @@
 import { CreateStudent } from "../app/interfaces/CreateStudent";
 import { CreateUser } from "../app/interfaces/createUser";
+import { PatchMeUser } from "../app/interfaces/patch-me-user.interface";
 import { Student } from "../app/interfaces/student.interface";
 import { Tutors } from "../app/interfaces/tutors.interface";
 import { User } from "../app/interfaces/user.interface";
@@ -31,6 +32,25 @@ export const UserService = {
   ): Promise<void> {
     try {
       await axiosInstance.patch(`users/${id}`, updatedData);
+    } catch (error: any) {
+      throw new Error(
+        `No se pudo actualizar el usuario. ${error.message || error}`
+      );
+    }
+  },
+
+  async patchMeUser(
+    updatedData: PatchMeUser
+  ): Promise<void> {
+    try {
+      await axiosInstance.patch(`users/patch-me`, 
+        {
+          'name' : updatedData.name,
+          'lastName' : updatedData.lastName,
+          'email' : updatedData.email,
+          'telephone' : updatedData.telephone
+        }
+      );
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el usuario. ${error.message || error}`
