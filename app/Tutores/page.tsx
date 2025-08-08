@@ -80,10 +80,9 @@ const Tutores: React.FC = () => {
     }
   };
 
-useEffect(() => {
-  loadTutors(pageFromQuery);
-}, [pageFromQuery]);
-
+  useEffect(() => {
+    loadTutors(pageFromQuery);
+  }, [pageFromQuery]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

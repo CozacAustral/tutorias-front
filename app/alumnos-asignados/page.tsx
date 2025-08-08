@@ -101,7 +101,7 @@ const AlumnosAsignados: React.FC = () => {
   const handleDeleteAssignment = async (studentId: number) => {
     try {
       await UserService.deleteAssignment({ tutorId, studentId });
-      await refreshStudents(); // ✅ solo refresca sin mostrar mensaje de asignación
+      await refreshStudents(); 
       toast({
         title: "Asignación eliminada",
         description: "El estudiante fue desvinculado del tutor.",

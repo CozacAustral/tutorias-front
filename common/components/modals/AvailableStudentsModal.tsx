@@ -40,16 +40,14 @@ export default function AvailableStudentsModal({
   const handleInputChange = (value: string) => {
     const trimmed = value.trim();
 
-    // Esto evita requests vacíos o muy cortos
     if (trimmed.length < 3) {
       setOptions([]);
       return;
     }
 
-    // Llamás async por fuera
     fetchStudents(trimmed).then(setOptions);
 
-    return value; // ← esto es CLAVE para evitar que se rompa el select
+    return value;
   };
 
   useEffect(() => {
@@ -57,7 +55,7 @@ export default function AvailableStudentsModal({
       setStudents([]);
       setSelectedStudents([]);
       setOptions([]);
-      setLoading(false); // no hay carga inicial porque AsyncPaginate hace su propia
+      setLoading(false); 
     }
   }, [isOpen]);
 
@@ -119,7 +117,7 @@ export default function AvailableStudentsModal({
                 label: `${s.user.name} ${s.user.lastName} (${s.user.email})`,
               }))}
               onChange={handleSelectChange}
-              onInputChange={handleInputChange} // <- ahora sí funciona bien
+              onInputChange={handleInputChange} 
               placeholder="Buscar estudiantes..."
               styles={{
                 control: (base) => ({
