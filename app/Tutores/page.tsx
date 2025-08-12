@@ -29,10 +29,6 @@ const Tutores: React.FC = () => {
         name: " ",
         sex: " ",
             });
-
-
-
-
   const TableHeader = [ "Nombre","Apellido","Correo", "Departamento"];
 
   useEffect(() => {
@@ -52,7 +48,7 @@ const Tutores: React.FC = () => {
   }, []);
   
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -100,9 +96,6 @@ const Tutores: React.FC = () => {
           }
         }
       };
-      
-      
-      
       
   const handleDeleteClick = (tutor: Tutors) => {
     setSelectedTutor(tutor);
@@ -184,7 +177,7 @@ const Tutores: React.FC = () => {
       ) : (
         <p>Loading...</p>
       )}
-      <EditModal
+      {/* <EditModal
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onConfirm={handleEditConfirm}
@@ -192,7 +185,7 @@ const Tutores: React.FC = () => {
         onInputChange={handleInputChange}
         title="Editar Tutor"
         entityName="tutor"
-      />
+      />  */}
 
       <DeleteModal
         isOpen={isDeleteModalOpen}

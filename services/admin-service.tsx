@@ -3,6 +3,7 @@ import { CareerStudent } from "../app/interfaces/careerStudent.interface";
 import { Country } from "../app/interfaces/country.interface";
 import { AssignedCareer } from "../app/interfaces/create-career.interface";
 import { CreateStudent } from "../app/interfaces/CreateStudent";
+import { Deparment } from "../app/interfaces/departments.interface";
 import { QueryParamsDto } from "../app/interfaces/query-params-dto";
 import { ResponseCreateCareer } from "../app/interfaces/response-create-career.interface";
 import { ResponsePaginateStudent } from "../app/interfaces/response-paginate";
@@ -20,8 +21,18 @@ const urlTutors = "tutors";
 const urlStudents = "students";
 const urlCareers = 'careers'
 const urlCountries = 'countries'
+const urlDepartments = 'departments'
 
 export const UserService = {
+
+  async fetchAllDepartments(): Promise<Deparment[]> {
+    try {
+      const response = await axiosInstance.get<Deparment[]>(`${urlDepartments}/departamentos`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Error al obtener los departamentos: ${error.message || error}`);
+    }
+  },
 
   async fetchAllCareers(): Promise<Career[]> {
     try {

@@ -8,9 +8,8 @@ const Profile = () => {
       height="100vh"
       bg="paleGray"
       flexDirection="column"
-      pl={{ base: "0", md: "250px" }}
     >
-      <Flex justifyContent="center" alignItems="center" flex="1">
+      <Flex justifyContent="center" alignItems="center" flex="1" mx="auto">
         <ProfileComponent />
       </Flex>
     </Flex>

@@ -55,7 +55,7 @@ interface EditModalProps<t = any> {
   ) => void;
   renderCareerNow: (career: any, index: number) => React.ReactNode;
   fieldLabels?: { [key: string]: string };
-  createOpen: () => void;
+  createOpen?: () => void;
 }
 
 const EditModal: React.FC<EditModalProps> = ({
