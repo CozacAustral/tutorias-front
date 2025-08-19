@@ -1,4 +1,4 @@
-"use client";
+  "use client";
 import { useState, useEffect } from "react";
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import {
@@ -20,7 +20,7 @@ const SideBar = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = Cookies.get("authTokens"); 
+    const token = Cookies.get("authTokens");
     if (token) {
       try {
         const decodedToken = jwt.decode(token);
@@ -47,7 +47,7 @@ const SideBar = () => {
       direction="column"
       align="center"
       bg="primary"
-      width={collapsed ? "6.5rem" : "17rem"}
+      width={collapsed ? "4rem" : "10.5rem"}
       transition="width 0.3s ease-in-out"
       justifyContent="space-between"
       position="fixed"
@@ -70,8 +70,8 @@ const SideBar = () => {
                 ? "/images/collapsedaustral.png"
                 : "/images/australsidebar.png"
             }
-            width={collapsed ? 75.52 : 200}
-            height={collapsed ? 90.54 : 75}
+            width={collapsed ? 40 : 140} 
+            height={collapsed ? 40 : 60}
             alt="logo"
             priority
           />
@@ -90,10 +90,10 @@ const SideBar = () => {
                 justifyContent={collapsed ? "center" : "flex-start"}
               >
                 <Image
-                  src="/icons/MyProfile.svg"
+                  src="/icons/Myprofile.svg"
                   width={30}
                   height={30}
-                  alt="Profile"
+                  alt="profile"
                   priority
                 />
                 {!collapsed && <Text ml="0.5rem">Mi Perfil</Text>}
@@ -136,8 +136,12 @@ const SideBar = () => {
                   <Flex
                     align="center"
                     p="0.5rem"
-                    bg={isActiveLink("/administradores") ? "secondary" : "primary"}
-                    color={isActiveLink("/administradores") ? "white" : "#fff3e9"}
+                    bg={
+                      isActiveLink("/administradores") ? "secondary" : "primary"
+                    }
+                    color={
+                      isActiveLink("/administradores") ? "white" : "#fff3e9"
+                    }
                     borderRadius="10px"
                     transition="background-color 0.1s ease-in-out"
                     _hover={{ bg: "secondary", color: "white" }}
@@ -155,8 +159,12 @@ const SideBar = () => {
                 </Link>
               </Box>
 
-              <Box as="li" mb="0.5rem">
-                <Link href="/tutores" passHref style={{ textDecoration: "none" }}>
+              <Box as="li" mb="1rem">
+                <Link
+                  href="/tutores"
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
                   <Flex
                     align="center"
                     p="0.5rem"
@@ -183,9 +191,46 @@ const SideBar = () => {
 
           {(role === 1 || role === 2) && (
             <>
+              <Box as="li" mb="1rem">
+                <Link
+                  href="/alumnos-asignados"
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
+                  <Flex
+                    align="center"
+                    p="0.5rem"
+                    bg={
+                      isActiveLink("/alumnos-asignados")
+                        ? "secondary"
+                        : "primary"
+                    }
+                    color={
+                      isActiveLink("/alumnos-asignados") ? "white" : "#fff3e9"
+                    }
+                    borderRadius="6px"
+                    transition="background-color 0.1s ease-in-out"
+                    _hover={{ bg: "secondary", color: "white" }}
+                    justifyContent={collapsed ? "center" : "flex-start"}
+                  >
+                    <Image
+                      src="/icons/alumnos-asignados.svg"
+                      width={30}
+                      height={30}
+                      alt="Alumnos asignados"
+                      priority
+                    />
+                    {!collapsed && <Text ml="0.5rem">Alumnos asignados</Text>}
+                  </Flex>
+                </Link>
+              </Box>
 
               <Box as="li" mb="1rem">
-                <Link href="/alumnos" passHref style={{ textDecoration: "none" }}>
+                <Link
+                  href="/alumnos"
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
                   <Flex
                     align="center"
                     p="0.5rem"
