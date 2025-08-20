@@ -44,6 +44,7 @@ const Login = () => {
       router.push("/profile");
     } catch (error) {
       setError("Error en la autenticación");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -164,8 +165,6 @@ const Login = () => {
                 mt={5}
                 margin="6px"
                 isLoading={isLoading}
-                loadingText="Cargando..."
-                spinnerPlacement="start"
               >
                 Iniciar Sesión
               </Button>

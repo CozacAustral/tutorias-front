@@ -12,21 +12,23 @@ const url_tutors = "tutors";
 const url_students = "students";
 
 export const UserService = {
-getStudentsWithoutTutor: async (
-  page: number,
-  search: string = "",
-  resultsPerPage: number = 7
-) => {
-  const params = new URLSearchParams();
-  params.append("currentPage", page.toString());
-  params.append("resultsPerPage", resultsPerPage.toString());
-  if (search) {
-    params.append("search", search);
-  }
+  getStudentsWithoutTutor: async (
+    page: number,
+    search: string = "",
+    resultsPerPage: number = 7
+  ) => {
+    const params = new URLSearchParams();
+    params.append("currentPage", page.toString());
+    params.append("resultsPerPage", resultsPerPage.toString());
+    if (search) {
+      params.append("search", search);
+    }
 
-  const res = await axiosInstance.get(`/students/without-tutor?${params.toString()}`);
-  return res.data;
-},
+    const res = await axiosInstance.get(
+      `/students/without-tutor?${params.toString()}`
+    );
+    return res.data;
+  },
 
   async assignStudentsToTutor(dto: { tutorId: number; studentsIds: number[] }) {
     await axiosInstance.post("/users/create-assignment", dto);
@@ -95,18 +97,14 @@ getStudentsWithoutTutor: async (
     }
   },
 
-  async patchMeUser(
-    updatedData: PatchMeUser
-  ): Promise<void> {
+  async patchMeUser(updatedData: PatchMeUser): Promise<void> {
     try {
-      await axiosInstance.patch(`users/patch-me`, 
-        {
-          'name' : updatedData.name,
-          'lastName' : updatedData.lastName,
-          'email' : updatedData.email,
-          'telephone' : updatedData.telephone
-        }
-      );
+      await axiosInstance.patch(`users/patch-me`, {
+        name: updatedData.name,
+        lastName: updatedData.lastName,
+        email: updatedData.email,
+        telephone: updatedData.telephone,
+      });
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el usuario. ${error.message || error}`
