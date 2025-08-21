@@ -11,22 +11,22 @@ type LayoutProps = {
 };
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-const pathname = usePathname();
+  const pathname = usePathname();
+  
+  const noSideBarRoutes = ['/login', '/reset-password']
+  const shouldShowSideBar = !noSideBarRoutes.some((route) => pathname.startsWith(route))
 
-const noSideBarRoutes = ["/login", "/reset-password"];
-const isRoot = pathname === "/";
-const shouldShowSideBar = !isRoot && !noSideBarRoutes.includes(pathname);
+
+
 
   return (
     <html lang="es">
       <body>
         <ChakraProvider theme={customTheme}>
-          <SidebarProvider>
-            <div className="container">
-              {shouldShowSideBar && <SideBar />}
-              <main className="content">{children}</main>
-            </div>
-          </SidebarProvider>
+          <div className="container">
+            {shouldShowSideBar && <SideBar />}
+            <main className="content">{children}</main>
+          </div>
         </ChakraProvider>
       </body>
     </html>

@@ -1,0 +1,8 @@
+export enum SubjectState{
+    APPROVED = 'APROBADO',
+    REGULARIZED = 'REGULARIZADO',
+    FREE = 'LIBRE',
+    INPROGRESS = 'EN CURSO',
+    NOTATTENDED = 'NO CURSADA',
+    RETAKING = 'RECURSANDO'
+}
