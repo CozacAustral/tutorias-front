@@ -38,7 +38,7 @@ const EditModal: React.FC<EditModalProps> = ({
   formData,
   onInputChange,
   fieldLabels = {},
-  excludeFields = ["email"], 
+  excludeFields = [], 
 }) => {
   const keys = Object.keys(formData).filter(
     (key) => !excludeFields.includes(key)

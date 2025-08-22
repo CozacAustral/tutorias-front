@@ -14,8 +14,8 @@ interface DeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDelete: () => void;
-  entityName: string;  // El nombre de la entidad (Tutor, Alumno, Administrador)
-  entityDetails: string;  // Detalles del elemento a eliminar, por ejemplo el nombre del tutor
+  entityName: string;  
+  entityDetails: string;  
 }
 
 const DeleteModal: React.FC<DeleteModalProps> = ({

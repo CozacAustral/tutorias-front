@@ -11,12 +11,11 @@ type LayoutProps = {
 };
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const pathname = usePathname();
+const pathname = usePathname();
 
-  const noSideBarRoutes = ["/login", "/reset-password"];
-  const shouldShowSideBar = !noSideBarRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+const noSideBarRoutes = ["/login", "/reset-password"];
+const isRoot = pathname === "/";
+const shouldShowSideBar = !isRoot && !noSideBarRoutes.includes(pathname);
 
   return (
     <html lang="es">

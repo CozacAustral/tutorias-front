@@ -62,7 +62,7 @@ const SideBar = () => {
           alignItems="center"
           justifyContent="center"
           py="1rem"
-          mb="1rem"
+
         >
           <Image
             src={
@@ -77,7 +77,7 @@ const SideBar = () => {
           />
         </Box>
         <Flex direction="column" as="ul" listStyleType="none" p={0}>
-          <Box as="li" mb="1rem">
+          <Box as="li" mb="0.5rem">
             <Link href="/profile" passHref style={{ textDecoration: "none" }}>
               <Flex
                 align="center"
@@ -101,7 +101,7 @@ const SideBar = () => {
             </Link>
           </Box>
 
-          <Box as="li" mb="1rem">
+          <Box as="li" mb="0.5rem">
             <Link href="/reuniones" passHref style={{ textDecoration: "none" }}>
               <Flex
                 align="center"
@@ -127,7 +127,7 @@ const SideBar = () => {
 
           {role === 1 && (
             <>
-              <Box as="li" mb="1rem">
+              <Box as="li" mb="0.5rem">
                 <Link
                   href="/administradores"
                   passHref
@@ -257,11 +257,11 @@ const SideBar = () => {
         </Flex>
       </Box>
       <Box
-        mb="1rem"
+        mb="0.5rem"
         display="flex"
         flexDirection="column"
         alignItems="center"
-        pb="1rem"
+        pb="0.5rem"
       >
         <IconButton
           color="white"
@@ -273,7 +273,7 @@ const SideBar = () => {
           aria-label="Toggle SideBar"
           borderRadius="50%"
           border="none"
-          mb="1rem"
+          mb="0.5rem"
           display="flex"
           flexDirection={collapsed ? "column" : "row"}
           alignItems="center"
@@ -288,7 +288,6 @@ const SideBar = () => {
           aria-label="Logout"
           borderRadius="50%"
           border="none"
-          mb="1rem"
         />
       </Box>
     </Flex>

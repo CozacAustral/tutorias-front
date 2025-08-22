@@ -2,15 +2,73 @@ import { CreateStudent } from "../app/interfaces/CreateStudent";
 import { CreateUser } from "../app/interfaces/createUser";
 import { PatchMeUser } from "../app/interfaces/patch-me-user.interface";
 import { Student } from "../app/interfaces/student.interface";
-import { Tutors } from "../app/interfaces/tutors.interface";
+import { Tutors } from "../app/interfaces/create.tutors.interface";
 import { User } from "../app/interfaces/user.interface";
 import axiosInstance from "../axiosConfig";
+import { ResponseTutor } from "../app/interfaces/response-tutor.interface";
 
 const url = "users";
 const url_tutors = "tutors";
 const url_students = "students";
 
 export const UserService = {
+  getStudentsWithoutTutor: async (
+    page: number,
+    search: string = "",
+    resultsPerPage: number = 7
+  ) => {
+    const params = new URLSearchParams();
+    params.append("currentPage", page.toString());
+    params.append("resultsPerPage", resultsPerPage.toString());
+    if (search) {
+      params.append("search", search);
+    }
+
+    const res = await axiosInstance.get(
+      `/students/without-tutor?${params.toString()}`
+    );
+    return res.data;
+  },
+
+  async assignStudentsToTutor(dto: { tutorId: number; studentsIds: number[] }) {
+    await axiosInstance.post("/users/create-assignment", dto);
+  },
+
+  async getStudentsByTutor(
+    tutorId: number,
+    query: {
+      search?: string;
+      currentPage?: number;
+      resultsPerPage?: number;
+    }
+  ): Promise<{
+    data: Student[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const response = await axiosInstance.get(
+      `/tutors/get-students/${tutorId}`,
+      {
+        params: query,
+      }
+    );
+    return response.data;
+  },
+
+  async deleteAssignment(dto: { tutorId: number; studentId: number }) {
+    return axiosInstance.delete("/users/delete-assignment", {
+      data: dto,
+    });
+  },
+
+  async createTutor(tutorData: any): Promise<void> {
+    try {
+      await axiosInstance.post(url_tutors, tutorData);
+    } catch (error: any) {
+      throw new Error(`Error al crear el tutor: ${error.message || error}`);
+    }
+  },
   async deleteUser(id: number | string): Promise<void> {
     try {
       await axiosInstance.delete(`/users/${id}`);
@@ -39,18 +97,14 @@ export const UserService = {
     }
   },
 
-  async patchMeUser(
-    updatedData: PatchMeUser
-  ): Promise<void> {
+  async patchMeUser(updatedData: PatchMeUser): Promise<void> {
     try {
-      await axiosInstance.patch(`users/patch-me`, 
-        {
-          'name' : updatedData.name,
-          'lastName' : updatedData.lastName,
-          'email' : updatedData.email,
-          'telephone' : updatedData.telephone
-        }
-      );
+      await axiosInstance.patch(`users/patch-me`, {
+        name: updatedData.name,
+        lastName: updatedData.lastName,
+        email: updatedData.email,
+        telephone: updatedData.telephone,
+      });
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el usuario. ${error.message || error}`
@@ -156,15 +210,22 @@ export const UserService = {
     }
   },
 
-  async fetchAllTutors(): Promise<Tutors[]> {
-    try {
-      const response = await axiosInstance.get<Tutors[]>(url_tutors);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        `Error al obtener los tutores: ${error.message || error}`
-      );
-    }
+  async fetchAllTutors(query: {
+    search?: string;
+    departmentName?: string;
+    orderBy?: [string, "asc" | "desc"];
+    currentPage?: number;
+    resultsPerPage?: number;
+  }): Promise<{
+    data: ResponseTutor[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const response = await axiosInstance.get("/tutors", {
+      params: query,
+    });
+    return response.data;
   },
 
   async fetchAllStudents(): Promise<Student[]> {
