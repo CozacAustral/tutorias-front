@@ -101,7 +101,7 @@ const AlumnosAsignados: React.FC = () => {
   const handleDeleteAssignment = async (studentId: number) => {
     try {
       await UserService.deleteAssignment({ tutorId, studentId });
-      await refreshStudents(); 
+      await refreshStudents();
       toast({
         title: "Asignación eliminada",
         description: "El estudiante fue desvinculado del tutor.",
@@ -125,7 +125,7 @@ const AlumnosAsignados: React.FC = () => {
       <Td>{student.user.name}</Td>
       <Td>{student.user.lastName}</Td>
       <Td>{student.user.email}</Td>
-      <Td>
+      <Td textAlign="right" w="30px">
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
           aria-label="Eliminar"

@@ -191,39 +191,7 @@ const SideBar = () => {
 
           {(role === 1 || role === 2) && (
             <>
-              <Box as="li" mb="1rem">
-                <Link
-                  href="/alumnos-asignados"
-                  passHref
-                  style={{ textDecoration: "none" }}
-                >
-                  <Flex
-                    align="center"
-                    p="0.5rem"
-                    bg={
-                      isActiveLink("/alumnos-asignados")
-                        ? "secondary"
-                        : "primary"
-                    }
-                    color={
-                      isActiveLink("/alumnos-asignados") ? "white" : "#fff3e9"
-                    }
-                    borderRadius="6px"
-                    transition="background-color 0.1s ease-in-out"
-                    _hover={{ bg: "secondary", color: "white" }}
-                    justifyContent={collapsed ? "center" : "flex-start"}
-                  >
-                    <Image
-                      src="/icons/alumnos-asignados.svg"
-                      width={30}
-                      height={30}
-                      alt="Alumnos asignados"
-                      priority
-                    />
-                    {!collapsed && <Text ml="0.5rem">Alumnos asignados</Text>}
-                  </Flex>
-                </Link>
-              </Box>
+
 
               <Box as="li" mb="1rem">
                 <Link
