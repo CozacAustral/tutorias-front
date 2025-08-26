@@ -5,7 +5,7 @@ import GenericTable from "../../common/components/generic-table";
 import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { FaUser } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import DeleteModal from "../../common/components/modals/detele-modal";
 import EditModal from "../../common/components/modals/edit-modal";
@@ -23,6 +23,8 @@ const Tutores: React.FC = () => {
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(7); // o 20, como quieras
   const [totalItems, setTotalItems] = useState(0);
+
+  const totalItemsForUi = Math.max(totalItems, 1);
 
   const toast = useToast();
   const router = useRouter();
@@ -65,9 +67,12 @@ const Tutores: React.FC = () => {
     }
   };
 
+  const searchParams = useSearchParams();
+
   useEffect(() => {
-    loadTutors(1);
-  }, []);
+    const p = Number(searchParams.get("page") || 1);
+    loadTutors(p);
+  }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -168,7 +173,7 @@ const Tutores: React.FC = () => {
           }}
           onClick={() =>
             router.push(
-              `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=1`
+              `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`
             )
           }
         />
@@ -195,12 +200,12 @@ const Tutores: React.FC = () => {
           showPagination
           currentPage={page}
           itemsPerPage={itemsPerPage}
-          totalItems={totalItems}
+          totalItems={totalItemsForUi}
           data={tutors}
           TableHeader={TableHeader}
           caption="Tutores"
           renderRow={renderStudentRow}
-          onPageChange={(newPage) => loadTutors(newPage)}
+          onPageChange={(newPage) => router.push(`/tutores?page=${newPage}`)}
           topRightComponent={
             <IconButton
               icon={<AddIcon />}
