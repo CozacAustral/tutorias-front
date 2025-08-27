@@ -13,7 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { Student } from "../interfaces/student.interface";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
-import AvailableStudentsModal from "../../common/components/modals/AvailableStudentsModal";
+import AvailableStudentsModal from "../../common/components/modals/avilable-students-modal";
 import { AddIcon, ArrowBackIcon } from "@chakra-ui/icons";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/navigation";
@@ -174,7 +174,7 @@ const AlumnosAsignados: React.FC = () => {
                 textOverflow="ellipsis"
                 whiteSpace="nowrap"
               >
-                Alumnos asignados al tutor {tutorName}
+                Alumnos asignados a {tutorName} 
               </Text>
             </HStack>
           }

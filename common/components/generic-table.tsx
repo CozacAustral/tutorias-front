@@ -59,7 +59,7 @@ const GenericTable = <T,>({
   showPagination,
   currentPage,
   itemsPerPage,
-  totalItems,
+  totalItems =0,
   onPageChange,
 }: GenericTableProps<T>) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,6 +67,7 @@ const GenericTable = <T,>({
   const { collapsed } = useSidebar();
 
   const rowSpacing = 0;
+  const totalPages = Math.ceil(totalItems / (itemsPerPage ?? 1));
 
   const handleSearch = (term: string) => {
     setSearchTerm(term); 
@@ -176,7 +177,7 @@ const GenericTable = <T,>({
             />
 
             <Text>
-              Página {currentPage} de {Math.ceil(totalItems / (itemsPerPage ?? 1))}
+              Página {currentPage} de {totalPages>0? totalPages:1}
             </Text>
 
             <Button

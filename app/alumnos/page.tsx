@@ -77,7 +77,7 @@ const Estudiantes: React.FC = () => {
     const loadStudents = async () => {
       try {
         const fetchedStudents = await UserService.fetchAllStudents();
-        setStudents(fetchedStudents);
+        setStudents(fetchedStudents.students);
         console.log(fetchedStudents)
       } catch (error) {
         console.error('Error fetching students:', error);
@@ -132,7 +132,7 @@ const Estudiantes: React.FC = () => {
         await UserService.updateStudent(selectedStudent.id, formData);
 
         const updateStudent = await UserService.fetchAllStudents();
-        setStudents(updateStudent);
+        setStudents(updateStudent.students);
 
         toast({
           title: "Tutor actualizado.",
@@ -159,7 +159,7 @@ const Estudiantes: React.FC = () => {
 
   const handleAddStudent = async () => {
       const fetchedStudents = await UserService.fetchAllStudents();
-      setStudents(fetchedStudents); 
+      setStudents(fetchedStudents.students); 
   };
   
   

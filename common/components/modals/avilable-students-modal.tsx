@@ -45,7 +45,7 @@ export default function AvailableStudentsModal({
       const { data } = await UserService.getStudentsWithoutTutor(
         1,                 // page
         inputValue || "",  // search (vacío por defecto)
-        2                // limit
+        20         // limit
       );
       setStudents(data);
       return buildOptions(data, selectedStudents);
