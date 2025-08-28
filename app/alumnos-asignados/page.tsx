@@ -54,7 +54,7 @@ const AlumnosAsignados: React.FC = () => {
         setTotal(res.total);
 
         const tutor = await UserService.fetchUserById(tutorId);
-        setTutorName(`${tutor.name}`);
+        setTutorName(`${tutor.name} ${tutor.lastName}`);
       } catch (error) {
         console.error(
           "Error al cargar datos del tutor o sus estudiantes:",

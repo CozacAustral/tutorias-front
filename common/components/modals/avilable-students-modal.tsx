@@ -43,9 +43,9 @@ export default function AvailableStudentsModal({
   const fetchStudents = async (inputValue: string) => {
     try {
       const { data } = await UserService.getStudentsWithoutTutor(
-        1,                 // page
-        inputValue || "",  // search (vacío por defecto)
-        20         // limit
+        1,                 
+        inputValue || "",  
+        20         
       );
       setStudents(data);
       return buildOptions(data, selectedStudents);
@@ -55,7 +55,7 @@ export default function AvailableStudentsModal({
     }
   };
 
-  // Carga inicial con search vacío
+
   useEffect(() => {
     let mounted = true;
     if (isOpen) {
@@ -77,12 +77,11 @@ export default function AvailableStudentsModal({
   const handleInputChange = (value: string) => {
     const q = value.trim();
     fetchStudents(q).then(setOptions);
-    return value; // requerido por react-select
+    return value; 
   };
 
   const handleSelectChange = (selectedOptions: any) => {
     const ids = (selectedOptions ?? []).map((o: Option) => o.value);
-    // conservar seleccionados aunque no estén en el último fetch
     const pool = new Map<number, Student>([
       ...students.map((s) => [s.id, s] as const),
       ...selectedStudents.map((s) => [s.id, s] as const),
@@ -92,7 +91,6 @@ export default function AvailableStudentsModal({
       .filter(Boolean) as Student[];
 
     setSelectedStudents(nextSelected);
-    // actualizar opciones ocultando los seleccionados actuales
     setOptions(buildOptions(students, nextSelected));
   };
 
@@ -123,7 +121,7 @@ export default function AvailableStudentsModal({
             <Select
               isMulti
               closeMenuOnSelect={false}
-              hideSelectedOptions={true} // además filtramos manualmente
+              hideSelectedOptions={true} 
               options={options}
               value={selectedStudents.map(toOption)}
               onChange={handleSelectChange}
