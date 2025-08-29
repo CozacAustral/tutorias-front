@@ -3,7 +3,7 @@ import { CareerStudent } from "./careerStudent.interface";
 import { StudentCareer } from "./studentCareer.interface";
 import { User } from "./user.interface";
 
-export interface Student {
+export interface  Student {
   id: number;
   dni: string;
   telephone: string;

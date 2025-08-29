@@ -26,9 +26,7 @@ const Search: React.FC<SearchProps> = ( {onSearch} ) => {
 
 
     return (
-        <InputGroup width="100%" mr={2}>
-        <InputLeftElement pointerEvents="none">
-        </InputLeftElement>
+        <InputGroup width="100%">
         <Input
             placeholder="Buscar"
             onChange={(e) => handleSearch(e.target.value)}

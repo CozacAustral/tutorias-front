@@ -3,5 +3,5 @@ export interface PatchTutor {
     lastName: string
     email: string
     telephone: string
-    departamentId: number
+    departmentId: number
 }

@@ -31,19 +31,22 @@ import Cookies from "js-cookie";
 import { AuthService } from "../../../services/auth-service";
 import { PatchTutor } from "../../interfaces/patchTutor.interface";
 import { UserService } from "../../../services/admin-service";
-import { Deparment } from "../../interfaces/departments.interface";
+import { Department } from "../../interfaces/departments.interface";
+import { type } from "os";
+import { TutorPatchMe } from "../../interfaces/tutor-patch-me.interface";
 
 const jwt = require("jsonwebtoken");
 
 const ProfileComponent = () => {
   const [role, setRole] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [userData, setUserData] = useState<PatchTutor>({
+  const [userData, setUserData] = useState<TutorPatchMe>({
+    id: 0,
     name: "",
-    lastName: "",
     email: "",
+    lastName: "",
     telephone: "",
-    departamentId: 0,
+    departmentId: 0,
   });
   const [isDelete, setIsDelete] = useState(false);
   const [error, setError] = useState("");
@@ -51,7 +54,7 @@ const ProfileComponent = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [success, setSuccess] = useState(false);
-  const [departments, setDepartments] = useState<Deparment[]>();
+  const [departments, setDepartments] = useState<Department[]>();
 
   const toast = useToast();
   const router = useRouter();
@@ -86,26 +89,20 @@ const ProfileComponent = () => {
       return;
     }
 
-    if (!userData?.email) {
-      setError("Debes ingresar el nuevo mail del tutor");
-      emailRef.current?.focus();
-      return;
-    }
-
     if (!userData?.telephone) {
       setError("Debes ingresar el nuevo teléfono del tutor");
       telephoneRef.current?.focus();
       return;
     }
 
-    if (!userData?.departamentId) {
+    if (!userData?.departmentId) {
       setError("Debes ingresar el nuevo departamento del tutor");
       departamentRef.current?.focus();
       return;
     }
 
     try {
-      // await UserService.patchMeUser(userData);
+      await UserService.tutorPatchMe(userData.id, userData);
       setSuccess(true);
       toast({
         title: "Tutor editado",
@@ -126,26 +123,29 @@ const ProfileComponent = () => {
   ) => {
     const { name, value } = e.target;
 
-    setUserData((prevUserData) => ({
-      ...prevUserData,
-      [name]: value,
+    setUserData((prevState) => ({
+      ...prevState,
+      [name]: name === "departmentId" ? parseInt(value, 10) : value,
     }));
   };
 
-  const saveChanges = () => {
-    setIsEditing(false);
-    toast({
-      title: "Tu perfil fue actualizado con éxito",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-      position: "bottom",
-    });
-  };
-
-  const handleDelete = () => {
-    setIsDelete(true);
-    onClose();
+  const handleDelete = async () => {
+    try {
+      await UserService.deleteUser(userData.id, password);
+      toast({
+        title: "Tutor Eliminado!",
+        description: "El tutor fue eliminado con exito",
+        duration: 3000,
+        isClosable: true,
+        status: "success",
+      });
+      onClose();
+      router.push("/login");
+    } catch (err) {
+      console.error(err);
+      setIsDelete(false);
+      setError("El usuario no se pudo eliminar");
+    }
   };
 
   const handleChangePassword = () => {
@@ -156,10 +156,12 @@ const ProfileComponent = () => {
     const fetchUserData = async () => {
       try {
         const data = await AuthService.getUserInfo();
-        console.log("User data:", data);
+        if (data.deletedAt) {
+          setIsDelete(true);
+        }
         setUserData(data);
       } catch (error) {
-        console.error("Error fetching user info:", error);
+        console.error("Error fetching tutor info:", error);
       } finally {
         setIsLoading(false);
       }
@@ -218,7 +220,7 @@ const ProfileComponent = () => {
         fontWeight="500"
         fontSize="4rem"
         textAlign={{ base: "center", md: "left" }}
-        mb={6}
+        mb={1}
       >
         Mi Perfil
       </Heading>
@@ -226,44 +228,47 @@ const ProfileComponent = () => {
         bg="white"
         w="800px"
         h="auto"
-        p={8}
+        p={6}
         boxShadow="md"
         borderRadius="20px"
       >
-        <IconButton
-          icon={<EditIcon />}
-          aria-label="Editar perfil"
-          _hover={{ bg: "light_gray" }}
-          transition="background-color 0.3s ease"
-          size="lg"
-          fontSize="24px"
-          h="40px"
-          w="40px"
-          position="fixed"
-          top="20px"
-          right="200px"
-          zIndex={1000}
-          onClick={toggleEdit}
-        />
+        {!isDelete ? (
+          <>
+            <IconButton
+              icon={<EditIcon />}
+              aria-label="Editar perfil"
+              _hover={{ bg: "light_gray" }}
+              transition="background-color 0.3s ease"
+              size="lg"
+              fontSize="24px"
+              h="40px"
+              w="40px"
+              position="fixed"
+              top="20px"
+              right="200px"
+              zIndex={1000}
+              onClick={toggleEdit}
+            />
+            <Button
+              bg="red"
+              color="white"
+              w="150"
+              h="40px"
+              position="fixed"
+              top="20px"
+              right="30px"
+              zIndex={1000}
+              onClick={() => {
+                console.log("Botón clickeado");
+                onOpen();
+              }}
+            >
+              Eliminar Cuenta
+            </Button>
+          </>
+        ) : null}
 
-        <Button
-          bg="red"
-          color="white"
-          w="150px"
-          h="40px"
-          position="fixed"
-          top="20px"
-          right="30px"
-          zIndex={1000}
-          onClick={() => {
-            console.log("Botón clickeado");
-            onOpen();
-          }}
-        >
-          Eliminar Cuenta
-        </Button>
-
-        <Modal isOpen={isOpen} onClose={onClose} size="lg">
+        <Modal isOpen={isOpen} onClose={onClose} size="xl">
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>
@@ -305,8 +310,8 @@ const ProfileComponent = () => {
           <Text
             color="red"
             textAlign="center"
-            marginBottom="30px"
-            fontSize="19px"
+            marginBottom="17px"
+            fontSize="17px"
           >
             {error}
           </Text>
@@ -316,15 +321,16 @@ const ProfileComponent = () => {
           <VStack spacing={4} align="stretch" marginBottom="20px">
             <HStack spacing={4} w="100%">
               <FormControl>
-                <FormLabel htmlFor="nombre">Nombre:</FormLabel>
+                <FormLabel>Nombre:</FormLabel>
                 <Input
-                  id="nombre"
+                  id="name"
                   type="text"
-                  name="nombre"
+                  name="name"
                   borderColor="light_gray"
-                  value={userData.name || "Nombre no existente"}
+                  value={userData.name}
                   onChange={handleInputChange}
-                  bg={isEditing ? "light_gray" : "paleGray"}
+                  ref={nameRef}
+                  bg={isEditing ? "paleGray" : "light_gray"}
                   isReadOnly={!isEditing}
                   borderWidth="3px"
                   borderRadius="15px"
@@ -333,14 +339,15 @@ const ProfileComponent = () => {
                 />
               </FormControl>
               <FormControl>
-                <FormLabel htmlFor="apellido">Apellido:</FormLabel>
+                <FormLabel>Apellido:</FormLabel>
                 <Input
-                  id="apellido"
+                  id="lastName"
                   type="text"
-                  name="apellido"
-                  value={userData.lastName || "Apellido no existente"}
+                  name="lastName"
+                  value={userData.lastName}
                   onChange={handleInputChange}
-                  bg={isEditing ? "light_gray" : "paleGray"}
+                  ref={lastNameRef}
+                  bg={isEditing ? "paleGray" : "light_gray"}
                   isReadOnly={!isEditing}
                   borderColor="light_gray"
                   borderWidth="3px"
@@ -355,14 +362,13 @@ const ProfileComponent = () => {
           <VStack spacing={4} align="stretch" marginBottom="20px">
             <HStack spacing={4} w="100%">
               <FormControl>
-                <FormLabel htmlFor="email">Correo:</FormLabel>
+                <FormLabel>Correo:</FormLabel>
                 <Input
                   id="email"
                   type="email"
                   name="email"
-                  value={userData.email || "correo no encontrado"}
-                  onChange={handleInputChange}
-                  bg="paleGray"
+                  bg={"light_gray"}
+                  value={userData.email}
                   isReadOnly
                   borderColor="light_gray"
                   borderWidth="3px"
@@ -372,14 +378,15 @@ const ProfileComponent = () => {
                 />
               </FormControl>
               <FormControl>
-                <FormLabel htmlFor="tel">Nro. de Teléfono:</FormLabel>
+                <FormLabel>Nro. de Teléfono:</FormLabel>
                 <Input
-                  id="tel"
+                  id="telephone"
                   type="tel"
-                  name="tel"
-                  value={userData.telephone || "numero no encontrado"}
+                  name="telephone"
+                  value={userData.telephone}
                   onChange={handleInputChange}
-                  bg={isEditing ? "light_gray" : "paleGray"}
+                  ref={telephoneRef}
+                  bg={isEditing ? "paleGray" : "light_gray"}
                   isReadOnly={!isEditing}
                   borderColor="light_gray"
                   borderWidth="3px"
@@ -395,13 +402,13 @@ const ProfileComponent = () => {
             <VStack spacing={4} align="stretch">
               <HStack spacing={4} w="99%">
                 <FormControl>
-                  <FormLabel htmlFor="area">Área:</FormLabel>
+                  <FormLabel>Área:</FormLabel>
                   <Select
-                    id="area"
-                    name="area"
-                    value={userData.departamentId || "no esta disponible"}
+                    id="departmentId"
+                    name="departmentId"
+                    value={userData.departmentId}
                     onChange={handleInputChange}
-                    bg={isEditing ? "light_gray" : "paleGray"}
+                    bg={isEditing ? "paleGray" : "light_gray"}
                     isReadOnly={!isEditing}
                     borderColor="light_gray"
                     borderWidth="3px"
@@ -416,19 +423,27 @@ const ProfileComponent = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl display="flex" justifyContent="flex-start" alignItems="center" mt={9}>
+                <FormControl
+                  display="flex"
+                  justifyContent="flex-start"
+                  alignItems="center"
+                  mt={9}
+                >
                   <HStack spacing={2}>
                     <FormLabel htmlFor="show-phone" mb="0">
                       Mostrar teléfono a alumnos:
                     </FormLabel>
-                    <Switch id="show-phone" size="lg"/>
+                    <Switch id="show-phone" size="lg" />
                   </HStack>
                 </FormControl>
               </HStack>
             </VStack>
           )}
 
-          <Box mt={8} py={6}>
+          {isDelete ? (
+            null
+          ) : (
+            <Box mt={8} py={6}>
             {!isEditing ? (
               <Flex justify="flex-start" align="center" w="100%">
                 <Button
@@ -464,6 +479,7 @@ const ProfileComponent = () => {
               </Flex>
             )}
           </Box>
+          )}
         </form>
       </Box>
     </Container>

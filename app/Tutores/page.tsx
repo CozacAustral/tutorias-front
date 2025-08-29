@@ -177,16 +177,6 @@ const Tutores: React.FC = () => {
       ) : (
         <p>Loading...</p>
       )}
-      {/* <EditModal
-        isOpen={isEditModalOpen}
-        onClose={closeEditModal}
-        onConfirm={handleEditConfirm}
-        formData={formData}
-        onInputChange={handleInputChange}
-        title="Editar Tutor"
-        entityName="tutor"
-      />  */}
-
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}
