@@ -77,7 +77,7 @@ export const UserService = {
 
   async createTutor(tutorData: any): Promise<void> {
     try {
-      await axiosInstance.post(url_tutors, tutorData);
+      await axiosInstance.post(`${urlTutors}`, tutorData);
     } catch (error: any) {
       throw new Error(`Error al crear el tutor: ${error.message || error}`);
     }
@@ -292,7 +292,7 @@ export const UserService = {
 
   async fetchAllStudents(): Promise<{students:Student[], totalCount:number}> {
     try {
-      const response = await axiosInstance.get<any>(url_students);
+      const response = await axiosInstance.get<any>(`${urlStudents}`);
       return response.data;
     } catch (error: any) {
       throw new Error(
