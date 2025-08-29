@@ -1,101 +1,142 @@
-'use client'
+"use client";
+import {
+  useDisclosure,
+  useToast,
+  Td,
+  Tr,
+  IconButton,
+  HStack,
+  Text,
+} from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Student } from "../interfaces/student.interface";
 import GenericTable from "../../common/components/generic-table";
-import { IconButton, Td, Tr } from "@chakra-ui/react";
-import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import { UserService } from "../../services/admin-service";
+import AvailableStudentsModal from "../../common/components/modals/avilable-students-modal";
+import { AddIcon, ArrowBackIcon } from "@chakra-ui/icons";
+import { DeleteIcon } from "@chakra-ui/icons";
+import { useRouter } from "next/navigation";
 
+const AlumnosAsignados: React.FC = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialPage = Number(searchParams.get("page") || 1);
+  const [page, setPage] = useState(initialPage);
 
-export interface Student {
-  id: number;
-  name: string;
-  lastName: string;
-  email: string;
-  tutorName: string | null; 
-}
+  const tutorId = Number(searchParams.get("tutorId"));
 
-
-export const StudentService = {
-  fetchAllStudentsAndTutors: async (): Promise<Student[]> => {
-    return new Promise<Student[]>((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            id: 1,
-            name: "Juan",
-            lastName: "Pérez",
-            email: "juan.perez@example.com",
-            tutorName: "Profesor García",
-          },
-          {
-            id: 2,
-            name: "Ana",
-            lastName: "González",
-            email: "ana.gonzalez@example.com",
-            tutorName: "Profesora Martínez",
-          },
-          {
-            id: 3,
-            name: "Luis",
-            lastName: "Ramírez",
-            email: "luis.ramirez@example.com",
-            tutorName: null, 
-          },
-        ]);
-      }, 1000); 
-    });
-  },
-};
-
-
-const alumnosAsignados : React.FC = () => {
   const [students, setStudents] = useState<Student[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
 
-  const TableHeader = ["Nombre del Alumno",  "Tutor Asignado"];
+  const TableHeader = ["Nombre", "Apellido", "Correo", "Acciones"];
 
+  const [tutorName, setTutorName] = useState<string>("");
+
+  const [total, setTotal] = useState(0);
+  const resultsPerPage = 7;
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    async function fetchStudents() {
-      try {
-        const data: Student[] = await StudentService.fetchAllStudentsAndTutors(); 
-        setStudents(data);
-      } catch (err) {
-        setError("Failed to load students");
-        console.error(err);
-      }
-    }
-    fetchStudents();
-  }, []);
+    if (!tutorId) return;
 
-  const renderStudnetandTutorsRow = (student: Student) => (
+    const fetchStudentsAndTutor = async () => {
+      try {
+        const res = await UserService.getStudentsByTutor(tutorId, {
+          currentPage: page,
+          resultsPerPage,
+          search,
+        });
+        setStudents(res.data);
+        setTotal(res.total);
+
+        const tutor = await UserService.fetchUserById(tutorId);
+        setTutorName(`${tutor.name} ${tutor.lastName}`);
+      } catch (error) {
+        console.error(
+          "Error al cargar datos del tutor o sus estudiantes:",
+          error
+        );
+        setError("No se pudo cargar la lista.");
+      }
+    };
+
+    fetchStudentsAndTutor();
+  }, [tutorId, page, search]);
+
+  const refreshStudents = async () => {
+    try {
+      const res = await UserService.getStudentsByTutor(tutorId, {
+        currentPage: page,
+        resultsPerPage,
+        search,
+      });
+      setStudents(res.data);
+      setTotal(res.total);
+    } catch {
+      toast({
+        title: "Error",
+        description: "No se pudieron actualizar los estudiantes.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleAsignacionExitosa = async () => {
+    await refreshStudents();
+    toast.closeAll();
+    toast({
+      title: "Asignación exitosa",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  const handleDeleteAssignment = async (studentId: number) => {
+    try {
+      await UserService.deleteAssignment({ tutorId, studentId });
+      await refreshStudents();
+      toast({
+        title: "Asignación eliminada",
+        description: "El estudiante fue desvinculado del tutor.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch {
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar la asignación.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const renderStudentRow = (student: Student) => (
     <Tr key={student.id}>
-      <Td>{student.name}</Td>
-      <Td>{student.tutorName || "Sin tutor asignado"}</Td> 
-      <Td>
-        <>
-        <IconButton
-          icon={<EditIcon boxSize={5} />}
-          aria-label="Edit"
-          mr={5}
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-        />
+      <Td>{student.user.name}</Td>
+      <Td>{student.user.lastName}</Td>
+      <Td>{student.user.email}</Td>
+      <Td textAlign="right" w="30px">
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
-          aria-label="Delete"
+          aria-label="Eliminar"
           backgroundColor="white"
           _hover={{
             borderRadius: 15,
             backgroundColor: "#318AE4",
             color: "White",
           }}
+          onClick={() => handleDeleteAssignment(student.id)}
         />
-        </>
       </Td>
     </Tr>
   );
@@ -107,14 +148,63 @@ const alumnosAsignados : React.FC = () => {
         <GenericTable
           data={students}
           TableHeader={TableHeader}
-          renderRow={renderStudnetandTutorsRow}
-          caption="Alumnos Asignados"
+          caption={
+            <HStack
+              spacing={3}
+              overflow="hidden"
+              whiteSpace="nowrap"
+              textOverflow="ellipsis"
+            >
+              <IconButton
+                icon={<ArrowBackIcon />}
+                aria-label="Volver"
+                onClick={() => {
+                  const fromPage = searchParams.get("fromPage");
+                  const page = fromPage || 1;
+                  router.push(`/tutores?page=${page}`);
+                }}
+                variant="ghost"
+                colorScheme="blue"
+                flexShrink={0}
+              />
+              <Text
+                fontWeight="bold"
+                fontSize="4xl"
+                overflow="hidden"
+                textOverflow="ellipsis"
+                whiteSpace="nowrap"
+              >
+                Alumnos asignados a {tutorName} 
+              </Text>
+            </HStack>
+          }
+          renderRow={renderStudentRow}
+          showPagination={true}
+          currentPage={page}
+          itemsPerPage={resultsPerPage}
+          totalItems={total}
+          onPageChange={(newPage) => setPage(newPage)}
+          topRightComponent={
+            <IconButton
+              borderRadius="50%"
+              icon={<AddIcon />}
+              aria-label="Agregar estudiante"
+              colorScheme="blue"
+              onClick={onOpen}
+            />
+          }
         />
       ) : (
         <p>Loading...</p>
       )}
+      <AvailableStudentsModal
+        isOpen={isOpen}
+        onClose={onClose}
+        tutorId={tutorId}
+        onAssignSuccess={handleAsignacionExitosa}
+      />
     </>
   );
 };
 
-export default alumnosAsignados
+export default AlumnosAsignados;

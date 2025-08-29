@@ -4,6 +4,7 @@ import customTheme from "../styles/theme";
 import SideBar from "../common/components/side-bar";
 import { usePathname } from "next/navigation";
 import "../styles/globals.css";
+import { SidebarProvider } from "./contexts/SidebarContext";
 
 type LayoutProps = {
   children: React.ReactNode;

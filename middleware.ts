@@ -6,13 +6,13 @@ export function middleware(request: NextRequest) {
   const authTokens = request.cookies.get("authTokens")?.value;
 
   const protectedRoutes = [
-    "/Tutores",
+    "/tutores",
     "/alumnos",
-    "/Administradores",
-    "/MiPerfil",
-    "/Carrera",
-    "/alumnos_asignados"
-
+    "/administradores",
+    "/carrera",
+    "/alumnos_asignados",
+    "/profile",
+    "/reuniones"
   ];
   if (
     protectedRoutes.some((route) =>
@@ -20,12 +20,12 @@ export function middleware(request: NextRequest) {
     ) &&
     !authTokens
   ) {
-    const response = NextResponse.redirect(new URL("/Login", request.url));
+    const response = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.delete("authTokens");
     return response;
   }
 
-  if (authTokens && request.nextUrl.pathname === "/Login") {
+  if (authTokens && request.nextUrl.pathname === "/login") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -34,12 +34,13 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/Tutores/:path*",
+    "/tutores/:path*",
     "/alumnos/:path*",
-    "/Administradores/:path*",
-    "/Login",
-    "/MiPerfil/:path*",
-    "/Carrera/:path*",
+    "/administradores/:path*",
+    "/login",
+    "/carrera/:path*",
     "/alumnos_asignados/:path",
+    "/profile",
+    "/reuniones/:path"
   ],
 };

@@ -65,8 +65,9 @@ interface EditModalProps<t = any> {
 const EditModal: React.FC<EditModalProps> = ({
   isOpen,
   onClose,
-  onConfirm,
+  title,
   entityName,
+  onConfirm,
   formData,
   onInputChange,
   renderCareerNow,

@@ -124,7 +124,7 @@ const CambiarContraseña = () => {
   };
 
   const handleBack = () => {
-    router.replace("/Profile");
+    router.replace("/profile");
   };
 
   return (

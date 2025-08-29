@@ -11,11 +11,12 @@ import { ResponseUpdateSubject } from "../app/interfaces/response-update-subject
 import { Student } from "../app/interfaces/student.interface";
 import { SubjectCareerWithState } from "../app/interfaces/subject-career-student.interface";
 import { TutorPatchMe } from "../app/interfaces/tutor-patch-me.interface";
-import { Tutors } from "../app/interfaces/tutors.interface";
 import { UpdateStudentDto } from "../app/interfaces/update-student";
 import { UpdateStudentModalDto } from "../app/interfaces/update-student-modal.interface";
 import { User } from "../app/interfaces/user.interface";
 import axiosInstance from "../axiosConfig";
+import { ResponseTutor } from "../app/interfaces/response-tutor.interface";
+import { Tutors } from "../app/interfaces/create.tutors.interface";
 
 const urlUsers = "users";
 const urlTutors = "tutors";

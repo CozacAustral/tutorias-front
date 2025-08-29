@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import {
   Box,
-  ChakraProvider,
   Flex,
   Table,
   TableContainer,
@@ -13,7 +12,6 @@ import {
   Text,
   Button,
   InputGroup,
-  InputLeftElement,
   InputRightElement,
   Input,
   Menu,
@@ -38,7 +36,7 @@ import CareerModal from "./modals/create-career-student-modal";
 
 interface GenericTableProps<T> {
   data: T[];
-  caption: string;
+  caption: ReactNode;
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
   showAddMenu?: boolean;
