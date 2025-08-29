@@ -228,9 +228,9 @@ export const UserService = {
     return response.data;
   },
 
-  async fetchAllStudents(): Promise<Student[]> {
+  async fetchAllStudents(): Promise<{students:Student[], totalCount:number}> {
     try {
-      const response = await axiosInstance.get<Student[]>(url_students);
+      const response = await axiosInstance.get<any>(url_students);
       return response.data;
     } catch (error: any) {
       throw new Error(

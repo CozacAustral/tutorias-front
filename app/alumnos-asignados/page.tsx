@@ -13,7 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { Student } from "../interfaces/student.interface";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
-import AvailableStudentsModal from "../../common/components/modals/AvailableStudentsModal";
+import AvailableStudentsModal from "../../common/components/modals/avilable-students-modal";
 import { AddIcon, ArrowBackIcon } from "@chakra-ui/icons";
 import { DeleteIcon } from "@chakra-ui/icons";
 import { useRouter } from "next/navigation";
@@ -54,7 +54,7 @@ const AlumnosAsignados: React.FC = () => {
         setTotal(res.total);
 
         const tutor = await UserService.fetchUserById(tutorId);
-        setTutorName(`${tutor.name}`);
+        setTutorName(`${tutor.name} ${tutor.lastName}`);
       } catch (error) {
         console.error(
           "Error al cargar datos del tutor o sus estudiantes:",
@@ -101,7 +101,7 @@ const AlumnosAsignados: React.FC = () => {
   const handleDeleteAssignment = async (studentId: number) => {
     try {
       await UserService.deleteAssignment({ tutorId, studentId });
-      await refreshStudents(); 
+      await refreshStudents();
       toast({
         title: "Asignación eliminada",
         description: "El estudiante fue desvinculado del tutor.",
@@ -125,7 +125,7 @@ const AlumnosAsignados: React.FC = () => {
       <Td>{student.user.name}</Td>
       <Td>{student.user.lastName}</Td>
       <Td>{student.user.email}</Td>
-      <Td>
+      <Td textAlign="right" w="30px">
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
           aria-label="Eliminar"
@@ -174,7 +174,7 @@ const AlumnosAsignados: React.FC = () => {
                 textOverflow="ellipsis"
                 whiteSpace="nowrap"
               >
-                Alumnos asignados al tutor {tutorName}
+                Alumnos asignados a {tutorName} 
               </Text>
             </HStack>
           }

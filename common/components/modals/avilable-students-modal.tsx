@@ -1,21 +1,12 @@
 "use client";
 
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  Button,
-  useToast,
-  Spinner,
+  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
+  ModalBody, ModalFooter, Button, useToast, Spinner,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { Student } from "../../../app/interfaces/student.interface";
 import { UserService } from "../../../services/admin-service";
-
 import Select from "react-select";
 
 interface Props {
@@ -24,6 +15,8 @@ interface Props {
   tutorId: number;
   onAssignSuccess: () => void;
 }
+
+type Option = { value: number; label: string };
 
 export default function AvailableStudentsModal({
   isOpen,
@@ -35,29 +28,71 @@ export default function AvailableStudentsModal({
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [options, setOptions] = useState<any[]>([]);
+  const [options, setOptions] = useState<Option[]>([]);
 
-  const handleInputChange = (value: string) => {
-    const trimmed = value.trim();
+  const toOption = (s: Student): Option => ({
+    value: s.id,
+    label: `${s.user.name} ${s.user.lastName} (${s.user.email})`,
+  });
 
-    if (trimmed.length < 3) {
-      setOptions([]);
-      return;
-    }
-
-    fetchStudents(trimmed).then(setOptions);
-
-    return value;
+  const buildOptions = (list: Student[], selected: Student[]) => {
+    const selectedIds = new Set(selected.map((s) => s.id));
+    return list.filter((s) => !selectedIds.has(s.id)).map(toOption);
   };
 
+  const fetchStudents = async (inputValue: string) => {
+    try {
+      const { data } = await UserService.getStudentsWithoutTutor(
+        1,                 
+        inputValue || "",  
+        20         
+      );
+      setStudents(data);
+      return buildOptions(data, selectedStudents);
+    } catch (error) {
+      console.error("Error cargando estudiantes:", error);
+      return [] as Option[];
+    }
+  };
+
+
   useEffect(() => {
+    let mounted = true;
     if (isOpen) {
       setStudents([]);
       setSelectedStudents([]);
       setOptions([]);
-      setLoading(false); 
+      setLoading(true);
+      fetchStudents("").then((opts) => {
+        if (!mounted) return;
+        setOptions(opts);
+        setLoading(false);
+      });
     }
+    return () => {
+      mounted = false;
+    };
   }, [isOpen]);
+
+  const handleInputChange = (value: string) => {
+    const q = value.trim();
+    fetchStudents(q).then(setOptions);
+    return value; 
+  };
+
+  const handleSelectChange = (selectedOptions: any) => {
+    const ids = (selectedOptions ?? []).map((o: Option) => o.value);
+    const pool = new Map<number, Student>([
+      ...students.map((s) => [s.id, s] as const),
+      ...selectedStudents.map((s) => [s.id, s] as const),
+    ]);
+    const nextSelected = ids
+      .map((id: number) => pool.get(id))
+      .filter(Boolean) as Student[];
+
+    setSelectedStudents(nextSelected);
+    setOptions(buildOptions(students, nextSelected));
+  };
 
   const handleAssign = async () => {
     try {
@@ -73,32 +108,6 @@ export default function AvailableStudentsModal({
     }
   };
 
-  const fetchStudents = async (inputValue: string) => {
-    try {
-      const { data } = await UserService.getStudentsWithoutTutor(
-        1,
-        inputValue,
-        100
-      );
-
-      setStudents(data);
-
-      return data.map((s: Student) => ({
-        label: `${s.user.name} ${s.user.lastName} (${s.user.email})`,
-        value: s.id,
-      }));
-    } catch (error) {
-      console.error("Error cargando estudiantes:", error);
-      return [];
-    }
-  };
-
-  const handleSelectChange = (selectedOptions: any) => {
-    const selectedIds = selectedOptions.map((opt: any) => opt.value);
-    const filtered = students.filter((s) => selectedIds.includes(s.id));
-    setSelectedStudents(filtered);
-  };
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="lg">
       <ModalOverlay />
@@ -111,13 +120,12 @@ export default function AvailableStudentsModal({
           ) : (
             <Select
               isMulti
+              closeMenuOnSelect={false}
+              hideSelectedOptions={true} 
               options={options}
-              value={selectedStudents.map((s) => ({
-                value: s.id,
-                label: `${s.user.name} ${s.user.lastName} (${s.user.email})`,
-              }))}
+              value={selectedStudents.map(toOption)}
               onChange={handleSelectChange}
-              onInputChange={handleInputChange} 
+              onInputChange={handleInputChange}
               placeholder="Buscar estudiantes..."
               styles={{
                 control: (base) => ({
@@ -127,21 +135,12 @@ export default function AvailableStudentsModal({
                   boxShadow: "none",
                   "&:hover": { borderColor: "#2b6cb0" },
                 }),
-                multiValue: (base) => ({
-                  ...base,
-                  backgroundColor: "#3182ce",
-                }),
-                multiValueLabel: (base) => ({
-                  ...base,
-                  color: "white",
-                }),
+                multiValue: (base) => ({ ...base, backgroundColor: "#3182ce" }),
+                multiValueLabel: (base) => ({ ...base, color: "white" }),
                 multiValueRemove: (base) => ({
                   ...base,
                   color: "white",
-                  ":hover": {
-                    backgroundColor: "#2c5282",
-                    color: "white",
-                  },
+                  ":hover": { backgroundColor: "#2c5282", color: "white" },
                 }),
               }}
             />
