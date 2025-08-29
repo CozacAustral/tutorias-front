@@ -16,11 +16,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const noSideBarRoutes = ['/login', '/reset-password']
   const shouldShowSideBar = !noSideBarRoutes.some((route) => pathname.startsWith(route))
 
-  const noSideBarRoutes = ["/login", "/reset-password"];
-  const shouldShowSideBar = !noSideBarRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
-
   return (
     <html lang="es">
       <body>

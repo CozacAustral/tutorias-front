@@ -41,7 +41,7 @@ const Login = () => {
       const data = await login(email, password);
       Cookies.set("authTokens", data.accessToken, { expires: 7 });
       setError("");
-      router.push("/");
+      router.push("/profile");
     } catch (error) {
       setError("Error en la autenticación");
     } finally {
@@ -143,7 +143,7 @@ const Login = () => {
                       position="absolute"
                       right="10px"
                       backgroundColor="light_gray"
-                      top="39%"
+                      top="43%"
                       transform="translateY(-50%)"
                       variant="link"
                       color="gray.900"

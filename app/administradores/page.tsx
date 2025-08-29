@@ -46,7 +46,7 @@ const Administradores: React.FC = () => {
 
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
-  const TableHeader = ["Nombre", "Apellido/s", "Correo", "Área", "Acciones"];
+  const TableHeader = ["Nombre", "Apellido/s", "Correo", "Acciones"];
 
   const fetchAdminUsers = async (page: number, itemsPerPage: number) => {
     try {
@@ -191,7 +191,6 @@ const Administradores: React.FC = () => {
       <Td>{admin.name}</Td>
       <Td>{admin.lastName}</Td>
       <Td>{admin.email}</Td>
-      <Td>{admin.role}</Td>
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -223,7 +222,7 @@ const Administradores: React.FC = () => {
   return (
     <>
       {error && <p>{error}</p>}
-      <Box pl={collapsed ? "6.5rem" : "17rem"} px={15}>
+      <Box pl={collapsed ? "6.5rem" : "17rem"} px={5}>
         {users ? (
           <GenericTable
             data={users}
