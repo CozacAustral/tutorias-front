@@ -12,9 +12,10 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import GenericTable from "../generic-table";
+
 import { SubjectCareerWithState } from "../../../app/interfaces/subject-career-student.interface";
 import { useBreakpointValue } from '@chakra-ui/react';
+import GenericTable from "../../../common/components/generic-table";
 
 interface SubjectStudentModal<t = any> {
   isOpen: boolean;

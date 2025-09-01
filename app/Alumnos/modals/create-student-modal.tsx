@@ -18,10 +18,10 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { CreateStudent } from "../../../app/interfaces/CreateStudent";
+import { CreateStudent } from "../../interfaces/CreateStudent";
 import { UserService } from '../../../services/admin-service'
-import { Career } from "../../../app/interfaces/career.interface";
-import { Country } from "../../../app/interfaces/country.interface";
+import { Career } from "../../interfaces/career.interface";
+import { Country } from "../../interfaces/country.interface";
 
 interface CreateStudentModalProps {
   isOpen: boolean;

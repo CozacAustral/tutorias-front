@@ -1,10 +1,9 @@
 "use client";
 import { ChakraProvider } from "@chakra-ui/react";
-import customTheme from "../styles/theme";
-import SideBar from "../common/components/side-bar";
 import { usePathname } from "next/navigation";
+import SideBar from "../common/components/side-bar";
 import "../styles/globals.css";
-import { SidebarProvider } from "./contexts/SidebarContext";
+import customTheme from "../styles/theme";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -12,9 +11,6 @@ type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const pathname = usePathname();
-  
-  const noSideBarRoutes = ['/login', '/reset-password']
-  const shouldShowSideBar = !noSideBarRoutes.some((route) => pathname.startsWith(route))
 
   const noSideBarRoutes = ["/login", "/reset-password"];
   const shouldShowSideBar = !noSideBarRoutes.some((route) =>

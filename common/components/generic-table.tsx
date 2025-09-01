@@ -1,39 +1,34 @@
-import React, { useState } from "react";
 import {
   Box,
+  Button,
   Flex,
+  HStack,
+  IconButton,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Table,
   TableContainer,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
-  Text,
-  Button,
-  InputGroup,
-  InputRightElement,
-  Input,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  IconButton,
-  ModalHeader,
-  ModalContent,
-  HStack,
 } from "@chakra-ui/react";
+import React, { useState } from "react";
 
 import {
-  SmallAddIcon,
-  Search2Icon,
-  TriangleDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  SearchIcon,
+  SmallAddIcon,
+  TriangleDownIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
-import CareerModal from "./modals/create-career-student-modal";
 
 interface GenericTableProps<T> {
   data: T[];
@@ -186,7 +181,7 @@ const GenericTable = <T,>({
 
             <HStack spacing={2} gap="20px">
               <Box width={isInModal ? "140px" : "auto"}>
-                  <Search onSearch={handleSearch} />
+                <Search onSearch={handleSearch} />
               </Box>
 
               <Menu>
