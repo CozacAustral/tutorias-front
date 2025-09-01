@@ -1,5 +1,16 @@
+import { Career } from "../app/interfaces/career.interface";
+import { CareerStudent } from "../app/interfaces/careerStudent.interface";
+import { Country } from "../app/interfaces/country.interface";
+import { AssignedCareer } from "../app/interfaces/create-career.interface";
 import { CreateStudent } from "../app/interfaces/CreateStudent";
 import { CreateUser } from "../app/interfaces/createUser";
+import { QueryParamsDto } from "../app/interfaces/query-params-dto";
+import { ResponseCreateCareer } from "../app/interfaces/response-create-career.interface";
+import { ResponsePaginateStudent } from "../app/interfaces/response-paginate";
+import { ResponseUpdateSubject } from "../app/interfaces/response-update-subject.interface";
+import { SubjectCareerWithState } from "../app/interfaces/subject-career-student.interface";
+import { UpdateStudentDto } from "../app/interfaces/update-student";
+import { UpdateStudentModalDto } from "../app/interfaces/update-student-modal.interface";
 import { PatchMeUser } from "../app/interfaces/patch-me-user.interface";
 import { Student } from "../app/interfaces/student.interface";
 import { Tutors } from "../app/interfaces/create.tutors.interface";
@@ -7,9 +18,11 @@ import { User } from "../app/interfaces/user.interface";
 import axiosInstance from "../axiosConfig";
 import { ResponseTutor } from "../app/interfaces/response-tutor.interface";
 
-const url = "users";
-const url_tutors = "tutors";
-const url_students = "students";
+const urlUsers = "users";
+const urlTutors = "tutors";
+const urlStudents = "students";
+const urlCareers = 'careers'
+const urlCountries = 'countries'
 
 export const UserService = {
   getStudentsWithoutTutor: async (
@@ -64,7 +77,7 @@ export const UserService = {
 
   async createTutor(tutorData: any): Promise<void> {
     try {
-      await axiosInstance.post(url_tutors, tutorData);
+      await axiosInstance.post(`${urlTutors}`, tutorData);
     } catch (error: any) {
       throw new Error(`Error al crear el tutor: ${error.message || error}`);
     }
@@ -144,11 +157,36 @@ export const UserService = {
     }
   },
 
+  async fetchAllCareers(): Promise<Career[]> {
+    try {
+      const response = await axiosInstance.get<Career[]>(`${urlCareers}/carreras`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Error al obtener las carreras: ${error.message || error}`);
+    }
+  },
+
+   async fetchCareers(careerId: number): Promise<Career> {
+    try {
+      const response = await axiosInstance.get<Career>(`${urlCareers}/${careerId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Error al obtener la carrera: ${error.message || error}`);
+    }
+  },
+
+  async fetchAllCountries(): Promise<Country[]> {
+    try {
+      const response = await axiosInstance.get<Country[]>(`${urlCountries}/paises`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Error al obtener los paises de los estudiantes: ${error.message || error}`);
+    }
+  },
+
   async fetchStudentById(id: number): Promise<Student> {
     try {
-      const response = await axiosInstance.get<Student>(
-        `${url_students}/${id}`
-      );
+      const response = await axiosInstance.get<Student>(`${urlStudents}/${id}`);
       return response.data;
     } catch (error: any) {
       throw new Error(
@@ -161,7 +199,7 @@ export const UserService = {
 
   async fetchAllUsers(): Promise<User[]> {
     try {
-      const response = await axiosInstance.get<User[]>(url);
+      const response = await axiosInstance.get<User[]>(urlUsers);
       return response.data;
     } catch (error: any) {
       throw new Error(
@@ -170,9 +208,18 @@ export const UserService = {
     }
   },
 
+  async fetchStudentSubject(studentId: number, careerId: number): Promise<SubjectCareerWithState[]>{
+     try {
+      const response = await axiosInstance.get<SubjectCareerWithState[]>(`${urlStudents}/subjects/${studentId}/${careerId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Error al obtener las materias de la carrera: ${error.message || error}`);
+    }
+  },
+
   async createStudent(studentData: CreateStudent): Promise<CreateStudent> {
     try {
-      const response = await axiosInstance.post(url_students, studentData);
+      const response = await axiosInstance.post(urlStudents, studentData);
       return response.data;
     } catch (error: any) {
       throw new Error(
@@ -181,12 +228,27 @@ export const UserService = {
     }
   },
 
+  async createCareer(careerData: AssignedCareer): Promise<ResponseCreateCareer> {
+    try {
+      const response = await axiosInstance.post(urlCareers,
+        {
+          'careerId': careerData.careerId,
+          'studentId': careerData.studentId,
+          'yearOfAdmission': careerData.yearOfAdmission
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Error al crear la carrera: ${error.message || error}`);
+    }
+  },
+
   async importStudent(file: File): Promise<void> {
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      await axiosInstance.post(`${url_students}/upload-students`, formData, {
+      await axiosInstance.post(`${urlStudents}/upload-students`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -200,7 +262,7 @@ export const UserService = {
 
   async deleteTutor(tutorId: number): Promise<void> {
     try {
-      await axiosInstance.delete(`${url_tutors}/${tutorId}`);
+      await axiosInstance.delete(`${urlTutors}/${tutorId}`);
     } catch (error: any) {
       throw new Error(
         `No se pudo eliminar al tutor con ID ${tutorId}. ${
@@ -230,7 +292,7 @@ export const UserService = {
 
   async fetchAllStudents(): Promise<{students:Student[], totalCount:number}> {
     try {
-      const response = await axiosInstance.get<any>(url_students);
+      const response = await axiosInstance.get<any>(`${urlStudents}`);
       return response.data;
     } catch (error: any) {
       throw new Error(
@@ -239,24 +301,18 @@ export const UserService = {
     }
   },
 
-  async deleteStudent(studentId: number): Promise<void> {
+  async fetchStudent(studentId: number): Promise<Student> {
     try {
-      await axiosInstance.delete(`${url_students}/${studentId}`);
+      const response = await axiosInstance.get<Student>(`${urlStudents}/${studentId}`);
+      return response.data;
     } catch (error: any) {
-      throw new Error(
-        `No se pudo eliminar al estudiante con ID ${studentId}. ${
-          error.message || error
-        }`
-      );
+      throw new Error(`Error al obtener el estudiante: ${error.message || error}`);
     }
   },
 
-  async updateStudent(studentId: number, updatedData: any): Promise<void> {
+  async updateStudent(studentId: number, updatedData: UpdateStudentDto): Promise<void> {
     try {
-      const response = await axiosInstance.patch(
-        `${url_students}/${studentId}`,
-        updatedData
-      );
+      const response = await axiosInstance.patch(`${urlStudents}/${studentId}`, updatedData);
       return response.data;
     } catch (error: any) {
       throw new Error(
@@ -267,9 +323,17 @@ export const UserService = {
     }
   },
 
+  async deleteStudent(studentId: number): Promise<void> {
+    try {
+      await axiosInstance.delete(`${urlStudents}/${studentId}`);
+    } catch (error: any) {
+      throw new Error(`No se pudo eliminar al estudiante con ID ${studentId}. ${error.message || error}`);
+    }
+  },
+
   async updateTutor(tutorId: number, updateData: any): Promise<void> {
     try {
-      await axiosInstance.patch(`${url_tutors}/${tutorId}`, updateData);
+      await axiosInstance.patch(`${urlTutors}/${tutorId}`, updateData);
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el tutor con ID ${tutorId}. ${
@@ -278,4 +342,31 @@ export const UserService = {
       );
     }
   },
+
+  async updateStateSubject(studentId: number, subjectId: number, state: string): Promise<void> {
+    try {
+      const response = await axiosInstance.patch(`${urlStudents}/changeSubjectState/${studentId}`,
+        {
+          'subjectId': subjectId,
+          'newState': state
+        }
+      );
+      return response.data
+    } catch (error: any) {
+      throw new Error(`No se pudo actualizar el estado de la materia del alumno con ID ${studentId}. ${error.message || error}`);
+    }
+  },
+
+  async updateStudentModal(studentId: number, lastName: string, name: string, email: string, telephone: string, observations: string): Promise<UpdateStudentDto> {
+    try {
+      const response = await axiosInstance.patch(`${urlStudents}/updateStudentModal/${studentId}`,
+        {
+          lastName, name, email, telephone, observations
+        }
+      );
+      return response.data
+    } catch (error: any) {
+      throw new Error(`No se pudo actualizar el alumno con ID ${studentId}. ${error.message || error}`);
+    }
+  }
 };

@@ -19,32 +19,47 @@ import {
   MenuList,
   MenuItem,
   IconButton,
-  Center,
+  ModalHeader,
+  ModalContent,
+  HStack,
 } from "@chakra-ui/react";
 
 import {
+  SmallAddIcon,
   Search2Icon,
   TriangleDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  SearchIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
-import { useSidebar } from "../../app/contexts/SidebarContext";
+import CareerModal from "./modals/create-career-student-modal";
 
 interface GenericTableProps<T> {
   data: T[];
   caption: ReactNode;
   TableHeader: string[];
-  renderRow: (row: T) => React.ReactNode;
+  renderRow: (row: T, index: number) => React.ReactNode;
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
-  topRightComponent?: React.ReactNode;
-  showPagination?: boolean;
-  currentPage?: number;
+  compact?: boolean;
   itemsPerPage?: number;
-  totalItems?: number;
-  onPageChange?: (page: number) => void;
+  minH?: string;
+  paddingX?: number;
+  paddingY?: number;
+  fontSize?: string;
+  marginLeft?: string;
+  marginTop?: string;
+  width?: string;
+  maxWidth?: string;
+  padding?: number;
+  flex?: string;
+  height?: string;
+  widthTable?: number;
+  isInModal?: boolean;
+  careerModalEdit?: boolean;
+  subjectModalEdit?: boolean;
 }
 
 const GenericTable = <T,>({
@@ -55,141 +70,252 @@ const GenericTable = <T,>({
   showAddMenu = false,
   onImportOpen,
   onCreateOpen,
-  topRightComponent,
-  showPagination,
-  currentPage,
-  itemsPerPage,
-  totalItems =0,
-  onPageChange,
+  compact,
+  itemsPerPage = 10,
+  minH,
+  paddingX,
+  paddingY,
+  fontSize,
+  marginLeft,
+  marginTop,
+  width,
+  maxWidth,
+  padding,
+  flex,
+  height,
+  widthTable,
+  isInModal = false,
+  careerModalEdit = false,
+  subjectModalEdit = false,
 }: GenericTableProps<T>) => {
+
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { collapsed } = useSidebar();
-
-  const rowSpacing = 0;
-  const totalPages = Math.ceil(totalItems / (itemsPerPage ?? 1));
-
   const handleSearch = (term: string) => {
-    setSearchTerm(term); 
+    setSearchTerm(term);
+    setCurrentPage(1);
   };
 
   const filteredData = data.filter((row) =>
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const marginLeft = collapsed ? "6.5rem" : "15.625rem";
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = filteredData.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const nextPage = () => {
+    if (endIndex < filteredData.length) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const widthAccordingToModal = (index: number) => {
+    if (careerModalEdit) {
+      return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
+    }
+
+    if (subjectModalEdit) {
+      return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
+    }
+
+    return index === 0 ? "40%" : `${60 / (TableHeader.length - 1)}%`;
+  };
 
   return (
-    <Flex
-      justifyContent="flex-start"
-      alignItems="flex-start"
-      minHeight="100dvh"
+    <Box
+      overflow="hidden"
+      minH={minH ?? (isInModal ? "auto" : "100vh")}
+      maxHeight={isInModal ? "calc(100vh - 200px)" : undefined}
+      display="flex"
       flexDirection="column"
-      ml={marginLeft}
-      pt={8}
+      alignItems="center"
+      width="100%"
+      paddingX={paddingX ? paddingX : 4}
+      paddingY={paddingY ?? (isInModal ? 0 : 4)}
     >
-      <Box width="100%" maxWidth="1200px">
-        <Text fontSize="6xl" color="black" marginLeft="5" marginBottom="3">
-          {caption}
-        </Text>
-      </Box>
+      {!isInModal && (
+        <Box width="100%" maxWidth="1200px" mb={4}>
+          <Text
+            fontSize={fontSize ? fontSize : "6xl"}
+            color="black"
+            marginLeft={marginLeft ? marginLeft : "0"}
+            marginTop={marginTop ? marginTop : "7"}
+            fontWeight={600}
+          >
+            {caption}
+          </Text>
+        </Box>
+      )}
+
       <Box
-        width="100%"
-        maxWidth="1210px"
+        width={width ?? "100%"}
+        maxWidth={maxWidth ? maxWidth : isInModal ? "100%" : "1210px"}
         backgroundColor="white"
         borderRadius="20px"
-        p={4}
-        mt="0"
+        padding={padding ?? 4}
+        display="flex"
+        flexDirection="column"
+        flex={isInModal ? "1" : flex ? flex : "1"}
+        height={height ? height : isInModal ? "100%" : undefined}
       >
-        <Flex
-          mb={4}
-          width="100%"
-          alignItems="center"
-          justifyContent="space-between"
-        >
-          <Flex gap={2} width="100%">
-            <Search onSearch={handleSearch} />
+        {caption && (
+          <Flex
+            mb={7}
+            width="100%"
+            justifyContent="space-between"
+            alignItems="center"
+            flexWrap={{ base: "wrap", lg: "nowrap" }}
+            gap={{ base: 2, md: 4 }}
+          >
+            <Text
+              fontSize={isInModal ? "28px" : fontSize ? fontSize : "2xl"}
+              color="black"
+              fontWeight="bold"
+              marginLeft={marginLeft}
+            >
+              {caption}
+            </Text>
 
-            <Menu>
-              <MenuButton as={InputGroup} width="30%" mr={2}>
-                <Input placeholder="Ordenar por..." readOnly />
-                <InputRightElement pointerEvents="none">
-                  <TriangleDownIcon color="black" />
-                </InputRightElement>
-              </MenuButton>
-              <MenuList>
-                <MenuItem>De la A - Z</MenuItem>
-                <MenuItem>De la Z - A</MenuItem>
-              </MenuList>
-            </Menu>
+            <HStack spacing={2} gap="20px">
+              <Box width={isInModal ? "140px" : "auto"}>
+                  <Search onSearch={handleSearch} />
+              </Box>
 
-            <Menu>
-              <MenuButton as={InputGroup} width="30%" mr={2}>
-                <Input placeholder="Filtrar por..." readOnly />
-                <InputRightElement pointerEvents="none">
-                  <TriangleDownIcon color="black" />
-                </InputRightElement>
-              </MenuButton>
-              <MenuList>
-                <MenuItem>Carrera</MenuItem>
-                <MenuItem>Año de Ingreso</MenuItem>
-              </MenuList>
-            </Menu>
+              <Menu>
+                <MenuButton
+                  as={InputGroup}
+                  width={isInModal ? "140px" : "200px"}
+                >
+                  <Input placeholder="Ordenar por..." readOnly size="md" />
+                  <InputRightElement pointerEvents="none">
+                    <TriangleDownIcon color="black" />
+                  </InputRightElement>
+                </MenuButton>
+                <MenuList>
+                  <MenuItem>De la A - Z</MenuItem>
+                  <MenuItem>De la Z - A</MenuItem>
+                </MenuList>
+              </Menu>
+
+              <Menu>
+                <MenuButton
+                  as={InputGroup}
+                  width={isInModal ? "140px" : "200px"}
+                >
+                  <Input placeholder="Filtrar por..." readOnly size="md" />
+                  <InputRightElement pointerEvents="none">
+                    <TriangleDownIcon color="black" />
+                  </InputRightElement>
+                </MenuButton>
+                <MenuList>
+                  <MenuItem>Carrera</MenuItem>
+                  <MenuItem>Año de Ingreso</MenuItem>
+                </MenuList>
+              </Menu>
+
+              {showAddMenu && compact ? (
+                <Menu>
+                  <MenuButton
+                    as={IconButton}
+                    aria-label="Opciones"
+                    icon={<SmallAddIcon />}
+                    size="md"
+                  />
+                  <MenuList>
+                    <MenuItem onClick={onCreateOpen}>
+                      Agregar {caption.slice(0, -1)}
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              ) : undefined}
+            </HStack>
           </Flex>
-
-          {topRightComponent && <Box ml={4}>{topRightComponent}</Box>}
-        </Flex>
+        )}
 
         <TableContainer>
           <Table
             variant="simple"
             size="sm"
-            overflowX="hidden"
-            overflowY="hidden"
-            sx={{
-              "td, th": {
-                py: rowSpacing,
-              },
-            }}
+            style={
+              careerModalEdit && subjectModalEdit
+                ? { tableLayout: "fixed", width: "100%" }
+                : undefined
+            }
+            marginBottom={2}
           >
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
-                  <Th key={index} fontWeight={600} color="#B5B7C0">
+                  <Th
+                    key={index}
+                    color="#B5B7C0"
+                    width={widthAccordingToModal(index)}
+                  >
                     {header}
                   </Th>
                 ))}
-                <Th></Th>
+                <Th width="200px">Acciones</Th>
               </Tr>
             </Thead>
             <Tbody>
-              {filteredData.map((row, index) => renderRow(row))}
+              {currentData.map((row, index) => renderRow(row, index))}
+              {compact &&
+                currentData.length < itemsPerPage &&
+                Array.from({ length: itemsPerPage - currentData.length }).map(
+                  (_, index) => (
+                    <Tr key={`empty-${index}`} height="57px">
+                      {TableHeader.map((_, colIndex) => (
+                        <Td key={colIndex}>&nbsp;</Td>
+                      ))}
+                      <Td>&nbsp;</Td>
+                    </Tr>
+                  )
+                )}
             </Tbody>
           </Table>
         </TableContainer>
 
-        {showPagination && currentPage !== undefined && totalItems !== undefined && (
-          <Flex justifyContent="space-between" alignItems="center" mt={4}>
+        {compact && (
+          <Flex
+            justifyContent="space-between"
+            alignItems="center"
+            marginTop={1}
+            marginBottom={2}
+            flexShrink={0}
+            minHeight="40px"
+            paddingX={2}
+          >
             <Button
-              onClick={() => onPageChange?.(currentPage - 1)}
+              onClick={prevPage}
               isDisabled={currentPage === 1}
               leftIcon={<ChevronLeftIcon />}
-            />
-
+              variant="ghost"
+              size={isInModal ? "sm" : "md"}
+            ></Button>
             <Text>
-              Página {currentPage} de {totalPages>0? totalPages:1}
+              {" "}
+              Página {currentPage}/{totalPages}
             </Text>
-
             <Button
-              onClick={() => onPageChange?.(currentPage + 1)}
-              isDisabled={(currentPage * (itemsPerPage ?? 1)) >= totalItems}
+              onClick={nextPage}
+              isDisabled={endIndex >= filteredData.length}
               rightIcon={<ChevronRightIcon />}
-            />
+              variant="ghost"
+              size={isInModal ? "sm" : "md"}
+            ></Button>
           </Flex>
         )}
-
       </Box>
-    </Flex>
+    </Box>
   );
 };
 
