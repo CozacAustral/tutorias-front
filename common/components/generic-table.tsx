@@ -30,6 +30,7 @@ import {
   TriangleDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  SearchIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
 import CareerModal from "./modals/create-career-student-modal";
@@ -72,7 +73,7 @@ const GenericTable = <T,>({
   onImportOpen,
   onCreateOpen,
   compact,
-  itemsPerPage = 12,
+  itemsPerPage = 10,
   minH,
   paddingX,
   paddingY,
@@ -91,6 +92,7 @@ const GenericTable = <T,>({
   filter = true,
   actions = true,
 }: GenericTableProps<T>) => {
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
