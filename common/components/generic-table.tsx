@@ -33,11 +33,9 @@ import {
   SearchIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
-import CareerModal from "./modals/create-career-student-modal";
-
 interface GenericTableProps<T> {
   data: T[];
-  caption: ReactNode;
+  caption: string;
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
   showAddMenu?: boolean;
