@@ -2,6 +2,7 @@
 import { Flex } from "@chakra-ui/react";
 import ProfileComponent from "./components/profile-component";
 
+
 const Profile = () => {
   return (
     <Flex
