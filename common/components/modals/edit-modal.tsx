@@ -46,8 +46,8 @@ import { StudentCareer } from "../../../app/interfaces/studentCareer.interface";
 interface EditModalProps<t = any> {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
-  entityName: string;
+  entityName?: string;
+  title?: string;
   onConfirm: () => Promise<void>;
   formData: { [key: string]: t };
   onInputChange: (
@@ -55,7 +55,12 @@ interface EditModalProps<t = any> {
   ) => void;
   renderCareerNow: (career: any, index: number) => React.ReactNode;
   fieldLabels?: { [key: string]: string };
-  createOpen: () => void;
+  createOpen?: () => void;
+  caption?: string;
+  forTutor?: boolean
+  isViewModal?: boolean
+  role?: number
+  showButtonCancelSave?: boolean
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -68,6 +73,11 @@ const EditModal: React.FC<EditModalProps> = ({
   onInputChange,
   renderCareerNow,
   createOpen,
+  caption,
+  forTutor,
+  isViewModal = false,
+  role,
+  showButtonCancelSave
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -80,10 +90,10 @@ const EditModal: React.FC<EditModalProps> = ({
         padding={0}
       >
         <ModalHeader fontSize="28px" color="black" pl={6} fontWeight="bold">
-          Editar {entityName}
+          {caption ? caption : `Editar ${entityName}`}
         </ModalHeader>
         <ModalCloseButton />
-        <ModalBody flex="1" display="flex" flexDirection="column" minH={0}>
+        <ModalBody paddingY={showButtonCancelSave ? 0 : 4} flex="1" display="flex" flexDirection="column" minH={0}>
           <VStack spacing={6} align="stretch" flex="1">
             <HStack spacing={4} align="flex-start">
               <VStack spacing={4} align="stretch" flex={2}>
@@ -98,9 +108,10 @@ const EditModal: React.FC<EditModalProps> = ({
                     borderWidth="4px"
                     borderRadius="15px"
                     h="50px"
-                    value={formData.lastName}
-                    onChange={onInputChange}
-                    placeholder="Apellido/s del alumno seleccionado"
+                    value={formData.lastName || ""}
+                    onChange={isViewModal ? undefined : onInputChange}
+                    isReadOnly={isViewModal}
+                    placeholder={ forTutor ? undefined : "Apellido/s del alumno seleccionado" }
                   />
                 </FormControl>
                 <FormControl flex={1} minW="200px">
@@ -113,9 +124,10 @@ const EditModal: React.FC<EditModalProps> = ({
                     borderWidth="4px"
                     borderRadius="15px"
                     h="50px"
-                    value={formData.name}
-                    onChange={onInputChange}
-                    placeholder="Nombre del alumno seleccionado"
+                    value={formData.name || ""}
+                    onChange={isViewModal ? undefined: onInputChange}
+                    isReadOnly={isViewModal}
+                    placeholder={ forTutor ? undefined : "Nombre del alumno seleccionado" }
                   />
                 </FormControl>
               </HStack>
@@ -131,9 +143,10 @@ const EditModal: React.FC<EditModalProps> = ({
                     borderWidth="4px"
                     borderRadius="15px"
                     h="50px"
-                    value={formData.email}
-                    onChange={onInputChange}
-                    placeholder="Correo del alumno seleccionado"
+                    value={formData.email || ""}
+                    onChange={isViewModal ? undefined : onInputChange}
+                    isReadOnly={isViewModal}
+                    placeholder={ forTutor ? undefined : "Correo del alumno seleccionado" }
                   />
                 </FormControl>
                 <FormControl flex={1} minW="200px">
@@ -146,9 +159,10 @@ const EditModal: React.FC<EditModalProps> = ({
                     borderWidth="4px"
                     borderRadius="15px"
                     h="50px"
-                    value={formData.telephone}
-                    onChange={onInputChange}
-                    placeholder="Nro. De telefono del alumno seleccionado"
+                    value={formData.telephone || ""}
+                    onChange={isViewModal ? undefined : onInputChange}
+                    isReadOnly={isViewModal}
+                    placeholder={ forTutor ? undefined : "Nro. De telefono del alumno seleccionado"}
                   />
                 </FormControl>
               </HStack>
@@ -162,8 +176,9 @@ const EditModal: React.FC<EditModalProps> = ({
                 borderWidth="4px"
                 borderRadius="15px"
                 h="145px"
-                value={formData.observations}
-                onChange={onInputChange}
+                value={formData.observations || ""}
+                onChange={isViewModal ? undefined : onInputChange}
+                isReadOnly={isViewModal}
                 py={3}
                 px={4}
               />
@@ -178,14 +193,15 @@ const EditModal: React.FC<EditModalProps> = ({
               flexDirection="column"
             >
               <GenericTable
-                data={formData.careers}
+                data={formData.careers || []}
                 TableHeader={["Carrera", "Estado", "Año de ingreso"]}
                 caption="Carreras"
                 renderRow={renderCareerNow}
-                onCreateOpen={createOpen}
+                onCreateOpen={isViewModal ? undefined : createOpen}
                 compact={true}
-                itemsPerPage={2}  
-                showAddMenu={true}
+                filter={false}
+                itemsPerPage={2}
+                showAddMenu={isViewModal ? false : (forTutor ? false : true)}
                 isInModal={true}
                 careerModalEdit={true}
                 minH="auto"
@@ -203,7 +219,8 @@ const EditModal: React.FC<EditModalProps> = ({
           </VStack>  
         </ModalBody>
 
-        <ModalFooter justifyContent="flex-end" flexShrink={0} pb={3}>
+      {showButtonCancelSave ? (
+        <ModalFooter justifyContent="flex-end" flexShrink={0} p={2}>
           <Button variant="ghost" onClick={onClose} mr={4}>
             Cancelar
           </Button>
@@ -211,6 +228,10 @@ const EditModal: React.FC<EditModalProps> = ({
             Guardar
           </Button>
         </ModalFooter>
+      ) : (
+        null
+      )}
+        
       </ModalContent>
     </Modal>
   );

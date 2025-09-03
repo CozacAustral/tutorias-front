@@ -33,9 +33,6 @@ const Search: React.FC<SearchProps> = ( {onSearch} ) => {
             onChange={(e) => handleSearch(e.target.value)}
             defaultValue={searchParams.get("query")?.toString()}
         />
-        <InputRightElement pointerEvents="none" marginRight="7px">
-            <SearchIcon color="gray.400" />
-        </InputRightElement>
         </InputGroup>
         );
 }

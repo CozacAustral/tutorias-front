@@ -1,6 +1,7 @@
 export interface StudentCareer {
     careerId: number;
     name: string;
-    year: number;
-    active: boolean
+    yearEntry: number;
+    yearOfThePlan: number;
+    active: boolean;
 }[]

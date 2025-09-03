@@ -33,17 +33,16 @@ import {
   SearchIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
-import CareerModal from "./modals/create-career-student-modal";
-
 interface GenericTableProps<T> {
   data: T[];
-  caption: ReactNode;
+  caption: string;
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
   compact?: boolean;
+  filter?: boolean;
   itemsPerPage?: number;
   minH?: string;
   paddingX?: number;
@@ -60,6 +59,7 @@ interface GenericTableProps<T> {
   isInModal?: boolean;
   careerModalEdit?: boolean;
   subjectModalEdit?: boolean;
+  actions?: boolean | null;
 }
 
 const GenericTable = <T,>({
@@ -87,6 +87,8 @@ const GenericTable = <T,>({
   isInModal = false,
   careerModalEdit = false,
   subjectModalEdit = false,
+  filter = true,
+  actions = true,
 }: GenericTableProps<T>) => {
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,17 +120,23 @@ const GenericTable = <T,>({
     }
   };
 
-  const widthAccordingToModal = (index: number) => {
-    if (careerModalEdit) {
-      return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
+ const widthAccordingToModal = (index: number) => {
+  if (careerModalEdit) {
+    return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
+  }
+
+  if (subjectModalEdit) {
+    if (actions === false && careerModalEdit === false) {
+      const otherCols = TableHeader.length - 1; 
+      const remaining = 100 - 15;               
+      return index === 1 ? "15%" : `${remaining / otherCols}%`; 
     }
 
-    if (subjectModalEdit) {
-      return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
-    }
+    return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
+  }
 
-    return index === 0 ? "40%" : `${60 / (TableHeader.length - 1)}%`;
-  };
+  return index === 0 ? "40%" : `${60 / (TableHeader.length - 1)}%`;
+};
 
   return (
     <Box
@@ -169,7 +177,7 @@ const GenericTable = <T,>({
       >
         {caption && (
           <Flex
-            mb={7}
+            mb={3}
             width="100%"
             justifyContent="space-between"
             alignItems="center"
@@ -187,7 +195,12 @@ const GenericTable = <T,>({
 
             <HStack spacing={2} gap="20px">
               <Box width={isInModal ? "140px" : "auto"}>
-                  <Search onSearch={handleSearch} />
+                <InputGroup>
+                  <InputRightElement mb={2}>
+                    <Search2Icon />
+                  </InputRightElement>
+                </InputGroup>
+                <Search onSearch={handleSearch} />
               </Box>
 
               <Menu>
@@ -206,21 +219,23 @@ const GenericTable = <T,>({
                 </MenuList>
               </Menu>
 
-              <Menu>
-                <MenuButton
-                  as={InputGroup}
-                  width={isInModal ? "140px" : "200px"}
-                >
-                  <Input placeholder="Filtrar por..." readOnly size="md" />
-                  <InputRightElement pointerEvents="none">
-                    <TriangleDownIcon color="black" />
-                  </InputRightElement>
-                </MenuButton>
-                <MenuList>
-                  <MenuItem>Carrera</MenuItem>
-                  <MenuItem>Año de Ingreso</MenuItem>
-                </MenuList>
-              </Menu>
+              {filter ? (
+                <Menu>
+                  <MenuButton
+                    as={InputGroup}
+                    width={isInModal ? "140px" : "200px"}
+                  >
+                    <Input placeholder="Filtrar por..." readOnly size="md" />
+                    <InputRightElement pointerEvents="none">
+                      <TriangleDownIcon color="black" />
+                    </InputRightElement>
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem>Carrera</MenuItem>
+                    <MenuItem>Año de Ingreso</MenuItem>
+                  </MenuList>
+                </Menu>
+              ) : null}
 
               {showAddMenu && compact ? (
                 <Menu>
@@ -246,11 +261,20 @@ const GenericTable = <T,>({
             variant="simple"
             size="sm"
             style={
-              careerModalEdit && subjectModalEdit
-                ? { tableLayout: "fixed", width: "100%" }
+              careerModalEdit || subjectModalEdit
+                ? { tableLayout: "auto", width: "100%" }
                 : undefined
             }
-            marginBottom={2}
+            sx={{
+              "th, td" : {
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              },
+              "thead tr": { height: "56px" },
+              "tbody tr": { height: "56px" },
+            }}
+            marginBottom={0}
           >
             <Thead>
               <Tr>
@@ -259,11 +283,12 @@ const GenericTable = <T,>({
                     key={index}
                     color="#B5B7C0"
                     width={widthAccordingToModal(index)}
+                    maxW={widthAccordingToModal(index)}
                   >
                     {header}
                   </Th>
                 ))}
-                <Th width="200px">Acciones</Th>
+                {actions ? <Th width="150px">Acciones</Th> : null}
               </Tr>
             </Thead>
             <Tbody>
@@ -276,7 +301,7 @@ const GenericTable = <T,>({
                       {TableHeader.map((_, colIndex) => (
                         <Td key={colIndex}>&nbsp;</Td>
                       ))}
-                      <Td>&nbsp;</Td>
+                      {actions ? <Td>&nbsp;</Td> : null}
                     </Tr>
                   )
                 )}

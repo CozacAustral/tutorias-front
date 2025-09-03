@@ -5,9 +5,11 @@ import customTheme from "../styles/theme";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <AuthContextProvider>
-      <Component {...pageProps} />
-    </AuthContextProvider>
+    <ChakraProvider theme={customTheme}>
+      <AuthContextProvider>
+        <Component {...pageProps} />
+      </AuthContextProvider>
+    </ChakraProvider>
   );
 }
 

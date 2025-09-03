@@ -1,8 +1,6 @@
 "use client";
 
-import GenericCreateModal from "./create-modal-admin";
-
-
+import GenericCreateModal from "../../administradores/modals/create-modal-admin";
 
 interface Props {
   isOpen: boolean;
