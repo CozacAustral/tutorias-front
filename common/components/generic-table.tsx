@@ -262,7 +262,7 @@ const GenericTable = <T,>({
             size="sm"
             style={
               careerModalEdit || subjectModalEdit
-                ? { tableLayout: "fixed", width: "100%" }
+                ? { tableLayout: "auto", width: "100%" }
                 : undefined
             }
             sx={{

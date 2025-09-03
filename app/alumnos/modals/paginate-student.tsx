@@ -226,7 +226,7 @@ const PaginateStudent = <T,>({
             </Menu>
 
             <Box>
-              {showAddMenu && compact ? (
+              {showAddMenu || compact ? (
                 <Menu>
                   <MenuButton
                     as={IconButton}

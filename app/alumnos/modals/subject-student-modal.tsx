@@ -13,9 +13,9 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import GenericTable from "../generic-table";
 import { SubjectCareerWithState } from "../../../app/interfaces/subject-career-student.interface";
 import { useBreakpointValue } from "@chakra-ui/react";
+import GenericTable from "../../../common/components/generic-table";
 
 interface SubjectStudentModal<t = any> {
   isOpen: boolean;
@@ -26,7 +26,8 @@ interface SubjectStudentModal<t = any> {
   subjects: SubjectCareerWithState[];
   renderSubjectNow: (career: any, index: number) => React.ReactNode;
   state?: boolean | null;
-  role: number | null;
+  role?: number | null;
+  showButtonCancelSave?: boolean;
 }
 
 const SubjectModal: React.FC<SubjectStudentModal> = ({
@@ -39,6 +40,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
   renderSubjectNow,
   state,
   role,
+  showButtonCancelSave,
 }) => {
   const itemsPerPage = useBreakpointValue({
     base: 3,
@@ -102,7 +104,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
         )}
         <ModalCloseButton />
         <ModalBody
-          paddingY={3}
+          paddingY={showButtonCancelSave ? 10 : 10}
           flex="1"
           display="flex"
           flexDirection="column"
@@ -144,8 +146,8 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                       maxWidth="100%"
                       padding={2}
                       height="100%"
-                      filter={ role === 2 ? false : true }
-                      actions={ role === 2 ? false : true }
+                      filter={role === 2 ? false : true}
+                      actions={role === 2 ? false : true}
                     />
                   </Box>
                 </HStack>
@@ -154,18 +156,16 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
           </VStack>
         </ModalBody>
 
-        <ModalFooter
-          justifyContent="flex-end"
-          position="sticky"
-          gap={3}
-        >
-          <Button variant="ghost" onClick={onClose} mr={3}>
-            Cancelar
-          </Button>
-          <Button bg="primary" color="white" onClick={onConfirm}>
-            Guardar
-          </Button>
-        </ModalFooter>
+        {showButtonCancelSave ? (
+          <ModalFooter justifyContent="flex-end" position="sticky" gap={3}>
+            <Button variant="ghost" onClick={onClose} mr={3}>
+              Cancelar
+            </Button>
+            <Button bg="primary" color="white" onClick={onConfirm}>
+              Guardar
+            </Button>
+          </ModalFooter>
+        ) : null}
       </ModalContent>
     </Modal>
   );

@@ -59,7 +59,8 @@ interface EditModalProps<t = any> {
   caption?: string;
   forTutor?: boolean
   isViewModal?: boolean
-  role?: boolean | null
+  role?: number
+  showButtonCancelSave?: boolean
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -75,7 +76,8 @@ const EditModal: React.FC<EditModalProps> = ({
   caption,
   forTutor,
   isViewModal = false,
-  role
+  role,
+  showButtonCancelSave
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -91,7 +93,7 @@ const EditModal: React.FC<EditModalProps> = ({
           {caption ? caption : `Editar ${entityName}`}
         </ModalHeader>
         <ModalCloseButton />
-        <ModalBody paddingY={0} flex="1" display="flex" flexDirection="column" minH={0}>
+        <ModalBody paddingY={showButtonCancelSave ? 0 : 4} flex="1" display="flex" flexDirection="column" minH={0}>
           <VStack spacing={6} align="stretch" flex="1">
             <HStack spacing={4} align="flex-start">
               <VStack spacing={4} align="stretch" flex={2}>
@@ -217,6 +219,7 @@ const EditModal: React.FC<EditModalProps> = ({
           </VStack>  
         </ModalBody>
 
+      {showButtonCancelSave ? (
         <ModalFooter justifyContent="flex-end" flexShrink={0} p={2}>
           <Button variant="ghost" onClick={onClose} mr={4}>
             Cancelar
@@ -225,6 +228,10 @@ const EditModal: React.FC<EditModalProps> = ({
             Guardar
           </Button>
         </ModalFooter>
+      ) : (
+        null
+      )}
+        
       </ModalContent>
     </Modal>
   );

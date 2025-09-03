@@ -135,11 +135,12 @@ const ProfileComponent = () => {
       toast({
         title: "Tutor Eliminado!",
         description: "El tutor fue eliminado con exito",
-        duration: 3000,
+        duration: 1500,
         isClosable: true,
         status: "success",
       });
       onClose();
+      Cookies.remove("authTokens", { path: "/" });
       router.push("/login");
     } catch (err) {
       console.error(err);

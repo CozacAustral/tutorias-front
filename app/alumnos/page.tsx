@@ -31,7 +31,7 @@ import { ResponseCreateCareer } from "../interfaces/response-create-career.inter
 import { Country } from "../interfaces/country.interface";
 import { CreateStudent } from "../interfaces/CreateStudent";
 import Cookies from "js-cookie";
-import { FaRegCalendarAlt } from "react-icons/fa";
+import { FaRegCalendarAlt, FaSadCry } from "react-icons/fa";
 import PaginateStudent from "./modals/paginate-student";
 import SubjectModal from "./modals/subject-student-modal";
 import CareerModal from "./modals/create-career-student-modal";
@@ -44,7 +44,9 @@ const Estudiantes: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
-  const [selectedCareerState, setSelectedCareerState] = useState<boolean | null>(null);
+  const [selectedCareerState, setSelectedCareerState] = useState<
+    boolean | null
+  >(null);
   const [subjects, setSubjects] = useState<SubjectCareerWithState[]>([]);
   const [editedSubjects, setEditedSubjects] = useState<{
     [subjectId: number]: string;
@@ -59,7 +61,7 @@ const Estudiantes: React.FC = () => {
     undefined
   );
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState(null);
+  const [role, setRole] = useState(0);
 
   const toast = useToast();
 
@@ -114,7 +116,15 @@ const Estudiantes: React.FC = () => {
     observations: "",
     countryId: 1,
     email: "",
-    careers: [],
+    careers: [ 
+      {
+        careerId: 0,
+        name: "",
+        active: false,
+        yearEntry: 0,
+        yearOfThePlan: 0
+      }
+    ],
   });
 
   const [studentData, setStudentData] = useState<CreateStudent>({
@@ -239,6 +249,7 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleEditClick = async (student: Student) => {
+    console.log("CUANDO SE PRESIONA EDIT DESDE ADMIN: ", student);
     try {
       const studentSelected = await UserService.fetchStudent(student.id);
       setSelectedStudent(studentSelected);
@@ -263,6 +274,8 @@ const Estudiantes: React.FC = () => {
         status: "error",
       });
     }
+    console.log("Datos CARRER CUANDO SE PRESIONA EDIT DESDE ADMIN: ", formData.careers);
+
   };
 
   const handleChangeCreateStudent = (
@@ -435,7 +448,7 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleAllSubject = async (career: StudentCareer) => {
-    setSelectedCareerState(career.active)
+    setSelectedCareerState(career.active);
 
     if (!selectedStudent?.id || !career?.careerId) {
       toast({
@@ -684,7 +697,7 @@ const Estudiantes: React.FC = () => {
     <Tr key={career.careerId}>
       <Td>{career.name}</Td>
       <Td>{career.active ? "Activa" : "Inactiva"}</Td>
-      <Td>{career.yearEntry}</Td>
+       <Td>{career.yearEntry}</Td>
       <Td>
         {role === 2 ? (
           <IconButton
@@ -776,28 +789,28 @@ const Estudiantes: React.FC = () => {
           : "-"}
       </Td>
       <Td>
-        {role ? ( null ) : (
+        {role === 2 ? null : (
           <IconButton
-          icon={<EditIcon boxSize={5} />}
-          aria-label="Edit"
-          mr={5}
-          backgroundColor={
-            editedSubjects[subject.subjectId] ? "#318AE4" : "white"
-          }
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => {
-            setEditSubjectId(subject.subjectId);
-            setEditedSubjects((prev) => ({
-              ...prev,
-              [subject.subjectId]: subject.subjectState,
-            }));
-            handleEditSubjectClick(subject.subjectId);
-          }}
-        />
+            icon={<EditIcon boxSize={5} />}
+            aria-label="Edit"
+            mr={5}
+            backgroundColor={
+              editedSubjects[subject.subjectId] ? "#318AE4" : "white"
+            }
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => {
+              setEditSubjectId(subject.subjectId);
+              setEditedSubjects((prev) => ({
+                ...prev,
+                [subject.subjectId]: subject.subjectState,
+              }));
+              handleEditSubjectClick(subject.subjectId);
+            }}
+          />
         )}
       </Td>
     </Tr>
@@ -810,7 +823,7 @@ const Estudiantes: React.FC = () => {
         TableHeader={role === 2 ? TableHeaderTutor : TableHeader}
         caption={role === 2 ? "Mis Alumnos" : "Alumnos"}
         renderRow={renderStudentRow}
-        showAddMenu={role !== 2}
+        showAddMenu={role === 2 ? false : true}
         onImportOpen={role !== 2 ? openImportModal : undefined}
         onCreateOpen={role !== 2 ? handleCreateClick : undefined}
         currentPage={currentPage}
@@ -837,6 +850,7 @@ const Estudiantes: React.FC = () => {
         entityName="Alumno"
         renderCareerNow={renderCareerRow}
         createOpen={handleCreateCareerClick}
+        showButtonCancelSave={true}
         fieldLabels={{
           lastName: "Apellido/s",
           name: "Nombre",
@@ -848,7 +862,8 @@ const Estudiantes: React.FC = () => {
         role={role}
       />
 
-      <SubjectModal
+      { role === 2 ? (
+        <SubjectModal
         isOpen={isSubjectModalOpen}
         onClose={handleCloseModalSubject}
         onConfirm={handleEditSubject}
@@ -858,7 +873,23 @@ const Estudiantes: React.FC = () => {
         entityName="Materias"
         state={selectedCareerState}
         role={role}
+        showButtonCancelSave={false}
       />
+      ) : (
+        <SubjectModal
+        isOpen={isSubjectModalOpen}
+        onClose={handleCloseModalSubject}
+        onConfirm={handleEditSubject}
+        subjects={subjects}
+        renderSubjectNow={renderSubjectRow}
+        titleCareer={selectedCareer?.name}
+        entityName="Materias"
+        state={selectedCareerState}
+        role={role}
+        showButtonCancelSave={true}
+      />
+      )}
+      
 
       <CareerModal
         isOpen={isCreateCareerModalOpen}
@@ -896,6 +927,7 @@ const Estudiantes: React.FC = () => {
             telephone: "Nro. De telefono",
             observations: "Observaciones",
           }}
+          showButtonCancelSave={false}
         />
       ) : (
         <ViewStudentModal
