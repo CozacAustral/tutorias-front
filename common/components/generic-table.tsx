@@ -21,7 +21,6 @@ import {
   IconButton,
   HStack,
 } from "@chakra-ui/react";
-
 import {
   SmallAddIcon,
   TriangleDownIcon,
@@ -33,13 +32,19 @@ import Search from "../../app/ui/search";
 interface GenericTableProps<T> {
   data: T[];
 
+  // NUEVO: título de página (el grande de arriba). Si no se pasa, usa `caption`.
+  pageTitle?: ReactNode;
+
+  // NUEVO: oculta el título pequeño de la barra de herramientas
+  hideToolbarCaption?: boolean;
+
   showPagination?: boolean;
   currentPage?: number;
   totalItems?: number;
   onPageChange?: (newPage: number) => void;
 
   topRightComponent?: ReactNode;
-  caption: ReactNode;  
+  caption: ReactNode; // título “lógico” de la tabla (para toolbar/menus)
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
   showAddMenu?: boolean;
@@ -65,8 +70,11 @@ interface GenericTableProps<T> {
 }
 
 const GenericTable = <T,>({
+  topRightComponent,
   data,
   caption,
+  pageTitle,
+  hideToolbarCaption = false,
   TableHeader,
   renderRow,
   showAddMenu = false,
@@ -108,15 +116,11 @@ const GenericTable = <T,>({
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const nextPage = () => {
-    if (endIndex < filteredData.length) {
-      setCurrentPage((prev) => prev + 1);
-    }
+    if (endIndex < filteredData.length) setCurrentPage((prev) => prev + 1);
   };
 
   const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
   const widthAccordingToModal = (index: number) => {
@@ -153,7 +157,7 @@ const GenericTable = <T,>({
             marginTop={marginTop ? marginTop : "7"}
             fontWeight={600}
           >
-            {caption}
+            {pageTitle ?? caption}
           </Text>
         </Box>
       )}
@@ -169,15 +173,16 @@ const GenericTable = <T,>({
         flex={isInModal ? "1" : flex ? flex : "1"}
         height={height ? height : isInModal ? "100%" : undefined}
       >
-        {caption && (
-          <Flex
-            mb={7}
-            width="100%"
-            justifyContent="space-between"
-            alignItems="center"
-            flexWrap={{ base: "wrap", lg: "nowrap" }}
-            gap={{ base: 2, md: 4 }}
-          >
+
+        <Flex
+          mb={7}
+          width="100%"
+          justifyContent="space-between"
+          alignItems="center"
+          flexWrap={{ base: "wrap", lg: "nowrap" }}
+          gap={{ base: 2, md: 4 }}
+        >
+          {!hideToolbarCaption && (
             <Text
               fontSize={isInModal ? "28px" : fontSize ? fontSize : "2xl"}
               color="black"
@@ -186,58 +191,58 @@ const GenericTable = <T,>({
             >
               {caption}
             </Text>
+          )}
 
-            <HStack spacing={2} gap="20px">
-              <Box width={isInModal ? "140px" : "auto"}>
-                <Search onSearch={handleSearch} />
-              </Box>
+          <HStack spacing={2} gap="20px" w="100%" justifyContent="flex-end">
+            <Box width={isInModal ? "140px" : "auto"}>
+              <Search onSearch={handleSearch} />
+            </Box>
 
+            <Menu>
+              <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
+                <Input placeholder="Ordenar por..." readOnly size="md" />
+                <InputRightElement pointerEvents="none">
+                  <TriangleDownIcon color="black" />
+                </InputRightElement>
+              </MenuButton>
+              <MenuList>
+                <MenuItem>De la A - Z</MenuItem>
+                <MenuItem>De la Z - A</MenuItem>
+              </MenuList>
+            </Menu>
+
+            <Menu>
+              <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
+                <Input placeholder="Filtrar por..." readOnly size="md" />
+                <InputRightElement pointerEvents="none">
+                  <TriangleDownIcon color="black" />
+                </InputRightElement>
+              </MenuButton>
+              <MenuList>
+                <MenuItem>Carrera</MenuItem>
+                <MenuItem>Año de Ingreso</MenuItem>
+              </MenuList>
+            </Menu>
+
+            {showAddMenu && compact ? (
               <Menu>
-                <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
-                  <Input placeholder="Ordenar por..." readOnly size="md" />
-                  <InputRightElement pointerEvents="none">
-                    <TriangleDownIcon color="black" />
-                  </InputRightElement>
-                </MenuButton>
+                <MenuButton
+                  as={IconButton}
+                  aria-label="Opciones"
+                  icon={<SmallAddIcon />}
+                  size="md"
+                />
                 <MenuList>
-                  <MenuItem>De la A - Z</MenuItem>
-                  <MenuItem>De la Z - A</MenuItem>
+                  <MenuItem onClick={onCreateOpen}>
+                    Agregar {captionLabel ? captionLabel.slice(0, -1) : "item"}
+                  </MenuItem>
                 </MenuList>
               </Menu>
+            ) : null}
 
-              <Menu>
-                <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
-                  <Input placeholder="Filtrar por..." readOnly size="md" />
-                  <InputRightElement pointerEvents="none">
-                    <TriangleDownIcon color="black" />
-                  </InputRightElement>
-                </MenuButton>
-                <MenuList>
-                  <MenuItem>Carrera</MenuItem>
-                  <MenuItem>Año de Ingreso</MenuItem>
-                </MenuList>
-              </Menu>
-
-              {showAddMenu && compact ? (
-                <Menu>
-                  <MenuButton
-                    as={IconButton}
-                    aria-label="Opciones"
-                    icon={<SmallAddIcon />}
-                    size="md"
-                  />
-                  <MenuList>
-      <MenuItem onClick={onCreateOpen}>
-        {/* si hay string, recorto; si no, dejo un fallback genérico */}
-        Agregar {captionLabel ? captionLabel.slice(0, -1) : "item"}
-      </MenuItem>
-                  </MenuList>
-                </Menu>
-              ) : null}
-            </HStack>
-          </Flex>
-        )}
-
+            {topRightComponent}
+          </HStack>
+        </Flex>
         <TableContainer>
           <Table
             variant="simple"
@@ -252,7 +257,11 @@ const GenericTable = <T,>({
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
-                  <Th key={index} color="#B5B7C0" width={widthAccordingToModal(index)}>
+                  <Th
+                    key={index}
+                    color="#B5B7C0"
+                    width={widthAccordingToModal(index)}
+                  >
                     {header}
                   </Th>
                 ))}
@@ -276,7 +285,6 @@ const GenericTable = <T,>({
             </Tbody>
           </Table>
         </TableContainer>
-
         {compact && (
           <Flex
             justifyContent="space-between"
