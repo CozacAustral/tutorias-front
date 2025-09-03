@@ -51,11 +51,15 @@ interface EditModalProps<t = any> {
   onConfirm: () => Promise<void>;
   formData: { [key: string]: t };
   onInputChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => void;
-  renderCareerNow: (career: any, index: number) => React.ReactNode;
+  renderCareerNow?: (career: any, index: number) => React.ReactNode;
   fieldLabels?: { [key: string]: string };
-  createOpen: () => void;
+
+  onCreateOpen?: () => void;
+  excludeFields?: string[];
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -67,7 +71,8 @@ const EditModal: React.FC<EditModalProps> = ({
   formData,
   onInputChange,
   renderCareerNow,
-  createOpen,
+  
+  onCreateOpen,
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -89,88 +94,88 @@ const EditModal: React.FC<EditModalProps> = ({
               <VStack spacing={4} align="stretch" flex={2}>
                 <HStack spacing={4} flexWrap="wrap">
                   <FormControl flex={1} minW="200px">
-                  <FormLabel>Apellido/s</FormLabel>
-                  <Input
-                    name="lastName"
-                    type="text"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    h="50px"
-                    value={formData.lastName}
-                    onChange={onInputChange}
-                    placeholder="Apellido/s del alumno seleccionado"
-                  />
-                </FormControl>
-                <FormControl flex={1} minW="200px">
-                  <FormLabel>Nombre</FormLabel>
-                  <Input
-                    name="name"
-                    type="text"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    h="50px"
-                    value={formData.name}
-                    onChange={onInputChange}
-                    placeholder="Nombre del alumno seleccionado"
-                  />
-                </FormControl>
-              </HStack>
+                    <FormLabel>Apellido/s</FormLabel>
+                    <Input
+                      name="lastName"
+                      type="text"
+                      borderColor="light_gray"
+                      bg="light_gray"
+                      borderWidth="4px"
+                      borderRadius="15px"
+                      h="50px"
+                      value={formData.lastName}
+                      onChange={onInputChange}
+                      placeholder="Apellido/s del alumno seleccionado"
+                    />
+                  </FormControl>
+                  <FormControl flex={1} minW="200px">
+                    <FormLabel>Nombre</FormLabel>
+                    <Input
+                      name="name"
+                      type="text"
+                      borderColor="light_gray"
+                      bg="light_gray"
+                      borderWidth="4px"
+                      borderRadius="15px"
+                      h="50px"
+                      value={formData.name}
+                      onChange={onInputChange}
+                      placeholder="Nombre del alumno seleccionado"
+                    />
+                  </FormControl>
+                </HStack>
 
-              <HStack spacing={4} flexWrap="wrap">
-                <FormControl flex={1} minW="200px">
-                  <FormLabel>Correo</FormLabel>
-                  <Input
-                    name="email"
-                    type="email"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    h="50px"
-                    value={formData.email}
-                    onChange={onInputChange}
-                    placeholder="Correo del alumno seleccionado"
-                  />
-                </FormControl>
-                <FormControl flex={1} minW="200px">
-                  <FormLabel>Nro. De Telefono</FormLabel>
-                  <Input
-                    name="telephone"
-                    type="tel"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    h="50px"
-                    value={formData.telephone}
-                    onChange={onInputChange}
-                    placeholder="Nro. De telefono del alumno seleccionado"
-                  />
-                </FormControl>
-              </HStack>
-            </VStack>
-             <FormControl flex={1} minW="200px">
-              <FormLabel>Observaciones</FormLabel>
-              <Textarea
-                name="observations"
-                borderColor="light_gray"
-                bg="light_gray"
-                borderWidth="4px"
-                borderRadius="15px"
-                h="145px"
-                value={formData.observations}
-                onChange={onInputChange}
-                py={3}
-                px={4}
-              />
-            </FormControl>           
-          </HStack>
+                <HStack spacing={4} flexWrap="wrap">
+                  <FormControl flex={1} minW="200px">
+                    <FormLabel>Correo</FormLabel>
+                    <Input
+                      name="email"
+                      type="email"
+                      borderColor="light_gray"
+                      bg="light_gray"
+                      borderWidth="4px"
+                      borderRadius="15px"
+                      h="50px"
+                      value={formData.email}
+                      onChange={onInputChange}
+                      placeholder="Correo del alumno seleccionado"
+                    />
+                  </FormControl>
+                  <FormControl flex={1} minW="200px">
+                    <FormLabel>Nro. De Telefono</FormLabel>
+                    <Input
+                      name="telephone"
+                      type="tel"
+                      borderColor="light_gray"
+                      bg="light_gray"
+                      borderWidth="4px"
+                      borderRadius="15px"
+                      h="50px"
+                      value={formData.telephone}
+                      onChange={onInputChange}
+                      placeholder="Nro. De telefono del alumno seleccionado"
+                    />
+                  </FormControl>
+                </HStack>
+              </VStack>
+              <FormControl flex={1} minW="200px">
+                <FormLabel>Observaciones</FormLabel>
+                <Textarea
+                  name="observations"
+                  borderColor="light_gray"
+                  bg="light_gray"
+                  borderWidth="4px"
+                  borderRadius="15px"
+                  h="145px"
+                  value={formData.observations}
+                  onChange={onInputChange}
+                  py={3}
+                  px={4}
+                />
+              </FormControl>
+            </HStack>
 
-          <Box
+            <Box
               width="100%"
               flex="1"
               overflow="hidden"
@@ -181,10 +186,10 @@ const EditModal: React.FC<EditModalProps> = ({
                 data={formData.careers}
                 TableHeader={["Carrera", "Estado", "Año de ingreso"]}
                 caption="Carreras"
-                renderRow={renderCareerNow}
-                onCreateOpen={createOpen}
+                renderRow={renderCareerNow?? (() => <></>)}
+                onCreateOpen={onCreateOpen}
                 compact={true}
-                itemsPerPage={2}  
+                itemsPerPage={2}
                 showAddMenu={true}
                 isInModal={true}
                 careerModalEdit={true}
@@ -200,7 +205,7 @@ const EditModal: React.FC<EditModalProps> = ({
                 height="100%"
               />
             </Box>
-          </VStack>  
+          </VStack>
         </ModalBody>
 
         <ModalFooter justifyContent="flex-end" flexShrink={0} pb={3}>

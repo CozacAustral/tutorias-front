@@ -49,7 +49,7 @@ const Tutores: React.FC = () => {
 
   const [formData, setFormData] = useState({ name: "", email: "" });
 
-  const TableHeader = ["Nombre", "Apellido", "Correo", "Acciones"];
+  const TableHeader = ["Nombre", "Apellido", "Correo"];
 
   const loadTutors = async (p = 1) => {
     try {
@@ -74,11 +74,12 @@ const Tutores: React.FC = () => {
     loadTutors(p);
   }, [searchParams]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
+const handleInputChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({ ...prev, [name]: value }));
+};
   const handleEditClick = (tutor: ResponseTutor) => {
     setSelectedTutor(tutor);
     setFormData({

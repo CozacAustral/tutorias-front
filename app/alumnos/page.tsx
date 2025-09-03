@@ -131,27 +131,33 @@ const Estudiantes: React.FC = () => {
     "Correo",
     "Carrera/s",
   ];
+useEffect(() => {
+  const loadStudents = async () => {
+    setLoading(true);
+    try {
+      const order =
+        orderBy ? `${orderBy[0]}:${orderBy[1]}` : undefined;
 
-  useEffect(() => {
-    const loadStudents = async () => {
-      try {
-        const { students, totalCount } = await UserService.fetchAllStudents({
-          search: searchTerm,
-          currentPage,
-          resultsPerPage: 10,
-          orderBy: orderBy
-        });
-        setStudents(students);
-        setTotalStudents(totalCount);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-        setError("No se pudieron cargar los estudiantes.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadStudents();
-  }, [currentPage, searchTerm, orderBy]);
+      const { students, totalCount } = await UserService.fetchAllStudents({
+        search: searchTerm,
+        currentPage,
+        resultsPerPage: 10,
+        orderBy: order, // <= string | undefined
+      });
+
+      setStudents(students);
+      setTotalStudents(totalCount);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      setError("No se pudieron cargar los estudiantes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  loadStudents();
+}, [currentPage, searchTerm, orderBy]);
+
+
 
   useEffect(() => {
     const loadCareers = async () => {
@@ -722,7 +728,7 @@ const Estudiantes: React.FC = () => {
         title="Editar Alumno"
         entityName="Alumno"
         renderCareerNow={renderCareerRow}
-        createOpen={handleCreateCareerClick}
+        onCreateOpen={handleCreateCareerClick}
         fieldLabels={{
           lastName: "Apellido/s",
           name: "Nombre",

@@ -17,6 +17,7 @@ import { UserService } from "../../services/admin-service";
 import { User } from "../interfaces/user.interface";
 import { useSidebar } from "../contexts/SidebarContext";
 import EditModal from "../../common/components/modals/edit-modal";
+import GenericCreateModal from "../../common/components/modals/create-modal-admin";
 
 const Administradores: React.FC = () => {
   const [users, setUsers] = useState<User[] | null>(null);
@@ -46,7 +47,13 @@ const Administradores: React.FC = () => {
 
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
-  const TableHeader = ["Nombre", "Apellido/s", "Correo", "Acciones"];
+  const TableHeader = ["Nombre", "Apellido/s", "Correo"];
+  const {
+  isOpen: isCreateOpen,
+  onOpen: onCreateOpen,
+  onClose: onCreateClose,
+} = useDisclosure();
+
 
   const fetchAdminUsers = async (page: number, itemsPerPage: number) => {
     try {
@@ -68,10 +75,21 @@ const Administradores: React.FC = () => {
     fetchAdminUsers(1, itemsPerPage);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+) => {
+  const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+  const { name } = target;
+
+  // Soporte para checkbox si lo usás
+  const value =
+    (target as HTMLInputElement).type === "checkbox"
+      ? (target as HTMLInputElement).checked
+      : target.value;
+
+  setFormData(prev => ({ ...prev, [name]: value }));
+};
+
 
   const resetForm = () => {
     setFormData({
@@ -128,6 +146,12 @@ const Administradores: React.FC = () => {
     resetForm();
     onOpen();
   };
+
+  const createAdmin = async (data: any) => {
+  await UserService.createUser({ ...data, roleId: 1 });
+  await fetchAdminUsers(currentPage, itemsPerPage); // refresca tabla
+};
+
 
   const handleEditClick = async (admin: User) => {
     try {
@@ -282,6 +306,22 @@ const Administradores: React.FC = () => {
         entityName="administrador"
         entityDetails={`${adminToDelete?.name} ${adminToDelete?.lastName}`}
       />
+
+<GenericCreateModal
+  isOpen={isCreateOpen}
+  onClose={onCreateClose}
+  onCreateSuccess={() => fetchAdminUsers(currentPage, itemsPerPage)}
+  title="Crear administrador"
+  fields={[
+    { name: "name",      label: "Nombre",   required: true },
+    { name: "lastName",  label: "Apellido", required: true },
+    { name: "email",     label: "Correo",   type: "email", required: true },
+    { name: "telephone", label: "Teléfono", type: "tel" },
+    { name: "password",  label: "Contraseña", type: "password", required: true },
+  ]}
+  createFn={createAdmin}
+/>
+
     </>
   );
 };

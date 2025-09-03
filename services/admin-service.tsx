@@ -17,6 +17,8 @@ import { Tutors } from "../app/interfaces/create.tutors.interface";
 import { User } from "../app/interfaces/user.interface";
 import axiosInstance from "../axiosConfig";
 import { ResponseTutor } from "../app/interfaces/response-tutor.interface";
+import { FetchStudentsParams } from "../app/interfaces/StudentsParams.interface";
+import { FetchStudentsResponse } from "../app/interfaces/StudentsResponse.interface";
 
 const urlUsers = "users";
 const urlTutors = "tutors";
@@ -290,16 +292,25 @@ export const UserService = {
     return response.data;
   },
 
-  async fetchAllStudents(): Promise<{students:Student[], totalCount:number}> {
-    try {
-      const response = await axiosInstance.get<any>(`${urlStudents}`);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        `Error al obtener los estudiantes: ${error.message || error}`
-      );
-    }
-  },
+async fetchAllStudents(params: FetchStudentsParams = {}): Promise<FetchStudentsResponse> {
+  const {
+    search = "",
+    currentPage = 1,
+    resultsPerPage = 10,
+    orderBy = "",
+  } = params;
+
+  const response = await axiosInstance.get(`${urlStudents}`, {
+  });
+
+  const data = response.data;
+  return {
+    students: data.students ?? data.data ?? [],
+    totalCount: data.totalCount ?? data.total ?? 0,
+    page: data.page ?? currentPage,
+    limit: data.limit ?? resultsPerPage,
+  };
+},
 
   async fetchStudent(studentId: number): Promise<Student> {
     try {

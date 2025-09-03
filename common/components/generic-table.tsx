@@ -19,25 +19,27 @@ import {
   MenuList,
   MenuItem,
   IconButton,
-  ModalHeader,
-  ModalContent,
   HStack,
 } from "@chakra-ui/react";
 
 import {
   SmallAddIcon,
-  Search2Icon,
   TriangleDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  SearchIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
-import CareerModal from "./modals/create-career-student-modal";
 
 interface GenericTableProps<T> {
   data: T[];
-  caption: ReactNode;
+
+  showPagination?: boolean;
+  currentPage?: number;
+  totalItems?: number;
+  onPageChange?: (newPage: number) => void;
+
+  topRightComponent?: ReactNode;
+  caption: ReactNode;  
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
   showAddMenu?: boolean;
@@ -88,7 +90,6 @@ const GenericTable = <T,>({
   careerModalEdit = false,
   subjectModalEdit = false,
 }: GenericTableProps<T>) => {
-
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -122,16 +123,17 @@ const GenericTable = <T,>({
     if (careerModalEdit) {
       return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
     }
-
     if (subjectModalEdit) {
       return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
     }
-
     return index === 0 ? "40%" : `${60 / (TableHeader.length - 1)}%`;
   };
 
+  const captionLabel = typeof caption === "string" ? caption : "";
+
   return (
     <Box
+      margin={5}
       overflow="hidden"
       minH={minH ?? (isInModal ? "auto" : "100vh")}
       maxHeight={isInModal ? "calc(100vh - 200px)" : undefined}
@@ -187,14 +189,11 @@ const GenericTable = <T,>({
 
             <HStack spacing={2} gap="20px">
               <Box width={isInModal ? "140px" : "auto"}>
-                  <Search onSearch={handleSearch} />
+                <Search onSearch={handleSearch} />
               </Box>
 
               <Menu>
-                <MenuButton
-                  as={InputGroup}
-                  width={isInModal ? "140px" : "200px"}
-                >
+                <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
                   <Input placeholder="Ordenar por..." readOnly size="md" />
                   <InputRightElement pointerEvents="none">
                     <TriangleDownIcon color="black" />
@@ -207,10 +206,7 @@ const GenericTable = <T,>({
               </Menu>
 
               <Menu>
-                <MenuButton
-                  as={InputGroup}
-                  width={isInModal ? "140px" : "200px"}
-                >
+                <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
                   <Input placeholder="Filtrar por..." readOnly size="md" />
                   <InputRightElement pointerEvents="none">
                     <TriangleDownIcon color="black" />
@@ -231,12 +227,13 @@ const GenericTable = <T,>({
                     size="md"
                   />
                   <MenuList>
-                    <MenuItem onClick={onCreateOpen}>
-                      Agregar {caption.slice(0, -1)}
-                    </MenuItem>
+      <MenuItem onClick={onCreateOpen}>
+        {/* si hay string, recorto; si no, dejo un fallback genérico */}
+        Agregar {captionLabel ? captionLabel.slice(0, -1) : "item"}
+      </MenuItem>
                   </MenuList>
                 </Menu>
-              ) : undefined}
+              ) : null}
             </HStack>
           </Flex>
         )}
@@ -255,11 +252,7 @@ const GenericTable = <T,>({
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
-                  <Th
-                    key={index}
-                    color="#B5B7C0"
-                    width={widthAccordingToModal(index)}
-                  >
+                  <Th key={index} color="#B5B7C0" width={widthAccordingToModal(index)}>
                     {header}
                   </Th>
                 ))}
@@ -303,7 +296,7 @@ const GenericTable = <T,>({
             ></Button>
             <Text>
               {" "}
-              Página {currentPage}/{totalPages}
+              Página {currentPage}/{totalPages || 1}
             </Text>
             <Button
               onClick={nextPage}
