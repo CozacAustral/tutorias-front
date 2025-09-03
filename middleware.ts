@@ -9,8 +9,7 @@ export function middleware(request: NextRequest) {
     "/tutores",
     "/alumnos",
     "/administradores",
-    "/miPerfil",
-    "/Carrera",
+    "/carrera",
     "/alumnos_asignados",
     "/profile",
     "/reuniones"
@@ -21,12 +20,12 @@ export function middleware(request: NextRequest) {
     ) &&
     !authTokens
   ) {
-    const response = NextResponse.redirect(new URL("/Login", request.url));
+    const response = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.delete("authTokens");
     return response;
   }
 
-  if (authTokens && request.nextUrl.pathname === "/Login") {
+  if (authTokens && request.nextUrl.pathname === "/login") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -35,12 +34,11 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/Tutores/:path*",
+    "/tutores/:path*",
     "/alumnos/:path*",
-    "/Administradores/:path*",
-    "/Login",
-    "/MiPerfil/:path*",
-    "/Carrera/:path*",
+    "/administradores/:path*",
+    "/login",
+    "/carrera/:path*",
     "/alumnos_asignados/:path",
     "/profile",
     "/reuniones/:path"
