@@ -18,11 +18,13 @@ import { User } from "../interfaces/user.interface";
 import { useSidebar } from "../contexts/SidebarContext";
 import EditModal from "../../common/components/modals/edit-modal";
 import GenericCreateModal from "../../common/components/modals/create-modal-admin";
+import EditAdminTutores from "../../common/components/modals/edit-admin-tutores";
 
 const Administradores: React.FC = () => {
   const [users, setUsers] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { collapsed } = useSidebar();
+  const offset = collapsed ? "6.5rem" : "17rem";
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isDeleteOpen,
@@ -147,7 +149,7 @@ const Administradores: React.FC = () => {
   const handleCreateClick = () => {
     setFormMode("create");
     resetForm();
-    onOpen();
+    onCreateOpen(); // <— abrir el modal de CREAR, no el de editar
   };
 
   const createAdmin = async (data: any) => {
@@ -163,11 +165,11 @@ const Administradores: React.FC = () => {
         lastName: fetchedUser.lastName,
         email: fetchedUser.email,
         telephone: (fetchedUser as any).telephone || "",
-        password: "",
+        password: "", // lo mostramos solo si querés permitir cambiarla
       });
       setFormMode("edit");
       setEditingUserId(fetchedUser.id);
-      onOpen();
+      onOpen(); // <- abre el modal de EDITAR simple
     } catch (error) {
       console.error("❌ Error al obtener el usuario por ID:", error);
       toast({
@@ -251,6 +253,7 @@ const Administradores: React.FC = () => {
       <Box pl={collapsed ? "6.5rem" : "17rem"} px={5}>
         {users ? (
           <GenericTable
+            offsetLeft={offset}
             data={users}
             TableHeader={TableHeader}
             renderRow={renderAdminRow}
@@ -280,27 +283,23 @@ const Administradores: React.FC = () => {
         )}
       </Box>
 
-      <EditModal
+      <EditAdminTutores
         isOpen={isOpen}
         onClose={() => {
           onClose();
           resetForm();
         }}
         onConfirm={handleSubmit}
-        title={
-          formMode === "edit" ? "Editar Administrador" : "Crear Administrador"
-        }
         entityName="Administrador"
-        formData={formData}
-        onInputChange={handleChange}
-        fieldLabels={{
-          name: "Nombre",
-          lastName: "Apellido",
-          email: "Correo",
-          telephone: "Teléfono",
-          password: formMode === "edit" ? "Cambiar contraseña" : "Contraseña",
+        // Podés decidir qué campos permitir editar controlando qué pasás aquí:
+        formData={{
+          name: formData.name,
+          lastName: formData.lastName,
+          email: formData.email, // si NO querés que editen email, quitalo
+          telephone: formData.telephone,
+          password: formData.password, 
         }}
-        excludeFields={formMode === "edit" ? ["email"] : []}
+        onInputChange={handleChange}
       />
 
       <DeleteModal

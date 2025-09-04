@@ -1,50 +1,29 @@
+// common/components/generic-table.tsx
 import React, { ReactNode, useState } from "react";
 import {
-  Box,
-  Flex,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-  Text,
-  Button,
-  InputGroup,
-  InputRightElement,
-  Input,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  IconButton,
-  HStack,
+  Box, Flex, Table, TableContainer, Tbody, Td, Th, Thead, Tr, Text,
+  Button, InputGroup, InputRightElement, Input, Menu, MenuButton, MenuList,
+  MenuItem, IconButton, HStack
 } from "@chakra-ui/react";
-import {
-  SmallAddIcon,
-  TriangleDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@chakra-ui/icons";
+import { SmallAddIcon, TriangleDownIcon, ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
 
 interface GenericTableProps<T> {
   data: T[];
-
-  // NUEVO: título de página (el grande de arriba). Si no se pasa, usa `caption`.
   pageTitle?: ReactNode;
-
-  // NUEVO: oculta el título pequeño de la barra de herramientas
   hideToolbarCaption?: boolean;
 
+  // ⬇️ NUEVO: espacio izquierdo para “correr” todo cuando la sidebar está visible
+  offsetLeft?: string; // ej: "6.5rem" | "17rem"
+
+  // Paginación (server-side controlada)
   showPagination?: boolean;
-  currentPage?: number;
-  totalItems?: number;
+  currentPage?: number;                // página actual (server)
+  totalItems?: number;                 // total de registros (server)
   onPageChange?: (newPage: number) => void;
 
   topRightComponent?: ReactNode;
-  caption: ReactNode; // título “lógico” de la tabla (para toolbar/menus)
+  caption: ReactNode;
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
   showAddMenu?: boolean;
@@ -75,6 +54,7 @@ const GenericTable = <T,>({
   caption,
   pageTitle,
   hideToolbarCaption = false,
+  offsetLeft = "0",                 // ⬅️ default sin sidebar
   TableHeader,
   renderRow,
   showAddMenu = false,
@@ -97,39 +77,70 @@ const GenericTable = <T,>({
   isInModal = false,
   careerModalEdit = false,
   subjectModalEdit = false,
+
+  // Paginación controlada (server)
+  showPagination = false,
+  currentPage,
+  totalItems,
+  onPageChange,
 }: GenericTableProps<T>) => {
-  const [currentPage, setCurrentPage] = useState(1);
+  // ⬇️ Estado interno solo para modo local
+  const [internalPage, setInternalPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Detecta si estamos en modo paginación server-side
+  const isServerPaginated =
+    !!showPagination &&
+    typeof currentPage !== "undefined" &&
+    typeof totalItems !== "undefined";
+
+  // Búsqueda local solo cuando NO es server-side (si es server, no filtramos la "página" que ya vino lista)
+  const filteredData = isServerPaginated
+    ? data
+    : data.filter((row) =>
+        JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    setCurrentPage(1);
+    if (!isServerPaginated) setInternalPage(1);
   };
 
-  const filteredData = data.filter((row) =>
-    JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Página y totales a usar según el modo
+  const localPage = isServerPaginated ? (currentPage as number) : internalPage;
+  const totalCount = isServerPaginated ? (totalItems as number) : filteredData.length;
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (localPage - 1) * itemsPerPage;
+  const endIndex   = startIndex + itemsPerPage;
 
-  const nextPage = () => {
-    if (endIndex < filteredData.length) setCurrentPage((prev) => prev + 1);
-  };
+  // Si es server, ya viene paginado: usamos "data" tal cual
+  const currentData = isServerPaginated
+    ? data
+    : filteredData.slice(startIndex, endIndex);
+
+  const totalPages  = Math.max(1, Math.ceil(totalCount / itemsPerPage));
 
   const prevPage = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+    if (localPage === 1) return;
+    if (isServerPaginated) {
+      onPageChange?.(localPage - 1);
+    } else {
+      setInternalPage((p) => Math.max(1, p - 1));
+    }
+  };
+
+  const nextPage = () => {
+    if (localPage >= totalPages) return;
+    if (isServerPaginated) {
+      onPageChange?.(localPage + 1);
+    } else {
+      setInternalPage((p) => p + 1);
+    }
   };
 
   const widthAccordingToModal = (index: number) => {
-    if (careerModalEdit) {
-      return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
-    }
-    if (subjectModalEdit) {
-      return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
-    }
+    if (careerModalEdit) return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
+    if (subjectModalEdit) return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
     return index === 0 ? "40%" : `${60 / (TableHeader.length - 1)}%`;
   };
 
@@ -137,26 +148,19 @@ const GenericTable = <T,>({
 
   return (
     <Box
-      margin={5}
+      // ⬇️ Desplazamos TODO el contenido según el ancho de la sidebar
+      pl={offsetLeft}
+      pr={4}
+      marginY={5}
       overflow="hidden"
       minH={minH ?? (isInModal ? "auto" : "100vh")}
-      maxHeight={isInModal ? "calc(100vh - 200px)" : undefined}
       display="flex"
       flexDirection="column"
-      alignItems="center"
       width="100%"
-      paddingX={paddingX ? paddingX : 4}
-      paddingY={paddingY ?? (isInModal ? 0 : 4)}
     >
       {!isInModal && (
-        <Box width="100%" maxWidth="1200px" mb={4}>
-          <Text
-            fontSize={fontSize ? fontSize : "6xl"}
-            color="black"
-            marginLeft={marginLeft ? marginLeft : "0"}
-            marginTop={marginTop ? marginTop : "7"}
-            fontWeight={600}
-          >
+        <Box width="100%" mb={4}>
+          <Text fontSize={fontSize ?? "6xl"} color="black" mt={marginTop ?? "7"} fontWeight={600}>
             {pageTitle ?? caption}
           </Text>
         </Box>
@@ -164,31 +168,25 @@ const GenericTable = <T,>({
 
       <Box
         width={width ?? "100%"}
-        maxWidth={maxWidth ? maxWidth : isInModal ? "100%" : "1210px"}
-        backgroundColor="white"
+        maxWidth={maxWidth ?? (isInModal ? "100%" : "1210px")}
+        bg="white"
         borderRadius="20px"
-        padding={padding ?? 4}
+        p={padding ?? 4}
         display="flex"
         flexDirection="column"
-        flex={isInModal ? "1" : flex ? flex : "1"}
-        height={height ? height : isInModal ? "100%" : undefined}
+        flex={isInModal ? "1" : (flex ?? "1")}
+        height={height ?? (isInModal ? "100%" : undefined)}
       >
-
         <Flex
           mb={7}
-          width="100%"
+          w="100%"
           justifyContent="space-between"
           alignItems="center"
           flexWrap={{ base: "wrap", lg: "nowrap" }}
           gap={{ base: 2, md: 4 }}
         >
           {!hideToolbarCaption && (
-            <Text
-              fontSize={isInModal ? "28px" : fontSize ? fontSize : "2xl"}
-              color="black"
-              fontWeight="bold"
-              marginLeft={marginLeft}
-            >
+            <Text fontSize={isInModal ? "28px" : (fontSize ?? "2xl")} color="black" fontWeight="bold">
               {caption}
             </Text>
           )}
@@ -226,12 +224,7 @@ const GenericTable = <T,>({
 
             {showAddMenu && compact ? (
               <Menu>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="Opciones"
-                  icon={<SmallAddIcon />}
-                  size="md"
-                />
+                <MenuButton as={IconButton} aria-label="Opciones" icon={<SmallAddIcon />} size="md" />
                 <MenuList>
                   <MenuItem onClick={onCreateOpen}>
                     Agregar {captionLabel ? captionLabel.slice(0, -1) : "item"}
@@ -243,25 +236,13 @@ const GenericTable = <T,>({
             {topRightComponent}
           </HStack>
         </Flex>
+
         <TableContainer>
-          <Table
-            variant="simple"
-            size="sm"
-            style={
-              careerModalEdit && subjectModalEdit
-                ? { tableLayout: "fixed", width: "100%" }
-                : undefined
-            }
-            marginBottom={2}
-          >
+          <Table variant="simple" size="sm" marginBottom={2}>
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
-                  <Th
-                    key={index}
-                    color="#B5B7C0"
-                    width={widthAccordingToModal(index)}
-                  >
+                  <Th key={index} color="#B5B7C0" width={widthAccordingToModal(index)}>
                     {header}
                   </Th>
                 ))}
@@ -270,49 +251,33 @@ const GenericTable = <T,>({
             </Thead>
             <Tbody>
               {currentData.map((row, index) => renderRow(row, index))}
-              {compact &&
-                currentData.length < itemsPerPage &&
-                Array.from({ length: itemsPerPage - currentData.length }).map(
-                  (_, index) => (
-                    <Tr key={`empty-${index}`} height="57px">
-                      {TableHeader.map((_, colIndex) => (
-                        <Td key={colIndex}>&nbsp;</Td>
-                      ))}
-                      <Td>&nbsp;</Td>
-                    </Tr>
-                  )
-                )}
+              {compact && currentData.length < itemsPerPage &&
+                Array.from({ length: itemsPerPage - currentData.length }).map((_, i) => (
+                  <Tr key={`empty-${i}`} height="57px">
+                    {TableHeader.map((_, colIndex) => (<Td key={colIndex}>&nbsp;</Td>))}
+                    <Td>&nbsp;</Td>
+                  </Tr>
+                ))
+              }
             </Tbody>
           </Table>
         </TableContainer>
-        {compact && (
-          <Flex
-            justifyContent="space-between"
-            alignItems="center"
-            marginTop={1}
-            marginBottom={2}
-            flexShrink={0}
-            minHeight="40px"
-            paddingX={2}
-          >
+
+        {showPagination && (
+          <Flex justifyContent="center" alignItems="center" mt={1} mb={2} minHeight="40px" px={2}>
             <Button
               onClick={prevPage}
-              isDisabled={currentPage === 1}
+              isDisabled={localPage === 1}
               leftIcon={<ChevronLeftIcon />}
               variant="ghost"
-              size={isInModal ? "sm" : "md"}
-            ></Button>
-            <Text>
-              {" "}
-              Página {currentPage}/{totalPages || 1}
-            </Text>
+            />
+            <Text mx={3}>Página {localPage}/{totalPages}</Text>
             <Button
               onClick={nextPage}
-              isDisabled={endIndex >= filteredData.length}
+              isDisabled={localPage >= totalPages}
               rightIcon={<ChevronRightIcon />}
               variant="ghost"
-              size={isInModal ? "sm" : "md"}
-            ></Button>
+            />
           </Flex>
         )}
       </Box>

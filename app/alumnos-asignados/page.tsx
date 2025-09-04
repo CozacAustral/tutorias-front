@@ -1,22 +1,16 @@
 "use client";
 import {
-  useDisclosure,
-  useToast,
-  Td,
-  Tr,
-  IconButton,
-  HStack,
-  Text,
+  useDisclosure, useToast, Td, Tr, IconButton, Box
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Student } from "../interfaces/student.interface";
+import { useSearchParams, useRouter } from "next/navigation";
+import { AddIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
+
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
 import AvailableStudentsModal from "../../common/components/modals/avilable-students-modal";
-import { AddIcon, ArrowBackIcon } from "@chakra-ui/icons";
-import { DeleteIcon } from "@chakra-ui/icons";
-import { useRouter } from "next/navigation";
+import { Student } from "../interfaces/student.interface";
+import { useSidebar } from "../contexts/SidebarContext";
 
 const AlumnosAsignados: React.FC = () => {
   const router = useRouter();
@@ -24,16 +18,16 @@ const AlumnosAsignados: React.FC = () => {
   const initialPage = Number(searchParams.get("page") || 1);
   const [page, setPage] = useState(initialPage);
 
-  const tutorId = Number(searchParams.get("tutorId"));
+  const { collapsed } = useSidebar();
+  const offset = collapsed ? "6.5rem" : "17rem";
 
+  const tutorId = Number(searchParams.get("tutorId"));
   const [students, setStudents] = useState<Student[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
-  const TableHeader = ["Nombre", "Apellido", "Correo", "Acciones"];
-
+  const TableHeader = ["Nombre", "Apellido", "Correo"]; // 👈 sin “Acciones”
   const [tutorName, setTutorName] = useState<string>("");
 
   const [total, setTotal] = useState(0);
@@ -42,7 +36,6 @@ const AlumnosAsignados: React.FC = () => {
 
   useEffect(() => {
     if (!tutorId) return;
-
     const fetchStudentsAndTutor = async () => {
       try {
         const res = await UserService.getStudentsByTutor(tutorId, {
@@ -56,67 +49,38 @@ const AlumnosAsignados: React.FC = () => {
         const tutor = await UserService.fetchUserById(tutorId);
         setTutorName(`${tutor.name} ${tutor.lastName}`);
       } catch (error) {
-        console.error(
-          "Error al cargar datos del tutor o sus estudiantes:",
-          error
-        );
+        console.error("Error al cargar datos:", error);
         setError("No se pudo cargar la lista.");
       }
     };
-
     fetchStudentsAndTutor();
   }, [tutorId, page, search]);
 
   const refreshStudents = async () => {
     try {
       const res = await UserService.getStudentsByTutor(tutorId, {
-        currentPage: page,
-        resultsPerPage,
-        search,
+        currentPage: page, resultsPerPage, search,
       });
       setStudents(res.data);
       setTotal(res.total);
     } catch {
-      toast({
-        title: "Error",
-        description: "No se pudieron actualizar los estudiantes.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: "Error", description: "No se pudieron actualizar los estudiantes.", status: "error" });
     }
   };
 
   const handleAsignacionExitosa = async () => {
     await refreshStudents();
     toast.closeAll();
-    toast({
-      title: "Asignación exitosa",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+    toast({ title: "Asignación exitosa", status: "success" });
   };
 
   const handleDeleteAssignment = async (studentId: number) => {
     try {
       await UserService.deleteAssignment({ tutorId, studentId });
       await refreshStudents();
-      toast({
-        title: "Asignación eliminada",
-        description: "El estudiante fue desvinculado del tutor.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: "Asignación eliminada", status: "success" });
     } catch {
-      toast({
-        title: "Error al eliminar",
-        description: "No se pudo eliminar la asignación.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: "Error al eliminar", status: "error" });
     }
   };
 
@@ -130,11 +94,7 @@ const AlumnosAsignados: React.FC = () => {
           icon={<DeleteIcon boxSize={5} />}
           aria-label="Eliminar"
           backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
+          _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
           onClick={() => handleDeleteAssignment(student.id)}
         />
       </Td>
@@ -144,42 +104,31 @@ const AlumnosAsignados: React.FC = () => {
   return (
     <>
       {error && <p>{error}</p>}
+
+      {/* Botón “Volver” alineado con el contenido */}
+      <Box pl={offset} pr={4} mt={5} mb={2}>
+        <IconButton
+          icon={<ArrowBackIcon />}
+          aria-label="Volver"
+          variant="ghost"
+          colorScheme="blue"
+          onClick={() => {
+            const fromPage = searchParams.get("fromPage");
+            router.push(`/tutores?page=${fromPage || 1}`);
+          }}
+        />
+      </Box>
+
       {students ? (
         <GenericTable
+          offsetLeft={offset}
+          pageTitle={`Alumnos asignados a ${tutorName}`} // 👈 título grande
+          caption="Alumnos asignados"                    // (opcional) pero…
+          hideToolbarCaption                             // 👈 …no lo pintes en el toolbar
           data={students}
           TableHeader={TableHeader}
-          caption={
-            <HStack
-              spacing={3}
-              overflow="hidden"
-              whiteSpace="nowrap"
-              textOverflow="ellipsis"
-            >
-              <IconButton
-                icon={<ArrowBackIcon />}
-                aria-label="Volver"
-                onClick={() => {
-                  const fromPage = searchParams.get("fromPage");
-                  const page = fromPage || 1;
-                  router.push(`/tutores?page=${page}`);
-                }}
-                variant="ghost"
-                colorScheme="blue"
-                flexShrink={0}
-              />
-              <Text
-                fontWeight="bold"
-                fontSize="4xl"
-                overflow="hidden"
-                textOverflow="ellipsis"
-                whiteSpace="nowrap"
-              >
-                Alumnos asignados a {tutorName} 
-              </Text>
-            </HStack>
-          }
           renderRow={renderStudentRow}
-          showPagination={true}
+          showPagination
           currentPage={page}
           itemsPerPage={resultsPerPage}
           totalItems={total}
@@ -197,6 +146,7 @@ const AlumnosAsignados: React.FC = () => {
       ) : (
         <p>Loading...</p>
       )}
+
       <AvailableStudentsModal
         isOpen={isOpen}
         onClose={onClose}

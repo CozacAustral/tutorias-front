@@ -71,7 +71,7 @@ const EditModal: React.FC<EditModalProps> = ({
   formData,
   onInputChange,
   renderCareerNow,
-  
+
   onCreateOpen,
 }) => {
   return (
@@ -174,7 +174,7 @@ const EditModal: React.FC<EditModalProps> = ({
                 />
               </FormControl>
             </HStack>
-
+{Array.isArray((formData as any).careers) && renderCareerNow && (
             <Box
               width="100%"
               flex="1"
@@ -183,16 +183,16 @@ const EditModal: React.FC<EditModalProps> = ({
               flexDirection="column"
             >
               <GenericTable
-                data={formData.careers}
+                data={(formData as any).careers}
                 TableHeader={["Carrera", "Estado", "Año de ingreso"]}
                 caption="Carreras"
-                renderRow={renderCareerNow?? (() => <></>)}
+                renderRow={renderCareerNow}
                 onCreateOpen={onCreateOpen}
-                compact={true}
+                compact
                 itemsPerPage={2}
-                showAddMenu={true}
-                isInModal={true}
-                careerModalEdit={true}
+                showAddMenu
+                isInModal
+                careerModalEdit
                 minH="auto"
                 paddingX={0}
                 paddingY={0}
@@ -205,6 +205,7 @@ const EditModal: React.FC<EditModalProps> = ({
                 height="100%"
               />
             </Box>
+            )}
           </VStack>
         </ModalBody>
 

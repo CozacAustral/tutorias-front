@@ -13,21 +13,26 @@ import TutorCreateModal from "../../common/components/modals/tutor-create-modal"
 
 import { UserService } from "../../services/admin-service";
 import { ResponseTutor } from "../interfaces/response-tutor.interface";
+import { useSidebar } from "../contexts/SidebarContext";
+import EditAdminTutores from "../../common/components/modals/edit-admin-tutores";
 
 const Tutores: React.FC = () => {
   const [tutors, setTutors] = useState<ResponseTutor[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTutor, setSelectedTutor] = useState<ResponseTutor | null>(
-    null
-  );
-  const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(7); // o 20, como quieras
-  const [totalItems, setTotalItems] = useState(0);
+  const [selectedTutor, setSelectedTutor] = useState<ResponseTutor | null>(null);
 
+  // ⬇️ Sidebar-aware
+  const { collapsed } = useSidebar();
+  const offset = collapsed ? "6.5rem" : "17rem";
+
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(7);
+  const [totalItems, setTotalItems] = useState(0);
   const totalItemsForUi = Math.max(totalItems, 1);
 
   const toast = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const {
     isOpen: isEditModalOpen,
@@ -49,13 +54,14 @@ const Tutores: React.FC = () => {
 
   const [formData, setFormData] = useState({ name: "", email: "" });
 
+  // Si querés igualar las capturas: "Apellido/s", "Nombre", "Correo"
   const TableHeader = ["Nombre", "Apellido", "Correo"];
 
   const loadTutors = async (p = 1) => {
     try {
       const resp = await UserService.fetchAllTutors({
         currentPage: p,
-        resultsPerPage: itemsPerPage, // usa el state
+        resultsPerPage: itemsPerPage,
       });
       setTutors(resp.data);
       setTotalItems(resp.total);
@@ -67,19 +73,18 @@ const Tutores: React.FC = () => {
     }
   };
 
-  const searchParams = useSearchParams();
-
   useEffect(() => {
     const p = Number(searchParams.get("page") || 1);
     loadTutors(p);
   }, [searchParams]);
 
-const handleInputChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-) => {
-  const { name, value } = e.target;
-  setFormData(prev => ({ ...prev, [name]: value }));
-};
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleEditClick = (tutor: ResponseTutor) => {
     setSelectedTutor(tutor);
     setFormData({
@@ -93,23 +98,11 @@ const handleInputChange = (
     if (!selectedTutor) return;
     try {
       await UserService.updateTutor(selectedTutor.user.id, { user: formData });
-      await loadTutors();
-      toast({
-        title: "Tutor actualizado.",
-        description: "El tutor ha sido actualizado con éxito.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
+      await loadTutors(page);
+      toast({ title: "Tutor actualizado.", status: "success" });
       closeEditModal();
     } catch {
-      toast({
-        title: "Error al actualizar tutor.",
-        description: "Hubo un error al intentar actualizar al tutor.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      toast({ title: "Error al actualizar tutor.", status: "error" });
     }
   };
 
@@ -122,29 +115,15 @@ const handleInputChange = (
     if (!selectedTutor) return;
     try {
       await UserService.deleteTutor(selectedTutor.user.id);
-      setTutors(
-        (prev) => prev?.filter((t) => t.user.id !== selectedTutor.user.id) || []
-      );
-      toast({
-        title: "Tutor eliminado.",
-        description: "El tutor ha sido eliminado correctamente.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
+      await loadTutors(page);
+      toast({ title: "Tutor eliminado.", status: "success" });
       closeDeleteModal();
     } catch {
-      toast({
-        title: "Error al eliminar tutor.",
-        description: "Hubo un error al intentar eliminar al tutor.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      toast({ title: "Error al eliminar tutor.", status: "error" });
     }
   };
 
-  const renderStudentRow = (tutor: ResponseTutor) => (
+  const renderTutorRow = (tutor: ResponseTutor) => (
     <Tr key={tutor.user.id}>
       <Td>{tutor.user.name}</Td>
       <Td>{tutor.user.lastName}</Td>
@@ -155,11 +134,7 @@ const handleInputChange = (
           aria-label="Editar"
           mr={3}
           backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
+          _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
           onClick={() => handleEditClick(tutor)}
         />
         <IconButton
@@ -167,26 +142,14 @@ const handleInputChange = (
           aria-label="Ver alumnos"
           mr={3}
           backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() =>
-            router.push(
-              `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`
-            )
-          }
+          _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
+          onClick={() => router.push(`/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`)}
         />
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
           aria-label="Eliminar"
           backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
+          _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
           onClick={() => handleDeleteClick(tutor)}
         />
       </Td>
@@ -196,16 +159,20 @@ const handleInputChange = (
   return (
     <>
       {error && <p>{error}</p>}
+
       {tutors ? (
         <GenericTable
+          offsetLeft={offset}              // ✅ se corre según sidebar
+          pageTitle="Tutores"              // ✅ título grande
+          caption="Tutores"
+          hideToolbarCaption               // ✅ evita duplicado en toolbar
+          data={tutors}
+          TableHeader={TableHeader}
+          renderRow={renderTutorRow}
           showPagination
           currentPage={page}
           itemsPerPage={itemsPerPage}
           totalItems={totalItemsForUi}
-          data={tutors}
-          TableHeader={TableHeader}
-          caption="Tutores"
-          renderRow={renderStudentRow}
           onPageChange={(newPage) => router.push(`/tutores?page=${newPage}`)}
           topRightComponent={
             <IconButton
@@ -224,14 +191,14 @@ const handleInputChange = (
         <p>Loading...</p>
       )}
 
-      <EditModal
+      <EditAdminTutores
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onConfirm={handleEditConfirm}
+        entityName="tutor"
+        title="Editar Tutor"
         formData={formData}
         onInputChange={handleInputChange}
-        title="Editar Tutor"
-        entityName="tutor"
       />
 
       <DeleteModal
@@ -245,7 +212,7 @@ const handleInputChange = (
       <TutorCreateModal
         isOpen={isCreateModalOpen}
         onClose={closeCreateModal}
-        onCreateSuccess={loadTutors}
+        onCreateSuccess={() => loadTutors(page)}
         createFn={UserService.createTutor}
       />
     </>
