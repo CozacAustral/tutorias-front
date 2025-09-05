@@ -102,12 +102,12 @@ const SideBar = () => {
           </Box>
 
           <Box as="li" mb="0.5rem">
-            <Link href="/reuniones" passHref style={{ textDecoration: "none" }}>
+            <Link href="/meetings" passHref style={{ textDecoration: "none" }}>
               <Flex
                 align="center"
                 p="0.5rem"
-                bg={isActiveLink("/reuniones") ? "secondary" : "primary"}
-                color={isActiveLink("/reuniones") ? "white" : "#fff3e9"}
+                bg={isActiveLink("/meetings") ? "secondary" : "primary"}
+                color={isActiveLink("/meetings") ? "white" : "#fff3e9"}
                 borderRadius="6px"
                 transition="background-color 0.1s ease-in-out"
                 _hover={{ bg: "secondary", color: "white" }}

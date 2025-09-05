@@ -148,10 +148,8 @@ const GenericTable = <T,>({
 
   return (
     <Box
-      // ⬇️ Desplazamos TODO el contenido según el ancho de la sidebar
       pl={offsetLeft}
       pr={4}
-      marginY={5}
       overflow="hidden"
       minH={minH ?? (isInModal ? "auto" : "100vh")}
       display="flex"
@@ -159,8 +157,8 @@ const GenericTable = <T,>({
       width="100%"
     >
       {!isInModal && (
-        <Box width="100%" mb={4}>
-          <Text fontSize={fontSize ?? "6xl"} color="black" mt={marginTop ?? "7"} fontWeight={600}>
+        <Box width="100%" mb={0}>
+          <Text fontSize={fontSize ?? "6xl"} color="black"  fontWeight={600}>
             {pageTitle ?? caption}
           </Text>
         </Box>
@@ -171,14 +169,13 @@ const GenericTable = <T,>({
         maxWidth={maxWidth ?? (isInModal ? "100%" : "1210px")}
         bg="white"
         borderRadius="20px"
-        p={padding ?? 4}
         display="flex"
         flexDirection="column"
         flex={isInModal ? "1" : (flex ?? "1")}
         height={height ?? (isInModal ? "100%" : undefined)}
       >
         <Flex
-          mb={7}
+          mb={2}
           w="100%"
           justifyContent="space-between"
           alignItems="center"
@@ -237,8 +234,8 @@ const GenericTable = <T,>({
           </HStack>
         </Flex>
 
-        <TableContainer>
-          <Table variant="simple" size="sm" marginBottom={2}>
+        <TableContainer w="100%" overflow="hidden">
+          <Table variant="simple" size="sm" marginBottom={0} w="100%" >
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
@@ -264,7 +261,7 @@ const GenericTable = <T,>({
         </TableContainer>
 
         {showPagination && (
-          <Flex justifyContent="center" alignItems="center" mt={1} mb={2} minHeight="40px" px={2}>
+          <Flex justifyContent="center" alignItems="center" mt={1} mb={1} minHeight="40px" px={2}>
             <Button
               onClick={prevPage}
               isDisabled={localPage === 1}

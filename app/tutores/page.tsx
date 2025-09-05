@@ -21,7 +21,6 @@ const Tutores: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedTutor, setSelectedTutor] = useState<ResponseTutor | null>(null);
 
-  // ⬇️ Sidebar-aware
   const { collapsed } = useSidebar();
   const offset = collapsed ? "6.5rem" : "17rem";
 
@@ -54,7 +53,6 @@ const Tutores: React.FC = () => {
 
   const [formData, setFormData] = useState({ name: "", email: "" });
 
-  // Si querés igualar las capturas: "Apellido/s", "Nombre", "Correo"
   const TableHeader = ["Nombre", "Apellido", "Correo"];
 
   const loadTutors = async (p = 1) => {
@@ -162,10 +160,10 @@ const Tutores: React.FC = () => {
 
       {tutors ? (
         <GenericTable
-          offsetLeft={offset}              // ✅ se corre según sidebar
-          pageTitle="Tutores"              // ✅ título grande
+          offsetLeft={offset}              
+          pageTitle="Tutores"              
           caption="Tutores"
-          hideToolbarCaption               // ✅ evita duplicado en toolbar
+          hideToolbarCaption               
           data={tutors}
           TableHeader={TableHeader}
           renderRow={renderTutorRow}
