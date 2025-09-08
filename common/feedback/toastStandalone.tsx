@@ -7,7 +7,7 @@ import AppToast, { AppToastStatus } from "../components/AppToast";
 const { toast } = createStandaloneToast();
 
 const DEFAULTS: UseToastOptions = {
-  position: "top",          // ⬅️ centrado arriba
+  position: "top",
   duration: 4000,
   isClosable: true,
 };

@@ -13,7 +13,6 @@ import {
   ModalOverlay,
   Button,
   VStack,
-  useToast,
 } from "@chakra-ui/react";
 import { useState } from "react";
 
@@ -43,7 +42,6 @@ const GenericCreateModal: React.FC<GenericCreateModalProps> = ({
   createFn,
   defaultValues = {},
 }) => {
-  const toast = useToast();
 
   const [formData, setFormData] = useState<Record<string, any>>(
     fields.reduce((acc, field) => {

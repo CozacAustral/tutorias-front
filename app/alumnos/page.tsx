@@ -142,7 +142,7 @@ useEffect(() => {
         search: searchTerm,
         currentPage,
         resultsPerPage: 10,
-        orderBy: order, // <= string | undefined
+        orderBy: order,
       });
 
       setStudents(students);
@@ -250,7 +250,7 @@ useEffect(() => {
       ...prevData,
       [name]:
         name === "birthdate" || name === "yearEntry"
-          ? new Date(value).toISOString().split("T")[0] // yyyy-MM-dd
+          ? new Date(value).toISOString().split("T")[0] 
           : name === "careerId" || name === "countryId"
           ? parseInt(value)
           : value,
@@ -607,7 +607,6 @@ useEffect(() => {
             backgroundColor: "#318AE4",
             color: "White",
           }}
-          // onClick={() => handleViewClick(student)}
         />
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -630,7 +629,7 @@ useEffect(() => {
             backgroundColor: "#318AE4",
             color: "White",
           }}
-          // onClick={() => handleDeleteClick(student)}
+
         />
       </Td>
     </Tr>

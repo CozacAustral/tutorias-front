@@ -59,7 +59,7 @@ const Tutores: React.FC = () => {
     onClose: closeCreateModal,
   } = useDisclosure();
 
-  // ✅ Form de EDICIÓN (sin contraseña)
+
   const [editFormData, setEditFormData] = useState({
     name: "",
     lastName: "",
@@ -90,7 +90,7 @@ const Tutores: React.FC = () => {
     loadTutors(p);
   }, [searchParams]);
 
-  // 🔹 Handlers del form de edición
+
   const handleEditInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -131,7 +131,7 @@ const Tutores: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!selectedTutor) return;
     try {
-      await UserService.deleteTutor(selectedTutor.user.id); // interceptor muestra toast
+      await UserService.deleteTutor(selectedTutor.user.id); 
       await loadTutors(page);
       closeDeleteModal();
     } catch (e) {

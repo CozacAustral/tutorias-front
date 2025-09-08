@@ -33,7 +33,7 @@ const AlumnosAsignados: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
-  const TableHeader = ["Nombre", "Apellido", "Correo"]; // 👈 sin “Acciones”
+  const TableHeader = ["Nombre", "Apellido", "Correo"]; 
   const [tutorName, setTutorName] = useState<string>("");
 
   const [total, setTotal] = useState(0);
@@ -72,27 +72,19 @@ const AlumnosAsignados: React.FC = () => {
       setStudents(res.data);
       setTotal(res.total);
     } catch {
-      toast({
-        title: "Error",
-        description: "No se pudieron actualizar los estudiantes.",
-        status: "error",
-      });
     }
   };
 
   const handleAsignacionExitosa = async () => {
     await refreshStudents();
-    toast.closeAll();
-    toast({ title: "Asignación exitosa", status: "success" });
+    toast.closeAll();;
   };
 
   const handleDeleteAssignment = async (studentId: number) => {
     try {
       await UserService.deleteAssignment({ tutorId, studentId });
       await refreshStudents();
-      toast({ title: "Asignación eliminada", status: "success" });
     } catch {
-      toast({ title: "Error al eliminar", status: "error" });
     }
   };
 
@@ -138,7 +130,7 @@ const AlumnosAsignados: React.FC = () => {
       {students ? (
         <GenericTable
           offsetLeft={offset}
-          caption={`Alumnos asignados a ${tutorName || "..."}`} // <- mostramos caption
+          caption={`Alumnos asignados a ${tutorName || "..."}`} 
           fontSize="1xl"
           data={students}
           TableHeader={TableHeader}

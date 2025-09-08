@@ -25,7 +25,7 @@ const Administradores: React.FC = () => {
   const { collapsed } = useSidebar();
   const offset = collapsed ? "6.5rem" : "17rem";
 
-  const { isOpen, onOpen, onClose } = useDisclosure(); // modal EDIT
+  const { isOpen, onOpen, onClose } = useDisclosure(); 
   const {
     isOpen: isDeleteOpen,
     onOpen: onDeleteOpen,
@@ -47,7 +47,6 @@ const Administradores: React.FC = () => {
 
   const TableHeader = ["Nombre", "Apellido/s", "Correo"];
 
-  // 🔹 Estado separado para CREATE
   const [createFormData, setCreateFormData] = useState({
     name: "",
     lastName: "",
@@ -56,7 +55,6 @@ const Administradores: React.FC = () => {
     telephone: "",
   });
 
-  // 🔹 Estado separado para EDIT
   const [editFormData, setEditFormData] = useState({
     name: "",
     lastName: "",
@@ -83,7 +81,6 @@ const Administradores: React.FC = () => {
     fetchAdminUsers(1, itemsPerPage);
   }, []);
 
-  // 🔹 Handlers CREATE
   const handleCreateChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -96,7 +93,6 @@ const Administradores: React.FC = () => {
     await fetchAdminUsers(currentPage, itemsPerPage);
   };
 
-  // 🔹 Handlers EDIT
   const handleEditChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -137,7 +133,6 @@ const Administradores: React.FC = () => {
     }
   };
 
-  // 🔹 Delete
   const handleDeleteClick = (admin: User) => {
     setAdminToDelete(admin);
     onDeleteOpen();
@@ -155,7 +150,7 @@ const Administradores: React.FC = () => {
     }
   };
 
-  // 🔹 Render
+
   const renderAdminRow = (admin: User) => (
     <Tr key={admin.id}>
       <Td>{admin.name}</Td>

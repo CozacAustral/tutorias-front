@@ -34,8 +34,8 @@ const AppToast: React.FC<AppToastProps> = ({ status, title, description, onClose
   return (
     <Box
       w="full"
-      maxW="520px"        // ⬅️ un poco más ancho
-      mx="auto"           // ⬅️ centrado horizontal
+      maxW="520px"
+      mx="auto"
       borderRadius="xl"
       bg={bg}
       border="1px solid"

@@ -1,4 +1,4 @@
-  "use client";
+"use client";
 import { useState, useEffect } from "react";
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import {
@@ -62,7 +62,6 @@ const SideBar = () => {
           alignItems="center"
           justifyContent="center"
           py="1rem"
-
         >
           <Image
             src={
@@ -70,7 +69,7 @@ const SideBar = () => {
                 ? "/images/collapsedaustral.png"
                 : "/images/australsidebar.png"
             }
-            width={collapsed ? 40 : 140} 
+            width={collapsed ? 40 : 140}
             height={collapsed ? 40 : 60}
             alt="logo"
             priority
@@ -191,8 +190,6 @@ const SideBar = () => {
 
           {(role === 1 || role === 2) && (
             <>
-
-
               <Box as="li" mb="1rem">
                 <Link
                   href="/alumnos"
@@ -232,8 +229,8 @@ const SideBar = () => {
         pb="0.5rem"
       >
         <IconButton
-          color="white"
-          bg="secondary"
+          color="white" 
+          bg="secondary" 
           boxSize="50px"
           fontSize="25px"
           icon={collapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
@@ -245,7 +242,12 @@ const SideBar = () => {
           display="flex"
           flexDirection={collapsed ? "column" : "row"}
           alignItems="center"
+          _hover={{
+            bg: "white", 
+            color: "blue.500", 
+          }}
         />
+
         <IconButton
           color="white"
           bg="red"
