@@ -107,7 +107,7 @@ const PaginateStudent = <T,>({
 
   const getCurrentOrderLabel = () => {
     if (!orderBy) {
-      return "Order por...";
+      return "Ordernar por...";
     }
     const current = orderOptions.find(
       (option) => option.field === orderBy[0] && option.direction === orderBy[1]
