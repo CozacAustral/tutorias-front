@@ -1,6 +1,12 @@
 "use client";
 import {
-  useDisclosure, useToast, Td, Tr, IconButton, Box
+  useDisclosure,
+  useToast,
+  Td,
+  Tr,
+  IconButton,
+  Box,
+  Text,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -59,12 +65,18 @@ const AlumnosAsignados: React.FC = () => {
   const refreshStudents = async () => {
     try {
       const res = await UserService.getStudentsByTutor(tutorId, {
-        currentPage: page, resultsPerPage, search,
+        currentPage: page,
+        resultsPerPage,
+        search,
       });
       setStudents(res.data);
       setTotal(res.total);
     } catch {
-      toast({ title: "Error", description: "No se pudieron actualizar los estudiantes.", status: "error" });
+      toast({
+        title: "Error",
+        description: "No se pudieron actualizar los estudiantes.",
+        status: "error",
+      });
     }
   };
 
@@ -94,7 +106,11 @@ const AlumnosAsignados: React.FC = () => {
           icon={<DeleteIcon boxSize={5} />}
           aria-label="Eliminar"
           backgroundColor="white"
-          _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
           onClick={() => handleDeleteAssignment(student.id)}
         />
       </Td>
@@ -122,9 +138,8 @@ const AlumnosAsignados: React.FC = () => {
       {students ? (
         <GenericTable
           offsetLeft={offset}
-          pageTitle={`Alumnos asignados a ${tutorName}`} // 👈 título grande
-          caption="Alumnos asignados"                    // (opcional) pero…
-          hideToolbarCaption                             // 👈 …no lo pintes en el toolbar
+          caption={`Alumnos asignados a ${tutorName || "..."}`} // <- mostramos caption
+          fontSize="1xl"
           data={students}
           TableHeader={TableHeader}
           renderRow={renderStudentRow}
