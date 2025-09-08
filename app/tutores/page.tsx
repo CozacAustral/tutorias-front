@@ -8,13 +8,12 @@ import { FaUser } from "react-icons/fa";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import DeleteModal from "../../common/components/modals/detele-modal";
-import EditModal from "../../common/components/modals/edit-modal";
 import TutorCreateModal from "../../common/components/modals/tutor-create-modal";
+import EditAdminTutores from "../../common/components/modals/edit-admin-tutores";
 
 import { UserService } from "../../services/admin-service";
 import { ResponseTutor } from "../interfaces/response-tutor.interface";
 import { useSidebar } from "../contexts/SidebarContext";
-import EditAdminTutores from "../../common/components/modals/edit-admin-tutores";
 
 const Tutores: React.FC = () => {
   const [tutors, setTutors] = useState<ResponseTutor[] | null>(null);
@@ -51,7 +50,13 @@ const Tutores: React.FC = () => {
     onClose: closeCreateModal,
   } = useDisclosure();
 
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  // ✅ Form de EDICIÓN (sin contraseña)
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    lastName: "",
+    email: "",
+    telephone: "",
+  });
 
   const TableHeader = ["Nombre", "Apellido", "Correo"];
 
@@ -76,18 +81,21 @@ const Tutores: React.FC = () => {
     loadTutors(p);
   }, [searchParams]);
 
-  const handleInputChange = (
+  // 🔹 Handlers del form de edición
+  const handleEditInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setEditFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleEditClick = (tutor: ResponseTutor) => {
     setSelectedTutor(tutor);
-    setFormData({
-      name: tutor.user.name,
-      email: tutor.user.email,
+    setEditFormData({
+      name: tutor.user.name || "",
+      lastName: tutor.user.lastName || "",
+      email: tutor.user.email || "",
+      telephone: (tutor as any).telephone || "", // si viene en el root del tutor
     });
     openEditModal();
   };
@@ -95,7 +103,8 @@ const Tutores: React.FC = () => {
   const handleEditConfirm = async () => {
     if (!selectedTutor) return;
     try {
-      await UserService.updateTutor(selectedTutor.user.id, { user: formData });
+      // Enviamos SOLO los campos permitidos en edición (sin password)
+      await UserService.updateTutor(selectedTutor.user.id, { user: editFormData });
       await loadTutors(page);
       toast({ title: "Tutor actualizado.", status: "success" });
       closeEditModal();
@@ -121,42 +130,41 @@ const Tutores: React.FC = () => {
     }
   };
 
-const renderTutorRow = (tutor: ResponseTutor) => (
-  <Tr key={tutor.user.id}>
-    <Td>{tutor.user.name}</Td>
-    <Td>{tutor.user.lastName}</Td>
-    <Td>{tutor.user.email}</Td>
-    <Td textAlign="right">
-      <HStack spacing={5} justify="flex-end">
-        <IconButton
-          icon={<EditIcon boxSize={5} />}
-          aria-label="Editar"
-          backgroundColor="white"
-          _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
-          onClick={() => handleEditClick(tutor)}
-        />
-        <IconButton
-          icon={<FaUser />}
-          aria-label="Ver alumnos"
-          backgroundColor="white"
-          _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
-          onClick={() =>
-            router.push(
-              `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`
-            )
-          }
-        />
-        <IconButton
-          icon={<DeleteIcon boxSize={5} />}
-          aria-label="Eliminar"
-          backgroundColor="white"
-          _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
-          onClick={() => handleDeleteClick(tutor)}
-        />
-      </HStack>
-    </Td>
-  </Tr>
-);
+  const renderTutorRow = (tutor: ResponseTutor) => (
+    <Tr key={tutor.user.id}>
+      <Td>{tutor.user.name}</Td>
+      <Td>{tutor.user.lastName}</Td>
+      <Td>{tutor.user.email}</Td>
+      <Td textAlign="right">
+        <HStack spacing={5} justify="flex-end">
+          <IconButton
+            icon={<EditIcon boxSize={5} />}
+            aria-label="Editar"
+            backgroundColor="white"
+            _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
+            onClick={() => handleEditClick(tutor)}
+          />
+          <IconButton
+            icon={<FaUser />}
+            aria-label="Ver alumnos"
+            backgroundColor="white"
+            _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
+            onClick={() =>
+              router.push(`/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`)
+            }
+          />
+          <IconButton
+            icon={<DeleteIcon boxSize={5} />}
+            aria-label="Eliminar"
+            backgroundColor="white"
+            _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
+            onClick={() => handleDeleteClick(tutor)}
+          />
+        </HStack>
+      </Td>
+    </Tr>
+  );
+
   return (
     <>
       {error && <p>{error}</p>}
@@ -164,8 +172,8 @@ const renderTutorRow = (tutor: ResponseTutor) => (
       {tutors ? (
         <GenericTable
           caption="Tutores"
-          offsetLeft={offset}              
-          pageTitle="Tutores"                             
+          offsetLeft={offset}
+          pageTitle="Tutores"
           data={tutors}
           TableHeader={TableHeader}
           renderRow={renderTutorRow}
@@ -191,14 +199,15 @@ const renderTutorRow = (tutor: ResponseTutor) => (
         <p>Loading...</p>
       )}
 
+      {/* ✏️ EDIT (igual a admins, sin contraseña) */}
       <EditAdminTutores
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onConfirm={handleEditConfirm}
         entityName="tutor"
         title="Editar Tutor"
-        formData={formData}
-        onInputChange={handleInputChange}
+        formData={editFormData}
+        onInputChange={handleEditInputChange}
       />
 
       <DeleteModal
