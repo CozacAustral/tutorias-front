@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
-import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
+import { HStack, IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { FaUser } from "react-icons/fa";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -121,16 +121,16 @@ const Tutores: React.FC = () => {
     }
   };
 
-  const renderTutorRow = (tutor: ResponseTutor) => (
-    <Tr key={tutor.user.id}>
-      <Td>{tutor.user.name}</Td>
-      <Td>{tutor.user.lastName}</Td>
-      <Td>{tutor.user.email}</Td>
-      <Td>
+const renderTutorRow = (tutor: ResponseTutor) => (
+  <Tr key={tutor.user.id}>
+    <Td>{tutor.user.name}</Td>
+    <Td>{tutor.user.lastName}</Td>
+    <Td>{tutor.user.email}</Td>
+    <Td textAlign="right">
+      <HStack spacing={5} justify="flex-end">
         <IconButton
           icon={<EditIcon boxSize={5} />}
           aria-label="Editar"
-          mr={3}
           backgroundColor="white"
           _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
           onClick={() => handleEditClick(tutor)}
@@ -138,10 +138,13 @@ const Tutores: React.FC = () => {
         <IconButton
           icon={<FaUser />}
           aria-label="Ver alumnos"
-          mr={3}
           backgroundColor="white"
           _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
-          onClick={() => router.push(`/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`)}
+          onClick={() =>
+            router.push(
+              `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`
+            )
+          }
         />
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
@@ -150,20 +153,19 @@ const Tutores: React.FC = () => {
           _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
           onClick={() => handleDeleteClick(tutor)}
         />
-      </Td>
-    </Tr>
-  );
-
+      </HStack>
+    </Td>
+  </Tr>
+);
   return (
     <>
       {error && <p>{error}</p>}
 
       {tutors ? (
         <GenericTable
-          offsetLeft={offset}              
-          pageTitle="Tutores"              
           caption="Tutores"
-          hideToolbarCaption               
+          offsetLeft={offset}              
+          pageTitle="Tutores"                             
           data={tutors}
           TableHeader={TableHeader}
           renderRow={renderTutorRow}

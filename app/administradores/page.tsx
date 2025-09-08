@@ -259,7 +259,7 @@ const Administradores: React.FC = () => {
             renderRow={renderAdminRow}
             caption="Administradores"
             pageTitle="Administradores"
-            hideToolbarCaption
+            hideToolbarCaption={false}
             showPagination={true}
             currentPage={currentPage}
             itemsPerPage={itemsPerPage}
