@@ -2,7 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
-import { HStack, IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
+import {
+  HStack,
+  IconButton,
+  Td,
+  Tr,
+  useDisclosure,
+  useToast,
+} from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { FaUser } from "react-icons/fa";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,7 +25,9 @@ import { useSidebar } from "../contexts/SidebarContext";
 const Tutores: React.FC = () => {
   const [tutors, setTutors] = useState<ResponseTutor[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTutor, setSelectedTutor] = useState<ResponseTutor | null>(null);
+  const [selectedTutor, setSelectedTutor] = useState<ResponseTutor | null>(
+    null
+  );
 
   const { collapsed } = useSidebar();
   const offset = collapsed ? "6.5rem" : "17rem";
@@ -83,7 +92,9 @@ const Tutores: React.FC = () => {
 
   // 🔹 Handlers del form de edición
   const handleEditInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setEditFormData((prev) => ({ ...prev, [name]: value }));
@@ -95,7 +106,7 @@ const Tutores: React.FC = () => {
       name: tutor.user.name || "",
       lastName: tutor.user.lastName || "",
       email: tutor.user.email || "",
-      telephone: (tutor as any).telephone || "", // si viene en el root del tutor
+      telephone: (tutor as any).telephone || "",
     });
     openEditModal();
   };
@@ -103,13 +114,12 @@ const Tutores: React.FC = () => {
   const handleEditConfirm = async () => {
     if (!selectedTutor) return;
     try {
-      // Enviamos SOLO los campos permitidos en edición (sin password)
-      await UserService.updateTutor(selectedTutor.user.id, { user: editFormData });
+      await UserService.updateTutor(selectedTutor.user.id, {
+        user: editFormData,
+      }); 
       await loadTutors(page);
-      toast({ title: "Tutor actualizado.", status: "success" });
       closeEditModal();
-    } catch {
-      toast({ title: "Error al actualizar tutor.", status: "error" });
+    } catch (e) {
     }
   };
 
@@ -121,15 +131,14 @@ const Tutores: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!selectedTutor) return;
     try {
-      await UserService.deleteTutor(selectedTutor.user.id);
+      await UserService.deleteTutor(selectedTutor.user.id); // interceptor muestra toast
       await loadTutors(page);
-      toast({ title: "Tutor eliminado.", status: "success" });
       closeDeleteModal();
-    } catch {
-      toast({ title: "Error al eliminar tutor.", status: "error" });
+    } catch (e) {
+    } finally {
+      setSelectedTutor(null);
     }
   };
-
   const renderTutorRow = (tutor: ResponseTutor) => (
     <Tr key={tutor.user.id}>
       <Td>{tutor.user.name}</Td>
@@ -141,23 +150,37 @@ const Tutores: React.FC = () => {
             icon={<EditIcon boxSize={5} />}
             aria-label="Editar"
             backgroundColor="white"
-            _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
             onClick={() => handleEditClick(tutor)}
           />
           <IconButton
             icon={<FaUser />}
             aria-label="Ver alumnos"
             backgroundColor="white"
-            _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
             onClick={() =>
-              router.push(`/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`)
+              router.push(
+                `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`
+              )
             }
           />
           <IconButton
             icon={<DeleteIcon boxSize={5} />}
             aria-label="Eliminar"
             backgroundColor="white"
-            _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "White" }}
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
             onClick={() => handleDeleteClick(tutor)}
           />
         </HStack>

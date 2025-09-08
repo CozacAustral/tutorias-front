@@ -60,7 +60,6 @@ const Administradores: React.FC = () => {
   const [editFormData, setEditFormData] = useState({
     name: "",
     lastName: "",
-    email: "",
     telephone: "",
   });
 
@@ -111,7 +110,6 @@ const Administradores: React.FC = () => {
       setEditFormData({
         name: fetchedUser.name,
         lastName: fetchedUser.lastName,
-        email: fetchedUser.email,
         telephone: (fetchedUser as any).telephone || "",
       });
       setEditingUserId(fetchedUser.id);
@@ -132,22 +130,9 @@ const Administradores: React.FC = () => {
     if (!editingUserId) return;
     try {
       await UserService.updateUser(editingUserId, editFormData);
-      toast({
-        title: "Administrador actualizado",
-        status: "success",
-        duration: 4000,
-        isClosable: true,
-      });
       fetchAdminUsers(currentPage, itemsPerPage);
       onClose();
     } catch (err) {
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar al administrador.",
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
       console.error(err);
     }
   };
@@ -162,21 +147,8 @@ const Administradores: React.FC = () => {
     if (!adminToDelete) return;
     try {
       await UserService.deleteUser(adminToDelete.id);
-      toast({
-        title: "Administrador eliminado",
-        status: "success",
-        duration: 4000,
-        isClosable: true,
-      });
       fetchAdminUsers(currentPage, itemsPerPage);
     } catch (err) {
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar al administrador.",
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
     } finally {
       setAdminToDelete(null);
       onDeleteClose();
@@ -253,7 +225,6 @@ const Administradores: React.FC = () => {
         )}
       </Box>
 
-      {/* 🔹 EDITAR SIN CONTRASEÑA */}
       <EditAdminTutores
         isOpen={isOpen}
         onClose={onClose}
@@ -263,7 +234,6 @@ const Administradores: React.FC = () => {
         onInputChange={handleEditChange}
       />
 
-      {/* 🔹 ELIMINAR */}
       <DeleteModal
         isOpen={isDeleteOpen}
         onClose={onDeleteClose}
@@ -272,7 +242,6 @@ const Administradores: React.FC = () => {
         entityDetails={`${adminToDelete?.name} ${adminToDelete?.lastName}`}
       />
 
-      {/* 🔹 CREAR CON CONTRASEÑA */}
       <GenericCreateModal
         isOpen={isCreateOpen}
         onClose={onCreateClose}

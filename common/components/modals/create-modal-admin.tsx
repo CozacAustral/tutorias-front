@@ -60,12 +60,6 @@ const GenericCreateModal: React.FC<GenericCreateModalProps> = ({
   const handleSubmit = async () => {
     try {
       await createFn(formData);
-      toast({
-        title: `${title} creado con éxito.`,
-        status: "success",
-        duration: 4000,
-        isClosable: true,
-      });
       onCreateSuccess();
       onClose();
       setFormData(
@@ -75,14 +69,6 @@ const GenericCreateModal: React.FC<GenericCreateModalProps> = ({
         }, {} as Record<string, any>)
       );
     } catch (err) {
-      console.error("Error al crear", err);
-      toast({
-        title: "Error",
-        description: `No se pudo crear el ${title.toLowerCase()}.`,
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
     }
   };
 
