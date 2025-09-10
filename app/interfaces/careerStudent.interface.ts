@@ -1,5 +1,5 @@
-import { Student } from "../alumnos-asignados/page";
 import { Career } from "./career.interface";
+import { Student } from "./student.interface";
 
 
 export interface CareerStudent {

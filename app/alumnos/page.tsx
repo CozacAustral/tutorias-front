@@ -32,7 +32,6 @@ import { Country } from "../interfaces/country.interface";
 import { CreateStudent } from "../interfaces/CreateStudent";
 import Cookies from "js-cookie";
 import { FaRegCalendarAlt, FaSadCry } from "react-icons/fa";
-import PaginateStudent from "./modals/paginate-student";
 import SubjectModal from "./modals/subject-student-modal";
 import CareerModal from "./modals/create-career-student-modal";
 import ViewStudentModal from "./modals/view-student-modal";
@@ -818,7 +817,7 @@ const Estudiantes: React.FC = () => {
 
   return (
     <>
-      <PaginateStudent
+      <GenericTable
         data={students}
         TableHeader={role === 2 ? TableHeaderTutor : TableHeader}
         caption={role === 2 ? "Mis Alumnos" : "Alumnos"}
