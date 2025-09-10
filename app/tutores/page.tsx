@@ -37,8 +37,8 @@ const Tutores: React.FC = () => {
         const fetchedTutors = await UserService.fetchAllTutors();
         setTutors(fetchedTutors);
       } catch (error) {
-        console.error('Error fetching students:', error);
-        setError("No se pudieron cargar los estudiantes.");
+        console.error('Error fetching tutors:', error);
+        setError("No se pudieron cargar los tutores.");
       } finally {
         setLoading(false);
       }
