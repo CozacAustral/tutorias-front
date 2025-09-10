@@ -19,43 +19,31 @@ import {
   MenuList,
   MenuItem,
   IconButton,
+  ModalHeader,
+  ModalContent,
   HStack,
 } from "@chakra-ui/react";
+
 import {
   SmallAddIcon,
+  Search2Icon,
   TriangleDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  SearchIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
-
 interface GenericTableProps<T> {
   data: T[];
-  pageTitle?: ReactNode;
-  hideToolbarCaption?: boolean;
-  offsetLeft?: string;
-
-  // Paginado (server-like como PaginateStudent)
-  showPagination?: boolean;
-  currentPage?: number;            // requerido para server pagination
-  totalItems?: number;             // requerido para server pagination
-  itemsPerPage?: number;
-  onPageChange?: (newPage: number) => void;
-  searchTerm?: string;
-  onSearch?: (term: string) => void;
-  orderBy?: [string, "ASC" | "DESC"];
-  onOrderChange?: (field: string, direction: "ASC" | "DESC") => void;
-
-  topRightComponent?: ReactNode;
-  caption: ReactNode;
+  caption: string;
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
   compact?: boolean;
-
-  // Opcionales de layout
+  filter?: boolean;
+  itemsPerPage?: number;
   minH?: string;
   paddingX?: number;
   paddingY?: number;
@@ -71,15 +59,12 @@ interface GenericTableProps<T> {
   isInModal?: boolean;
   careerModalEdit?: boolean;
   subjectModalEdit?: boolean;
+  actions?: boolean | null;
 }
 
 const GenericTable = <T,>({
-  topRightComponent,
   data,
   caption,
-  pageTitle,
-  hideToolbarCaption = false,
-  offsetLeft = "104234234234px",
   TableHeader,
   renderRow,
   showAddMenu = false,
@@ -102,265 +87,262 @@ const GenericTable = <T,>({
   isInModal = false,
   careerModalEdit = false,
   subjectModalEdit = false,
-  showPagination = false,
-  currentPage,
-  totalItems,
-  onPageChange,
+  filter = true,
+  actions = true,
 }: GenericTableProps<T>) => {
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const isServerPaginated =
-    !!showPagination &&
-    typeof currentPage !== "undefined" &&
-    typeof totalItems !== "undefined";
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
+  };
 
   const filteredData = data.filter((row) =>
     JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSearch = (term: string) => setSearchTerm(term);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = filteredData.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  const effectiveItems = typeof totalItems === "number" ? totalItems : filteredData.length;
-  const totalPages = Math.max(1, Math.ceil(effectiveItems / itemsPerPage));
-  const page = Math.min(Math.max((currentPage ?? 1), 1), totalPages);
-
-  const goPrev = () => {
-    if (page === 1) return;
-    onPageChange?.(page - 1);
+  const nextPage = () => {
+    if (endIndex < filteredData.length) {
+      setCurrentPage((prev) => prev + 1);
+    }
   };
 
-  const goNext = () => {
-    if (page >= totalPages) return;
-    onPageChange?.(page + 1);
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
   };
 
   const widthAccordingToModal = (index: number) => {
-    if (careerModalEdit)
+    if (careerModalEdit) {
       return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
-    if (subjectModalEdit)
+    }
+
+    if (subjectModalEdit) {
+      if (actions === false && careerModalEdit === false) {
+        const otherCols = TableHeader.length - 1;
+        const remaining = 100 - 15;
+        return index === 1 ? "15%" : `${remaining / otherCols}%`;
+      }
+
       return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
+    }
+
     return index === 0 ? "40%" : `${60 / (TableHeader.length - 1)}%`;
   };
 
-  const captionLabel = typeof caption === "string" ? caption : "";
-
   return (
     <Box
-      maxH="100vh"
-      maxW="100vw"
+      overflow="hidden"
+      minH={minH ?? (isInModal ? "auto" : "100vh")}
+      maxHeight={isInModal ? "calc(100vh - 200px)" : undefined}
       display="flex"
       flexDirection="column"
       alignItems="center"
-      justifyContent="flex-start"
-      paddingX={paddingX ?? 4}
-      paddingY={paddingY ?? 2}
-      paddingLeft={isInModal ? 0 : { base: 4, md: "90px", lg: offsetLeft }}
-      overflow="hidden"
-      minH={minH ?? (isInModal ? "auto" : "100%")}
       width="100%"
+      paddingX={paddingX ? paddingX : 4}
+      paddingY={paddingY ?? (isInModal ? 0 : 4)}
     >
+      {!isInModal && (
+        <Box width="100%" maxWidth="1200px" mb={4}>
+          <Text
+            fontSize={fontSize ? fontSize : "6xl"}
+            color="black"
+            marginLeft={marginLeft ? marginLeft : "0"}
+            marginTop={marginTop ? marginTop : "7"}
+            fontWeight={600}
+          >
+            {caption}
+          </Text>
+        </Box>
+      )}
+
       <Box
         width={width ?? "100%"}
+        maxWidth={maxWidth ? maxWidth : isInModal ? "100%" : "1210px"}
         backgroundColor="white"
         borderRadius="20px"
-        padding={3}
+        padding={padding ?? 4}
         display="flex"
         flexDirection="column"
-        flex={isInModal ? "1" : flex ?? "1"}
-        height={height ?? (isInModal ? "100%" : undefined)}
+        flex={isInModal ? "1" : flex ? flex : "1"}
+        height={height ? height : isInModal ? "100%" : undefined}
       >
-        <Flex
-          mb={6}
-          width="100%"
-          justifyContent="space-between"
-          alignItems="center"
-          marginTop="20px"
-          flexWrap={{ base: "wrap", lg: "nowrap" }}
-          rowGap={4}
-          columnGap={4}
-        >
-          {!hideToolbarCaption && (
+        {caption && (
+          <Flex
+            mb={3}
+            width="100%"
+            justifyContent="space-between"
+            alignItems="center"
+            flexWrap={{ base: "wrap", lg: "nowrap" }}
+            gap={{ base: 2, md: 4 }}
+          >
             <Text
-              fontSize={
-                isInModal
-                  ? "28px"
-                  : (fontSize as any) ?? { base: "3xl", md: "4xl", lg: "5xl" }
-              }
+              fontSize={isInModal ? "28px" : fontSize ? fontSize : "2xl"}
               color="black"
-              ml="15px"
-              mb="2px"
-              whiteSpace="nowrap"
-              flex="0 1 auto"
-              minW={0}
+              fontWeight="bold"
+              marginLeft={marginLeft}
             >
               {caption}
             </Text>
-          )}
 
-          <HStack
-            flex="0 0 auto"
-            minW={0}
-            justifyContent="flex-end"
-            spacing={3}
-            gap="12px"
-            mr={0}
-            flexWrap={{ base: "wrap", lg: "nowrap" }}
-            alignItems="center"
-          >
-            <Box width={{ base: "200px", sm: "240px", md: "280px", lg: "220px" }}>
-              <Search onSearch={handleSearch} />
-            </Box>
+            <HStack spacing={2} gap="20px">
+              <Box width={isInModal ? "140px" : "auto"}>
+                <InputGroup>
+                  <InputRightElement mb={2}>
+                    <Search2Icon />
+                  </InputRightElement>
+                </InputGroup>
+                <Search onSearch={handleSearch} />
+              </Box>
 
-            <Menu>
-              <MenuButton as={InputGroup} width={{ base: "140px", md: "150px" }}>
-                <Input placeholder="Ordenar por..." readOnly fontSize="sm" size="md" />
-                <InputRightElement pointerEvents="none">
-                  <TriangleDownIcon color="black" />
-                </InputRightElement>
-              </MenuButton>
-              <MenuList>
-                <MenuItem>De la A - Z</MenuItem>
-                <MenuItem>De la Z - A</MenuItem>
-              </MenuList>
-            </Menu>
-
-            <Menu>
-              <MenuButton as={InputGroup} width={{ base: "140px", md: "150px" }}>
-                <Input placeholder="Filtrar por..." readOnly size="md" />
-                <InputRightElement pointerEvents="none">
-                  <TriangleDownIcon color="black" />
-                </InputRightElement>
-              </MenuButton>
-              <MenuList>
-                <MenuItem>Carrera</MenuItem>
-                <MenuItem>Año de Ingreso</MenuItem>
-              </MenuList>
-            </Menu>
-
-            {showAddMenu && compact ? (
               <Menu>
                 <MenuButton
-                  as={IconButton}
-                  aria-label="Opciones"
-                  icon={<SmallAddIcon />}
-                  size="md"
-                />
+                  as={InputGroup}
+                  width={isInModal ? "140px" : "200px"}
+                >
+                  <Input placeholder="Ordenar por..." readOnly size="md" />
+                  <InputRightElement pointerEvents="none">
+                    <TriangleDownIcon color="black" />
+                  </InputRightElement>
+                </MenuButton>
                 <MenuList>
-                  <MenuItem onClick={onCreateOpen}>
-                    Agregar {captionLabel ? captionLabel.slice(0, -1) : "item"}
-                  </MenuItem>
+                  <MenuItem>De la A - Z</MenuItem>
+                  <MenuItem>De la Z - A</MenuItem>
                 </MenuList>
               </Menu>
-            ) : null}
 
-            {topRightComponent}
-          </HStack>
-        </Flex>
+              {filter ? (
+                <Menu>
+                  <MenuButton
+                    as={InputGroup}
+                    width={isInModal ? "140px" : "200px"}
+                  >
+                    <Input placeholder="Filtrar por..." readOnly size="md" />
+                    <InputRightElement pointerEvents="none">
+                      <TriangleDownIcon color="black" />
+                    </InputRightElement>
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem>Carrera</MenuItem>
+                    <MenuItem>Año de Ingreso</MenuItem>
+                  </MenuList>
+                </Menu>
+              ) : null}
 
-        <TableContainer
-          marginBottom={4}
-          width="100%"
-          maxWidth={{ base: "100%", lg: "1400px" }}
-          display="flex"
-          justifyContent="center"
-          margin="0 auto"
-          overflowX="auto"
-          overflowY="visible"
-        >
-          <Table variant="simple" size="sm" width="100%">
+              {showAddMenu && compact ? (
+                <Menu>
+                  <MenuButton
+                    as={IconButton}
+                    aria-label="Opciones"
+                    icon={<SmallAddIcon />}
+                    size="md"
+                  />
+                  <MenuList>
+                    <MenuItem onClick={onCreateOpen}>
+                      Agregar {caption.slice(0, -1)}
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              ) : undefined}
+            </HStack>
+          </Flex>
+        )}
+
+        <TableContainer>
+          <Table
+            variant="simple"
+            size="sm"
+            style={
+              careerModalEdit || subjectModalEdit
+                ? { tableLayout: actions ? "auto" : "fixed", width: "100%" }
+                : undefined
+            }
+            sx={{
+              "th, td": {
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              },
+              "thead tr": { height: "56px" },
+              "tbody tr": { height: "56px" },
+            }}
+            marginBottom={0}
+          >
             <Thead>
               <Tr>
                 {TableHeader.map((header, index) => (
                   <Th
                     key={index}
-                    fontWeight={500}
                     color="#B5B7C0"
                     width={widthAccordingToModal(index)}
+                    maxW={widthAccordingToModal(index)}
                   >
                     {header}
                   </Th>
                 ))}
-                <Th width="200px">Acciones</Th>
+                {actions ? <Th width="150px">Acciones</Th> : null}
               </Tr>
             </Thead>
             <Tbody>
-              {(isServerPaginated ? data : filteredData).map((row, index) =>
-                renderRow(row, index)
-              )}
-
+              {currentData.map((row, index) => renderRow(row, index))}
               {compact &&
-                (isServerPaginated ? data : filteredData).length < itemsPerPage &&
-                Array.from({
-                  length:
-                    itemsPerPage -
-                    (isServerPaginated ? data : filteredData).length,
-                }).map((_, i) => (
-                  <Tr key={`empty-${i}`} height="50px">
-                    {TableHeader.map((_, colIndex) => (
-                      <Td key={colIndex}>&nbsp;</Td>
-                    ))}
-                    <Td>&nbsp;</Td>
-                  </Tr>
-                ))}
+                currentData.length < itemsPerPage &&
+                Array.from({ length: itemsPerPage - currentData.length }).map(
+                  (_, index) => (
+                    <Tr key={`empty-${index}`} height="57px">
+                      {TableHeader.map((_, colIndex) => (
+                        <Td
+                          key={colIndex}
+                          width={widthAccordingToModal(colIndex)}
+                          maxW={widthAccordingToModal(colIndex)}
+                        >
+                          &nbsp;
+                        </Td>
+                      ))}
+                      {actions ? <Td width="150px">&nbsp;</Td> : null}
+                    </Tr>
+                  )
+                )}
             </Tbody>
           </Table>
         </TableContainer>
 
-        {showPagination && (
-          compact ? (
-            <Flex
-              justifyContent="space-between"
-              alignItems="center"
-              marginTop={0}
-              paddingX="8px"
-              width="100%"
-            >
-              <Button
-                onClick={goPrev}
-                isDisabled={page === 1}
-                leftIcon={<ChevronLeftIcon />}
-                variant="ghost"
-                size="sm"
-              />
-              <Text> Página {page} / {totalPages} </Text>
-              <Button
-                onClick={goNext}
-                isDisabled={page >= totalPages}
-                rightIcon={<ChevronRightIcon />}
-                variant="ghost"
-                size="sm"
-              />
-            </Flex>
-          ) : (
-            <TableContainer
-              width="100%"
-              maxWidth={{ base: "100%", lg: "1400px" }}
-              margin="0 auto"
-              overflowX="visible"
-              overflowY="visible"
-            >
-              <Flex
-                justifyContent="space-between"
-                alignItems="center"
-                marginTop={2}
-                width="100%"
-              >
-                <Button
-                  onClick={goPrev}
-                  isDisabled={page === 1}
-                  leftIcon={<ChevronLeftIcon />}
-                  variant="ghost"
-                />
-                <Text> Página {page}/{totalPages} </Text>
-                <Button
-                  onClick={goNext}
-                  isDisabled={page >= totalPages}
-                  rightIcon={<ChevronRightIcon />}
-                  variant="ghost"
-                />
-              </Flex>
-            </TableContainer>
-          )
+        {compact && (
+          <Flex
+            justifyContent="space-between"
+            alignItems="center"
+            marginTop={1}
+            marginBottom={2}
+            flexShrink={0}
+            minHeight="40px"
+            paddingX={2}
+          >
+            <Button
+              onClick={prevPage}
+              isDisabled={currentPage === 1}
+              leftIcon={<ChevronLeftIcon />}
+              variant="ghost"
+              size={isInModal ? "sm" : "md"}
+            ></Button>
+            <Text>
+              {" "}
+              Página {currentPage}/{totalPages}
+            </Text>
+            <Button
+              onClick={nextPage}
+              isDisabled={endIndex >= filteredData.length}
+              rightIcon={<ChevronRightIcon />}
+              variant="ghost"
+              size={isInModal ? "sm" : "md"}
+            ></Button>
+          </Flex>
         )}
       </Box>
     </Box>
