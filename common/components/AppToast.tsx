@@ -12,7 +12,7 @@ const statusConfig: Record<
   { icon: any; accent: string; bg: string; fg: string }
 > = {
   success: { icon: CheckCircleIcon, accent: "#16a34a", bg: "green.50", fg: "green.900" },
-  error:   { icon: WarningTwoIcon,  accent: "#dc2626", bg: "red.50",   fg: "red.900" },
+  error:   { icon: WarningTwoIcon,  accent: "#ff0000ff", bg: "#fc8080ff",   fg: "red.900" },
   info:    { icon: InfoIcon,        accent: "#2563eb", bg: "blue.50",  fg: "blue.900" },
   warning: { icon: WarningIcon,     accent: "#d97706", bg: "yellow.50",fg: "yellow.900" },
 };

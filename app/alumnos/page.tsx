@@ -728,14 +728,6 @@ useEffect(() => {
         entityName="Alumno"
         renderCareerNow={renderCareerRow}
         onCreateOpen={handleCreateCareerClick}
-        fieldLabels={{
-          lastName: "Apellido/s",
-          name: "Nombre",
-          mail: "Correo",
-          telephone: "Nro. De telefono",
-          observations: "Observaciones",
-          careersId: "Carrera/s",
-        }}
       />
 
       <SubjectModal

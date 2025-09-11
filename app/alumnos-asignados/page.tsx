@@ -24,28 +24,24 @@ const AlumnosAsignados: React.FC = () => {
   const tutorId = Number(searchParams.get("tutorId"));
   const fromPage = searchParams.get("fromPage") || "1";
 
-  // 📄 paginado
   const initialPage = Number(searchParams.get("page") || 1);
   const [page, setPage] = useState(initialPage);
   const resultsPerPage = 7;
   const [total, setTotal] = useState(0);
 
-  // 🔎 búsqueda / orden
   const [searchTerm, setSearchTerm] = useState("");
   const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
     undefined
   );
 
-  // datos
   const [students, setStudents] = useState<Student[]>([]);
   const [tutorName, setTutorName] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
-  // layout
   const { collapsed } = useSidebar();
   const offset = collapsed ? "6.5rem" : "17rem";
 
-  // modales / toast
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
@@ -91,7 +87,6 @@ const AlumnosAsignados: React.FC = () => {
       return;
     }
     loadData(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, searchTerm, orderBy, tutorId]);
 
   const refreshStudents = async () => {

@@ -1,8 +1,19 @@
-// common/components/modals/editadmintutores.tsx
+// common/components/modals/edit-admin-tutores.tsx
 import React from "react";
 import {
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter,
-  ModalBody, ModalCloseButton, Button, FormControl, FormLabel, Input, Text,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  Text,
+  Stack,
 } from "@chakra-ui/react";
 
 interface EditAdminTutoresProps {
@@ -11,12 +22,18 @@ interface EditAdminTutoresProps {
   entityName: string;
   title?: string;
   onConfirm: () => Promise<void>;
-  formData: { [key: string]: string };
+  formData: { name: string; lastName: string; telephone: string };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const EditAdminTutores: React.FC<EditAdminTutoresProps> = ({
-  isOpen, onClose, onConfirm, entityName, formData, onInputChange,
+  isOpen,
+  onClose,
+  onConfirm,
+  entityName,
+  title = "Editar",
+  formData,
+  onInputChange,
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -24,21 +41,51 @@ const EditAdminTutores: React.FC<EditAdminTutoresProps> = ({
       <ModalContent>
         <ModalHeader>
           <Text fontSize="2xl" fontWeight="bold">
-            Editar {entityName}
+            {title}
           </Text>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {Object.keys(formData).map((field) => (
-            <FormControl key={field} mt={4}>
-              <FormLabel>{field}</FormLabel>
-              <Input name={field} value={formData[field]} onChange={onInputChange} />
+          <Stack spacing={4}>
+            <FormControl>
+              <FormLabel>Nombre</FormLabel>
+              <Input
+                name="name"
+                value={formData.name}
+                onChange={onInputChange}
+                placeholder="Nombre"
+              />
             </FormControl>
-          ))}
+
+            <FormControl>
+              <FormLabel>Apellido</FormLabel>
+              <Input
+                name="lastName"
+                value={formData.lastName}
+                onChange={onInputChange}
+                placeholder="Apellido"
+              />
+            </FormControl>
+
+            {/* ⭕️ Teléfono visible en edit */}
+            <FormControl>
+              <FormLabel>Teléfono</FormLabel>
+              <Input
+                name="telephone"
+                value={formData.telephone}
+                onChange={onInputChange}
+                placeholder="Teléfono"
+              />
+            </FormControl>
+          </Stack>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" onClick={onConfirm} mr={3}>Guardar</Button>
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button variant="ghost" mr={3} onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button colorScheme="blue" onClick={onConfirm}>
+            Guardar
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

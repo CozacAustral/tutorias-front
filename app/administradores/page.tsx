@@ -24,22 +24,18 @@ const Administradores: React.FC = () => {
   const [admins, setAdmins] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔎 búsqueda/orden (igual que Tutores)
   const [searchTerm, setSearchTerm] = useState("");
   const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
     undefined
   );
 
-  // 📄 paginado server-like (igual que Tutores)
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
 
-  // 🧭 layout (sidebar)
   const { collapsed } = useSidebar();
   const offset = collapsed ? "6.5rem" : "17rem";
 
-  // 🧰 modales / toasts
   const toast = useToast();
   const {
     isOpen: isEditOpen,
@@ -57,7 +53,6 @@ const Administradores: React.FC = () => {
     onClose: closeCreate,
   } = useDisclosure();
 
-  // 📝 forms
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [adminToDelete, setAdminToDelete] = useState<User | null>(null);
 
@@ -75,24 +70,14 @@ const Administradores: React.FC = () => {
     telephone: "",
   });
 
-  const TableHeader = ["Nombre", "Apellido", "Correo"];
+  const TableHeader = ["Nombre", "Apellido", "Correo", "Teléfono"];
 
-  // 🔁 loader único (mismo patrón que en Tutores)
   const loadAdmins = async (p = 1) => {
     try {
       const apiOrder = orderBy
         ? `${orderBy[0]}:${orderBy[1].toLowerCase()}`
         : undefined;
 
-      // Si tu servicio ya acepta objeto como fetchAllTutors, úsalo así:
-      // const res = await UserService.fetchAdminUsers({
-      //   search: searchTerm,
-      //   orderBy: apiOrder as any,
-      //   currentPage: p,
-      //   resultsPerPage: itemsPerPage,
-      // });
-
-      // Si aún tienes la firma (page, itemsPerPage), adapta temporalmente:
       const res =
         typeof (UserService as any).fetchAdminUsers === "function" &&
         (UserService as any).fetchAdminUsers.length === 2
@@ -114,7 +99,6 @@ const Administradores: React.FC = () => {
     }
   };
 
-  // primer carga + recargas por filtros/orden/paginación
   const calledRef = useRef(false);
   useEffect(() => {
     if (!calledRef.current) {
@@ -123,10 +107,8 @@ const Administradores: React.FC = () => {
       return;
     }
     loadAdmins(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, itemsPerPage, searchTerm, orderBy]);
 
-  // 🧾 handlers de formulario
   const handleCreateChange = (
     e:
       | React.ChangeEvent<HTMLInputElement>
@@ -147,13 +129,13 @@ const Administradores: React.FC = () => {
     setEditFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ➕ crear admin
+
   const createAdmin = async (data: any) => {
     await UserService.createUser({ ...data, roleId: 1 });
     await loadAdmins(page);
   };
 
-  // ✏️ abrir modal edición con datos
+
   const handleEditClick = async (admin: User) => {
     try {
       const fetchedUser = await UserService.fetchUserById(admin.id);
@@ -187,7 +169,7 @@ const Administradores: React.FC = () => {
     }
   };
 
-  // 🗑️ eliminar
+
   const handleDeleteClick = (admin: User) => {
     setAdminToDelete(admin);
     openDelete();
@@ -205,18 +187,17 @@ const Administradores: React.FC = () => {
     }
   };
 
-  // ↕️ ordenar
   const handleOrderChange = (field: string, direction: "ASC" | "DESC") => {
     setOrderBy([field, direction]);
     setPage(1);
   };
 
-  // 🧱 fila
   const renderAdminRow = (admin: User) => (
     <Tr key={admin.id}>
       <Td>{admin.name}</Td>
       <Td>{admin.lastName}</Td>
       <Td>{admin.email}</Td>
+      <Td>{admin.telephone}</Td>
       <Td>
         <HStack spacing={5} justify="center">
           <IconButton
@@ -252,7 +233,7 @@ const Administradores: React.FC = () => {
 
       <GenericTable
         /* === layout/estilo igual que Tutores === */
-        columnWidths={["22%", "22%", "36%"]}
+        columnWidths={["20%", "20%", "28%", "20%"]}
         cellPx="50px"
         actionsColWidth={200}
         compact
@@ -320,7 +301,12 @@ const Administradores: React.FC = () => {
           { name: "lastName", label: "Apellido", required: true },
           { name: "email", label: "Correo", type: "email", required: true },
           { name: "telephone", label: "Teléfono", type: "tel" },
-          { name: "password", label: "Contraseña", type: "password", required: true },
+          {
+            name: "password",
+            label: "Contraseña",
+            type: "password",
+            required: true,
+          },
         ]}
         createFn={createAdmin}
       />

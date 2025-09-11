@@ -29,13 +29,12 @@ const Tutores: React.FC = () => {
     null
   );
 
-  // 🔎 búsqueda y orden (igual que Alumnos)
   const [searchTerm, setSearchTerm] = useState("");
   const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
     undefined
   );
 
-  // 📄 paginado (server-like)
+
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -45,6 +44,8 @@ const Tutores: React.FC = () => {
 
   const toast = useToast();
   const router = useRouter();
+
+
 
   const {
     isOpen: isEditModalOpen,
@@ -67,13 +68,11 @@ const Tutores: React.FC = () => {
   const [editFormData, setEditFormData] = useState({
     name: "",
     lastName: "",
-    email: "",
     telephone: "",
   });
 
-  const TableHeader = ["Nombre", "Apellido", "Correo"];
+  const TableHeader = ["Nombre", "Apellido", "Correo", "Teléfono"];
 
-  // 🔁 loader ÚNICO con los mismos parámetros que Alumnos
   const loadTutors = async (p = 1) => {
     try {
       const apiOrder = orderBy
@@ -81,7 +80,7 @@ const Tutores: React.FC = () => {
         : undefined;
       const resp = await UserService.fetchAllTutors({
         search: searchTerm,
-        orderBy: apiOrder as any, // backend espera "campo:asc|desc"
+        orderBy: apiOrder as any,
         currentPage: p,
         resultsPerPage: itemsPerPage,
       });
@@ -98,7 +97,6 @@ const Tutores: React.FC = () => {
 
   useEffect(() => {
     loadTutors(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, itemsPerPage, searchTerm, orderBy]);
 
   const handleEditInputChange = (
@@ -110,15 +108,18 @@ const Tutores: React.FC = () => {
     setEditFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEditClick = (tutor: ResponseTutor) => {
+  const handleEditClick = async (tutor: ResponseTutor) => {
     setSelectedTutor(tutor);
-    setEditFormData({
-      name: tutor.user.name || "",
-      lastName: tutor.user.lastName || "",
-      email: tutor.user.email || "",
-      telephone: (tutor as any).telephone || "",
-    });
-    openEditModal();
+    try {
+      const fetched = await UserService.fetchTutorById(tutor.user.id);
+      setEditFormData({
+        name: fetched.user.name || "",
+        lastName: fetched.user.lastName || "",
+        telephone:
+          (fetched as any).telephone || (fetched.user as any)?.telephone || "",
+      });
+      openEditModal();
+    } catch (error) {}
   };
 
   const handleEditConfirm = async () => {
@@ -155,10 +156,12 @@ const Tutores: React.FC = () => {
   };
 
   const renderTutorRow = (tutor: ResponseTutor) => (
+    
     <Tr key={tutor.user.id}>
       <Td>{tutor.user.name}</Td>
       <Td>{tutor.user.lastName}</Td>
       <Td>{tutor.user.email}</Td>
+      <Td>{tutor.user.telephone}</Td>
       <Td>
         <HStack spacing={5}>
           <IconButton
@@ -208,9 +211,9 @@ const Tutores: React.FC = () => {
       {error && <p>{error}</p>}
 
       <GenericTable
-        columnWidths={["22%", "22%", "36%"]} // mismos índices que TableHeader
-        cellPx="50px" // aire entre columnas (sube/baja 24–32px)
-        actionsColWidth={200}
+        columnWidths={["20%", "20%", "28%", "20%"]}
+        actionsColWidth={200} 
+        cellPx="50px"
         compact
         caption="Tutores"
         offsetLeft={offset}

@@ -39,6 +39,17 @@ export const UserService = {
     return res.data;
   },
 
+  async fetchTutorById(tutorId: number): Promise<ResponseTutor> {
+  try {
+    const response = await axiosInstance.get<ResponseTutor>(`${urlTutors}/${tutorId}`);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      `No se pudo obtener el tutor con ID ${tutorId}. ${error.message || error}`
+    );
+  }
+},
+
   async assignStudentsToTutor(dto: { tutorId: number; studentsIds: number[] }) {
     await axiosInstance.post("/users/create-assignment", dto);
   },

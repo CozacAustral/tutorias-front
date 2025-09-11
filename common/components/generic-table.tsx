@@ -30,42 +30,36 @@ import {
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
 
-// Mantengo tu API para no romper pages
 export interface GenericTableProps<T> {
   data: T[];
   caption: ReactNode;
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
 
-  // toolbar
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
 
-  // paginado server-like (opcional)
   showPagination?: boolean;
   currentPage?: number;
   totalItems?: number;
   itemsPerPage?: number;
   onPageChange?: (newPage: number) => void;
 
-  // búsqueda/orden
   searchTerm?: string;
   onSearch?: (term: string) => void;
   orderBy?: [string, "ASC" | "DESC"];
   onOrderChange?: (field: string, direction: "ASC" | "DESC") => void;
 
-  // layout
   compact?: boolean;
   paddingX?: number;
   paddingY?: number;
   offsetLeft?: string;
 
-  // extras (compat)
   topRightComponent?: ReactNode;
   actionsColWidth?: string | number;
-  columnWidths?: (string | number)[]; // ancho de cada columna (sin Acciones)
-  cellPx?: string | number; // padding-x por celda
+  columnWidths?: (string | number)[]; 
+  cellPx?: string | number; 
 }
 
 const GenericTable = <T,>({
@@ -97,7 +91,6 @@ const GenericTable = <T,>({
   topRightComponent,
   actionsColWidth = "auto",
 }: GenericTableProps<T>) => {
-  // totalPages (si no me pasan totalItems, uso data.length para no romper)
   const effectiveTotal =
     typeof totalItems === "number" ? totalItems : data.length;
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / itemsPerPage));
@@ -242,7 +235,6 @@ const GenericTable = <T,>({
             variant="simple"
             size="md"
             width="100%"
-             // <- respeta los anchos del colgroup
             sx={{
               // AIRE ENTRE COLUMNAS
               "thead th, tbody td": { px: cellPx },
@@ -264,12 +256,10 @@ const GenericTable = <T,>({
               },
             }}
           >
-            {/* ANCHOS DE COLUMNAS */}
             <colgroup>
               {TableHeader.map((_, i) => (
                 <col key={i} style={{ width: columnWidths?.[i] ?? "auto" }} />
               ))}
-              {/* Columna Acciones */}
               <col
                 style={{
                   width:
