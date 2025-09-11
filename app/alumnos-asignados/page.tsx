@@ -6,9 +6,8 @@ import {
   Tr,
   IconButton,
   Box,
-  Text,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { AddIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 
@@ -21,71 +20,108 @@ import { useSidebar } from "../contexts/SidebarContext";
 const AlumnosAsignados: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const tutorId = Number(searchParams.get("tutorId"));
+  const fromPage = searchParams.get("fromPage") || "1";
+
+  // 📄 paginado
   const initialPage = Number(searchParams.get("page") || 1);
   const [page, setPage] = useState(initialPage);
+  const resultsPerPage = 7;
+  const [total, setTotal] = useState(0);
 
+  // 🔎 búsqueda / orden
+  const [searchTerm, setSearchTerm] = useState("");
+  const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
+    undefined
+  );
+
+  // datos
+  const [students, setStudents] = useState<Student[]>([]);
+  const [tutorName, setTutorName] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+
+  // layout
   const { collapsed } = useSidebar();
   const offset = collapsed ? "6.5rem" : "17rem";
 
-  const tutorId = Number(searchParams.get("tutorId"));
-  const [students, setStudents] = useState<Student[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // modales / toast
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
-  const TableHeader = ["Nombre", "Apellido", "Correo"]; 
-  const [tutorName, setTutorName] = useState<string>("");
+  const TableHeader = ["Nombre", "Apellido", "Correo"];
 
-  const [total, setTotal] = useState(0);
-  const resultsPerPage = 7;
-  const [search, setSearch] = useState("");
-
-  useEffect(() => {
+  const loadData = async (p = 1) => {
     if (!tutorId) return;
-    const fetchStudentsAndTutor = async () => {
-      try {
-        const res = await UserService.getStudentsByTutor(tutorId, {
-          currentPage: page,
-          resultsPerPage,
-          search,
-        });
-        setStudents(res.data);
-        setTotal(res.total);
+    try {
+      const apiOrder = orderBy
+        ? `${orderBy[0]}:${orderBy[1].toLowerCase()}`
+        : undefined;
 
-        const tutor = await UserService.fetchUserById(tutorId);
-        setTutorName(`${tutor.name} ${tutor.lastName}`);
-      } catch (error) {
-        console.error("Error al cargar datos:", error);
-        setError("No se pudo cargar la lista.");
-      }
-    };
-    fetchStudentsAndTutor();
-  }, [tutorId, page, search]);
+      const params: {
+        currentPage: number;
+        resultsPerPage: number;
+        search: string;
+        orderBy?: string;
+      } = {
+        currentPage: p,
+        resultsPerPage,
+        search: searchTerm,
+        ...(apiOrder ? { orderBy: apiOrder } : {}),
+      };
+
+      const res = await UserService.getStudentsByTutor(tutorId, params);
+
+      setStudents(res.data ?? []);
+      setTotal(res.total ?? res.data?.length ?? 0);
+
+      const tutor = await UserService.fetchUserById(tutorId);
+      setTutorName(`${tutor.name} ${tutor.lastName}`);
+    } catch (e) {
+      console.error("Error al cargar datos:", e);
+      setError("No se pudo cargar la lista.");
+    }
+  };
+
+  const firstLoadRef = useRef(false);
+  useEffect(() => {
+    if (!firstLoadRef.current) {
+      firstLoadRef.current = true;
+      loadData(initialPage);
+      return;
+    }
+    loadData(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, searchTerm, orderBy, tutorId]);
 
   const refreshStudents = async () => {
-    try {
-      const res = await UserService.getStudentsByTutor(tutorId, {
-        currentPage: page,
-        resultsPerPage,
-        search,
-      });
-      setStudents(res.data);
-      setTotal(res.total);
-    } catch {
-    }
+    await loadData(page);
+    toast.closeAll();
   };
 
   const handleAsignacionExitosa = async () => {
     await refreshStudents();
-    toast.closeAll();;
   };
 
   const handleDeleteAssignment = async (studentId: number) => {
     try {
       await UserService.deleteAssignment({ tutorId, studentId });
       await refreshStudents();
-    } catch {
-    }
+    } catch {}
+  };
+
+  const handleOrderChange = (field: string, direction: "ASC" | "DESC") => {
+    setOrderBy([field, direction]);
+    setPage(1);
+  };
+
+  const onPageChange = (newPage: number) => {
+    setPage(newPage);
+    const params = new URLSearchParams(searchParams as any);
+    params.set("page", String(newPage));
+    if (tutorId) params.set("tutorId", String(tutorId));
+    if (fromPage) params.set("fromPage", String(fromPage));
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const renderStudentRow = (student: Student) => (
@@ -93,7 +129,7 @@ const AlumnosAsignados: React.FC = () => {
       <Td>{student.user.name}</Td>
       <Td>{student.user.lastName}</Td>
       <Td>{student.user.email}</Td>
-      <Td textAlign="right" w="30px">
+      <Td>
         <IconButton
           icon={<DeleteIcon boxSize={5} />}
           aria-label="Eliminar"
@@ -113,7 +149,6 @@ const AlumnosAsignados: React.FC = () => {
     <>
       {error && <p>{error}</p>}
 
-      {/* Botón “Volver” alineado con el contenido */}
       <Box pl={offset} pr={4} mt={5} mb={2}>
         <IconButton
           icon={<ArrowBackIcon />}
@@ -121,38 +156,49 @@ const AlumnosAsignados: React.FC = () => {
           variant="ghost"
           colorScheme="blue"
           onClick={() => {
-            const fromPage = searchParams.get("fromPage");
             router.push(`/tutores?page=${fromPage || 1}`);
           }}
         />
       </Box>
 
-      {students ? (
-        <GenericTable
-          offsetLeft={offset}
-          caption={`Alumnos asignados a ${tutorName || "..."}`} 
-          fontSize="1xl"
-          data={students}
-          TableHeader={TableHeader}
-          renderRow={renderStudentRow}
-          showPagination
-          currentPage={page}
-          itemsPerPage={resultsPerPage}
-          totalItems={total}
-          onPageChange={(newPage) => setPage(newPage)}
-          topRightComponent={
-            <IconButton
-              borderRadius="50%"
-              icon={<AddIcon />}
-              aria-label="Agregar estudiante"
-              colorScheme="blue"
-              onClick={onOpen}
-            />
-          }
-        />
-      ) : (
-        <p>Loading...</p>
-      )}
+      <GenericTable
+        columnWidths={["22%", "22%", "36%"]}
+        cellPx="50px"
+        actionsColWidth={140}
+        compact
+        caption={`Alumnos asignados a ${tutorName || "..."}`}
+        offsetLeft={offset}
+        data={students}
+        TableHeader={TableHeader}
+        renderRow={renderStudentRow}
+        /* paginado */
+        showPagination
+        currentPage={page}
+        itemsPerPage={resultsPerPage}
+        totalItems={total}
+        onPageChange={onPageChange}
+        /* búsqueda / orden */
+        searchTerm={searchTerm}
+        onSearch={(t) => {
+          setSearchTerm(t);
+          setPage(1);
+        }}
+        orderBy={orderBy}
+        onOrderChange={handleOrderChange}
+        /* crear asignación */
+        topRightComponent={
+          <IconButton
+            borderRadius="50%"
+            icon={<AddIcon />}
+            aria-label="Agregar estudiante"
+            backgroundColor="#318AE4"
+            color="white"
+            boxSize="40px"
+            _hover={{ backgroundColor: "#2563eb" }}
+            onClick={onOpen}
+          />
+        }
+      />
 
       <AvailableStudentsModal
         isOpen={isOpen}

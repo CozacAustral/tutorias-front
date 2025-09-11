@@ -153,6 +153,7 @@ const PaginateStudent = <T,>({
             {caption}
           </Text>
 
+
           <HStack spacing={3} marginRight="35px" flexShrink={0} gap="20px">
             <Box width="220px">
               <Search

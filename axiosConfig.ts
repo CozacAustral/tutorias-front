@@ -1,8 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { toastError, toastSuccess } from "./common/feedback/toastStandalone";
 
-
-// ---- Helpers ----
 function getCookie(name: string): string | undefined {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -13,19 +11,16 @@ function getToken() {
   return getCookie("authTokens");
 }
 
-// Extensión de config para metadatos del toast
 declare module "axios" {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   export interface AxiosRequestConfig {
     meta?: {
-      successMessage?: string; // mensaje de éxito opcional
-      errorMessage?: string;   // mensaje de error opcional (fallback)
-      silent?: boolean;        // true => no mostrar toasts automáticos
+      successMessage?: string; 
+      errorMessage?: string;  
+      silent?: boolean;       
     };
   }
 }
 
-// Extraer mensaje de error del backend (ajustable a tu formato)
 function extractErrorMessage(error: unknown): string {
   const err = error as AxiosError<any>;
   if (err?.response?.data) {
@@ -52,13 +47,11 @@ function extractErrorMessage(error: unknown): string {
   return "Ocurrió un error inesperado. Intenta nuevamente.";
 }
 
-// Determinar si deberíamos mostrar éxito auto (POST/PUT/PATCH/DELETE)
 function shouldAutoSuccessToast(config?: AxiosRequestConfig) {
   const method = (config?.method ?? "get").toLowerCase();
   return method !== "get";
 }
 
-// Mensaje por defecto según método si no viene meta.successMessage
 function defaultSuccessMessage(method?: string) {
   switch ((method ?? "get").toLowerCase()) {
     case "post":   return "Creado correctamente";
@@ -69,13 +62,11 @@ function defaultSuccessMessage(method?: string) {
   }
 }
 
-// ---- Axios instance ----
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
   timeout: 10000,
 });
 
-// ---- Request interceptor (Auth) ----
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getToken();
@@ -88,13 +79,11 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ---- Response interceptor (éxito + error centralizados) ----
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     const { config } = response;
     if (!config?.meta?.silent && shouldAutoSuccessToast(config)) {
       const msg = config.meta?.successMessage ?? defaultSuccessMessage(config.method);
-      // Evitar toasts en llamadas de “lectura” aunque sean DELETE a recursos anidados GETs… ya lo controlamos por método.
       if (msg) toastSuccess({ title: msg });
     }
     return response;

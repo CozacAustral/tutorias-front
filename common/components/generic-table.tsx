@@ -1,5 +1,5 @@
-// common/components/generic-table.tsx
-import React, { ReactNode, useState } from "react";
+"use client";
+import React, { ReactNode } from "react";
 import {
   Box,
   Flex,
@@ -30,131 +30,93 @@ import {
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
 
-interface GenericTableProps<T> {
+// Mantengo tu API para no romper pages
+export interface GenericTableProps<T> {
   data: T[];
-  pageTitle?: ReactNode;
-  hideToolbarCaption?: boolean;
-  offsetLeft?: string;
-
-  showPagination?: boolean;
-  currentPage?: number;
-  totalItems?: number;
-  onPageChange?: (newPage: number) => void;
-
-  topRightComponent?: ReactNode;
   caption: ReactNode;
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
+
+  // toolbar
   showAddMenu?: boolean;
   onImportOpen?: () => void;
   onCreateOpen?: () => void;
-  compact?: boolean;
+
+  // paginado server-like (opcional)
+  showPagination?: boolean;
+  currentPage?: number;
+  totalItems?: number;
   itemsPerPage?: number;
-  minH?: string;
+  onPageChange?: (newPage: number) => void;
+
+  // búsqueda/orden
+  searchTerm?: string;
+  onSearch?: (term: string) => void;
+  orderBy?: [string, "ASC" | "DESC"];
+  onOrderChange?: (field: string, direction: "ASC" | "DESC") => void;
+
+  // layout
+  compact?: boolean;
   paddingX?: number;
   paddingY?: number;
-  fontSize?: string;
-  marginLeft?: string;
-  marginTop?: string;
-  width?: string;
-  maxWidth?: string;
-  padding?: number;
-  flex?: string;
-  height?: string;
-  widthTable?: number;
-  isInModal?: boolean;
-  careerModalEdit?: boolean;
-  subjectModalEdit?: boolean;
+  offsetLeft?: string;
+
+  // extras (compat)
+  topRightComponent?: ReactNode;
+  actionsColWidth?: string | number;
+  columnWidths?: (string | number)[]; // ancho de cada columna (sin Acciones)
+  cellPx?: string | number; // padding-x por celda
 }
 
 const GenericTable = <T,>({
-  topRightComponent,
   data,
   caption,
-  pageTitle,
-  hideToolbarCaption = false,
-  offsetLeft = "135px",
   TableHeader,
+  columnWidths,
+  cellPx = "28px",
   renderRow,
   showAddMenu = false,
   onImportOpen,
   onCreateOpen,
-  compact,
+
+  showPagination = true,
+  currentPage = 1,
+  totalItems,
   itemsPerPage = 10,
-  minH,
+  onPageChange,
+
+  searchTerm,
+  onSearch,
+  orderBy,
+  onOrderChange,
+
+  compact = false,
   paddingX,
   paddingY,
-  fontSize,
-  marginLeft,
-  marginTop,
-  width,
-  maxWidth,
-  padding,
-  flex,
-  height,
-  widthTable,
-  isInModal = false,
-  careerModalEdit = false,
-  subjectModalEdit = false,
-  showPagination = false,
-  currentPage,
-  totalItems,
-  onPageChange,
+  offsetLeft = "135px",
+  topRightComponent,
+  actionsColWidth = "auto",
 }: GenericTableProps<T>) => {
-  const [internalPage, setInternalPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
+  // totalPages (si no me pasan totalItems, uso data.length para no romper)
+  const effectiveTotal =
+    typeof totalItems === "number" ? totalItems : data.length;
+  const totalPages = Math.max(1, Math.ceil(effectiveTotal / itemsPerPage));
 
-  const isServerPaginated =
-    !!showPagination &&
-    typeof currentPage !== "undefined" &&
-    typeof totalItems !== "undefined";
+  const orderOptions = [
+    { label: "De la A - Z", field: "name", direction: "ASC" as const },
+    { label: "De la Z - A", field: "name", direction: "DESC" as const },
+  ];
 
-  const filteredData = isServerPaginated
-    ? data
-    : data.filter((row) =>
-        JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
-      );
-
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    if (!isServerPaginated) setInternalPage(1);
+  const getCurrentOrderLabel = () => {
+    if (!orderBy) return "Ordenar por...";
+    const current = orderOptions.find(
+      (o) => o.field === orderBy[0] && o.direction === orderBy[1]
+    );
+    return current ? current.label : "Ordenar por...";
   };
 
-  const localPage = isServerPaginated ? (currentPage as number) : internalPage;
-  const totalCount = isServerPaginated
-    ? (totalItems as number)
-    : filteredData.length;
-
-  const startIndex = (localPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-
-  const currentData = isServerPaginated
-    ? data
-    : filteredData.slice(startIndex, endIndex);
-
-  const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
-
-  const prevPage = () => {
-    if (localPage === 1) return;
-    if (isServerPaginated) onPageChange?.(localPage - 1);
-    else setInternalPage((p) => Math.max(1, p - 1));
-  };
-
-  const nextPage = () => {
-    if (localPage >= totalPages) return;
-    if (isServerPaginated) onPageChange?.(localPage + 1);
-    else setInternalPage((p) => p + 1);
-  };
-
-  const widthAccordingToModal = (index: number) => {
-    if (careerModalEdit)
-      return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
-    if (subjectModalEdit)
-      return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
-    return index === 0 ? "40%" : `${60 / (TableHeader.length - 1)}%`;
-  };
-
-  const captionLabel = typeof caption === "string" ? caption : "";
+  const goPrev = () => onPageChange?.(Math.max(1, currentPage - 1));
+  const goNext = () => onPageChange?.(Math.min(totalPages, currentPage + 1));
 
   return (
     <Box
@@ -164,83 +126,75 @@ const GenericTable = <T,>({
       flexDirection="column"
       alignItems="center"
       justifyContent="flex-start"
-      paddingX={paddingX ?? 4}
-      paddingY={paddingY ?? 2}
-      paddingLeft={isInModal ? 0 : { base: 4, md: "90px", lg: offsetLeft }}
-      overflow="hidden"
-      minH={minH ?? (isInModal ? "auto" : "100%")}
-      width="100%"
+      paddingX={paddingX ?? 16}
+      paddingY={paddingY ?? 5}
+      paddingLeft={offsetLeft}
     >
       <Box
-        width={width ?? "100%"}
+        width="100%"
         backgroundColor="white"
         borderRadius="20px"
         padding={3}
         display="flex"
         flexDirection="column"
-        flex={isInModal ? "1" : flex ?? "1"}
-        height={height ?? (isInModal ? "100%" : undefined)}
+        flex={1}
+        height="100%"
       >
+        {/* === Toolbar idéntica a Alumnos/PaginateStudent === */}
         <Flex
-          mb={6}
+          mb={10}
           width="100%"
           justifyContent="space-between"
           alignItems="center"
           marginTop="20px"
-          /* 👉 wrap solo en pantallas chicas; en lg se mantiene en una línea */
-          flexWrap={{ base: "wrap", lg: "nowrap" }}
-          rowGap={4}
-          columnGap={4}
         >
-          {!hideToolbarCaption && (
-            <Text
-              /* 👉 tamaño responsivo más contenido para títulos largos */
-              fontSize={
-                isInModal
-                  ? "28px"
-                  : (fontSize as any) ?? { base: "3xl", md: "4xl", lg: "5xl" }
-              }
-              color="black"
-              ml="15px"
-              mb="2px"
-              whiteSpace="nowrap"   /* evita que "Administradores" quiebre */
-              flex="0 1 auto"       /* permite que la toolbar tenga su espacio */
-              minW={0}
-            >
-              {caption}
-            </Text>
-          )}
+          <Text fontSize="5xl" ml="15px" mb="2px" color="black">
+            {typeof caption === "string" ? caption : "Listado"}
+          </Text>
 
-          <HStack
-            flex="0 0 auto"
-            minW={0}
-            justifyContent="flex-end"
-            spacing={3}
-            gap="12px"
-            mr={0}
-            /* 👉 no hacer wrap en lg para que el botón + no baje */
-            flexWrap={{ base: "wrap", lg: "nowrap" }}
-            alignItems="center"
-          >
-            <Box width={{ base: "200px", sm: "240px", md: "280px", lg: "300px" }}>
-              <Search onSearch={handleSearch} />
+          <HStack spacing={3} mr="35px" flexShrink={0} gap="20px">
+            <Box width="220px">
+              <Search onSearch={(t) => onSearch?.(t)} />
             </Box>
 
             <Menu>
-              <MenuButton as={InputGroup} width={{ base: "140px", md: "150px" }}>
-                <Input placeholder="Ordenar por..." readOnly fontSize="sm" size="md" />
+              <MenuButton as={InputGroup} width="140px">
+                <Input
+                  placeholder={getCurrentOrderLabel()}
+                  value={getCurrentOrderLabel()}
+                  readOnly
+                  fontSize="sm"
+                  size="md"
+                />
                 <InputRightElement pointerEvents="none">
                   <TriangleDownIcon color="black" />
                 </InputRightElement>
               </MenuButton>
               <MenuList>
-                <MenuItem>De la A - Z</MenuItem>
-                <MenuItem>De la Z - A</MenuItem>
+                {orderOptions.map((opt, i) => (
+                  <MenuItem
+                    key={i}
+                    onClick={() => onOrderChange?.(opt.field, opt.direction)}
+                    bg={
+                      orderBy &&
+                      orderBy[0] === opt.field &&
+                      orderBy[1] === opt.direction
+                        ? "gray.100"
+                        : "white"
+                    }
+                  >
+                    {opt.label}
+                  </MenuItem>
+                ))}
+                <MenuItem onClick={() => onOrderChange?.("createdAt", "DESC")}>
+                  Por defecto
+                </MenuItem>
               </MenuList>
             </Menu>
 
+            {/* Filtro placeholder (como Alumnos) */}
             <Menu>
-              <MenuButton as={InputGroup} width={{ base: "140px", md: "150px" }}>
+              <MenuButton as={InputGroup} width="140px">
                 <Input placeholder="Filtrar por..." readOnly size="md" />
                 <InputRightElement pointerEvents="none">
                   <TriangleDownIcon color="black" />
@@ -252,7 +206,7 @@ const GenericTable = <T,>({
               </MenuList>
             </Menu>
 
-            {showAddMenu && compact ? (
+            {showAddMenu ? (
               <Menu>
                 <MenuButton
                   as={IconButton}
@@ -261,9 +215,12 @@ const GenericTable = <T,>({
                   size="md"
                 />
                 <MenuList>
-                  <MenuItem onClick={onCreateOpen}>
-                    Agregar {captionLabel ? captionLabel.slice(0, -1) : "item"}
-                  </MenuItem>
+                  {onCreateOpen && (
+                    <MenuItem onClick={onCreateOpen}>Agregar</MenuItem>
+                  )}
+                  {onImportOpen && (
+                    <MenuItem onClick={onImportOpen}>Importar</MenuItem>
+                  )}
                 </MenuList>
               </Menu>
             ) : null}
@@ -272,41 +229,77 @@ const GenericTable = <T,>({
           </HStack>
         </Flex>
 
+        {/* === Tabla === */}
         <TableContainer
           marginBottom={4}
           width="100%"
-          maxWidth={{ base: "100%", lg: "1400px" }}
+          maxWidth={{ base: "0", lg: "1400px" }}
           display="flex"
           justifyContent="center"
           margin="0 auto"
-          overflowX="auto"
-          overflowY="visible"
         >
-          <Table variant="simple" size="sm" width="100%">
+          <Table
+            variant="simple"
+            size="md"
+            width="100%"
+             // <- respeta los anchos del colgroup
+            sx={{
+              // AIRE ENTRE COLUMNAS
+              "thead th, tbody td": { px: cellPx },
+
+              // ALTURA DE FILA (ajusta a gusto)
+              "thead th": { py: "5px" },
+              "tbody td": { py: "5px" },
+
+              // SEPARADOR ENTRE FILAS
+              "tbody tr": {
+                borderBottom: "1px solid",
+                borderColor: "gray.200",
+              },
+              "tbody tr:last-of-type": { borderBottom: "none" },
+
+              // ALINEAR ACCIONES
+              "thead tr th:last-of-type, tbody tr td:last-of-type": {
+                textAlign: "center",
+              },
+            }}
+          >
+            {/* ANCHOS DE COLUMNAS */}
+            <colgroup>
+              {TableHeader.map((_, i) => (
+                <col key={i} style={{ width: columnWidths?.[i] ?? "auto" }} />
+              ))}
+              {/* Columna Acciones */}
+              <col
+                style={{
+                  width:
+                    typeof actionsColWidth === "number"
+                      ? `${actionsColWidth}px`
+                      : actionsColWidth,
+                }}
+              />
+            </colgroup>
+
             <Thead>
               <Tr>
-                {TableHeader.map((header, index) => (
-                  <Th
-                    key={index}
-                    fontWeight={500}
-                    color="#B5B7C0"
-                    width={widthAccordingToModal(index)}
-                  >
+                {TableHeader.map((header, idx) => (
+                  <Th key={idx} fontWeight={500} color="#B5B7C0">
                     {header}
                   </Th>
                 ))}
-                <Th width="200px">Acciones</Th>
+                <Th textAlign="center">Acciones</Th>
               </Tr>
             </Thead>
+
             <Tbody>
-              {currentData.map((row, index) => renderRow(row, index))}
+              {data.map((row, i) => renderRow(row, i))}
               {compact &&
-                currentData.length < itemsPerPage &&
-                Array.from({ length: itemsPerPage - currentData.length }).map(
+                data.length < itemsPerPage &&
+                Array.from({ length: itemsPerPage - data.length }).map(
                   (_, i) => (
                     <Tr key={`empty-${i}`} height="50px">
-                      {TableHeader.map((_, colIndex) => (
-                        <Td key={colIndex}>&nbsp;</Td>
+                      {TableHeader.map((_, ci) => (
+                        <Td key={ci}>&nbsp;</Td>
                       ))}
                       <Td>&nbsp;</Td>
                     </Tr>
@@ -316,31 +309,68 @@ const GenericTable = <T,>({
           </Table>
         </TableContainer>
 
-        {showPagination && (
-          <TableContainer
-            width="100%"
-            maxWidth={{ base: "100%", lg: "1400px" }}
-            margin="0 auto"
-            overflowX="visible"
-            overflowY="visible"
-          >
-            <Flex justifyContent="space-between" alignItems="center" mt={2} w="100%">
+        {/* === Paginado igual que Alumnos === */}
+        {showPagination &&
+          (compact ? (
+            <Flex
+              justifyContent="space-between"
+              alignItems="center"
+              mt={0}
+              px="8px"
+              width="100%"
+            >
               <Button
-                onClick={prevPage}
-                isDisabled={localPage === 1}
+                onClick={goPrev}
+                isDisabled={currentPage <= 1}
                 leftIcon={<ChevronLeftIcon />}
                 variant="ghost"
+                size="sm"
               />
-              <Text> Página {localPage}/{totalPages} </Text>
+              <Text>
+                {" "}
+                Página {currentPage} / {totalPages}{" "}
+              </Text>
               <Button
-                onClick={nextPage}
-                isDisabled={localPage >= totalPages}
+                onClick={goNext}
+                isDisabled={currentPage >= totalPages}
                 rightIcon={<ChevronRightIcon />}
                 variant="ghost"
+                size="sm"
               />
             </Flex>
-          </TableContainer>
-        )}
+          ) : (
+            <TableContainer
+              width="100%"
+              maxWidth={{ base: "0", lg: "1400px" }}
+              margin="0 auto"
+              overflowX="visible"
+              overflowY="visible"
+            >
+              <Flex
+                justifyContent="space-between"
+                alignItems="center"
+                mt={2}
+                width="100%"
+              >
+                <Button
+                  onClick={goPrev}
+                  isDisabled={currentPage <= 1}
+                  leftIcon={<ChevronLeftIcon />}
+                  variant="ghost"
+                />
+                <Text>
+                  {" "}
+                  Página {currentPage}/{totalPages}{" "}
+                </Text>
+                <Button
+                  onClick={goNext}
+                  isDisabled={currentPage >= totalPages}
+                  rightIcon={<ChevronRightIcon />}
+                  variant="ghost"
+                />
+              </Flex>
+            </TableContainer>
+          ))}
       </Box>
     </Box>
   );

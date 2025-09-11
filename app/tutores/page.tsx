@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { FaUser } from "react-icons/fa";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import DeleteModal from "../../common/components/modals/detele-modal";
 import TutorCreateModal from "../../common/components/modals/tutor-create-modal";
@@ -23,23 +23,28 @@ import { ResponseTutor } from "../interfaces/response-tutor.interface";
 import { useSidebar } from "../contexts/SidebarContext";
 
 const Tutores: React.FC = () => {
-  const [tutors, setTutors] = useState<ResponseTutor[] | null>(null);
+  const [tutors, setTutors] = useState<ResponseTutor[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedTutor, setSelectedTutor] = useState<ResponseTutor | null>(
     null
   );
 
+  // 🔎 búsqueda y orden (igual que Alumnos)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
+    undefined
+  );
+
+  // 📄 paginado (server-like)
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+
   const { collapsed } = useSidebar();
   const offset = collapsed ? "6.5rem" : "17rem";
 
-  const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(7);
-  const [totalItems, setTotalItems] = useState(0);
-  const totalItemsForUi = Math.max(totalItems, 1);
-
   const toast = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const {
     isOpen: isEditModalOpen,
@@ -59,7 +64,6 @@ const Tutores: React.FC = () => {
     onClose: closeCreateModal,
   } = useDisclosure();
 
-
   const [editFormData, setEditFormData] = useState({
     name: "",
     lastName: "",
@@ -69,27 +73,33 @@ const Tutores: React.FC = () => {
 
   const TableHeader = ["Nombre", "Apellido", "Correo"];
 
+  // 🔁 loader ÚNICO con los mismos parámetros que Alumnos
   const loadTutors = async (p = 1) => {
     try {
+      const apiOrder = orderBy
+        ? `${orderBy[0]}:${orderBy[1].toLowerCase()}`
+        : undefined;
       const resp = await UserService.fetchAllTutors({
+        search: searchTerm,
+        orderBy: apiOrder as any, // backend espera "campo:asc|desc"
         currentPage: p,
         resultsPerPage: itemsPerPage,
       });
+
       setTutors(resp.data);
       setTotalItems(resp.total);
       setItemsPerPage(resp.limit ?? itemsPerPage);
       setPage(resp.page ?? p);
-    } catch (error) {
-      console.error("Error fetching tutors:", error);
+    } catch (e) {
+      console.error("Error fetching tutors:", e);
       setError("No se pudieron cargar los tutores.");
     }
   };
 
   useEffect(() => {
-    const p = Number(searchParams.get("page") || 1);
-    loadTutors(p);
-  }, [searchParams]);
-
+    loadTutors(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, itemsPerPage, searchTerm, orderBy]);
 
   const handleEditInputChange = (
     e: React.ChangeEvent<
@@ -116,11 +126,10 @@ const Tutores: React.FC = () => {
     try {
       await UserService.updateTutor(selectedTutor.user.id, {
         user: editFormData,
-      }); 
+      });
       await loadTutors(page);
       closeEditModal();
-    } catch (e) {
-    }
+    } catch {}
   };
 
   const handleDeleteClick = (tutor: ResponseTutor) => {
@@ -131,21 +140,27 @@ const Tutores: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!selectedTutor) return;
     try {
-      await UserService.deleteTutor(selectedTutor.user.id); 
+      await UserService.deleteTutor(selectedTutor.user.id);
       await loadTutors(page);
       closeDeleteModal();
-    } catch (e) {
+    } catch {
     } finally {
       setSelectedTutor(null);
     }
   };
+
+  const handleOrderChange = (field: string, direction: "ASC" | "DESC") => {
+    setOrderBy([field, direction]);
+    setPage(1);
+  };
+
   const renderTutorRow = (tutor: ResponseTutor) => (
     <Tr key={tutor.user.id}>
       <Td>{tutor.user.name}</Td>
       <Td>{tutor.user.lastName}</Td>
       <Td>{tutor.user.email}</Td>
-      <Td textAlign="right">
-        <HStack spacing={5} justify="flex-end">
+      <Td>
+        <HStack spacing={5}>
           <IconButton
             icon={<EditIcon boxSize={5} />}
             aria-label="Editar"
@@ -192,37 +207,43 @@ const Tutores: React.FC = () => {
     <>
       {error && <p>{error}</p>}
 
-      {tutors ? (
-        <GenericTable
-          caption="Tutores"
-          offsetLeft={offset}
-          pageTitle="Tutores"
-          data={tutors}
-          TableHeader={TableHeader}
-          renderRow={renderTutorRow}
-          showPagination
-          currentPage={page}
-          itemsPerPage={itemsPerPage}
-          totalItems={totalItemsForUi}
-          onPageChange={(newPage) => router.push(`/tutores?page=${newPage}`)}
-          topRightComponent={
-            <IconButton
-              icon={<AddIcon />}
-              aria-label="Crear tutor"
-              backgroundColor="#318AE4"
-              color="white"
-              borderRadius="50%"
-              boxSize="40px"
-              _hover={{ backgroundColor: "#2563eb" }}
-              onClick={openCreateModal}
-            />
-          }
-        />
-      ) : (
-        <p>Loading...</p>
-      )}
+      <GenericTable
+        columnWidths={["22%", "22%", "36%"]} // mismos índices que TableHeader
+        cellPx="50px" // aire entre columnas (sube/baja 24–32px)
+        actionsColWidth={200}
+        compact
+        caption="Tutores"
+        offsetLeft={offset}
+        data={tutors}
+        TableHeader={TableHeader}
+        renderRow={renderTutorRow}
+        /* === Igual que Alumnos === */
+        showPagination
+        currentPage={page}
+        itemsPerPage={itemsPerPage}
+        totalItems={totalItems}
+        onPageChange={(newPage) => setPage(newPage)}
+        searchTerm={searchTerm}
+        onSearch={(term) => {
+          setSearchTerm(term);
+          setPage(1);
+        }}
+        orderBy={orderBy}
+        onOrderChange={handleOrderChange}
+        topRightComponent={
+          <IconButton
+            icon={<AddIcon />}
+            aria-label="Crear tutor"
+            backgroundColor="#318AE4"
+            color="white"
+            borderRadius="50%"
+            boxSize="40px"
+            _hover={{ backgroundColor: "#2563eb" }}
+            onClick={openCreateModal}
+          />
+        }
+      />
 
-      {/* ✏️ EDIT (igual a admins, sin contraseña) */}
       <EditAdminTutores
         isOpen={isEditModalOpen}
         onClose={closeEditModal}

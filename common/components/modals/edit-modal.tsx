@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, useEffect, useState } from "react";
+import React from "react";
 import {
   Modal,
   ModalOverlay,
@@ -11,37 +11,13 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Text,
-  HStack,
-  useToast,
-  Select,
   VStack,
-  TableContainer,
-  Table,
-  MenuButton,
-  Menu,
-  InputRightElement,
-  InputGroup,
-  MenuItem,
-  MenuList,
-  IconButton,
-  Thead,
-  Tr,
-  Th,
-  Tbody,
-  Box,
-  Td,
+  HStack,
   Textarea,
+  Box,
 } from "@chakra-ui/react";
-import { UserService } from "../../../services/admin-service";
-import { Career } from "../../../app/interfaces/career.interface";
-import { Country } from "../../../app/interfaces/country.interface";
-import { UpdateStudentDto } from "../../../app/interfaces/update-student";
-import { SmallAddIcon, TriangleDownIcon } from "@chakra-ui/icons";
+
 import GenericTable from "../generic-table";
-import { title } from "process";
-import { Student } from "../../../app/interfaces/student.interface";
-import { StudentCareer } from "../../../app/interfaces/studentCareer.interface";
 
 interface EditModalProps<t = any> {
   isOpen: boolean;
@@ -51,13 +27,10 @@ interface EditModalProps<t = any> {
   onConfirm: () => Promise<void>;
   formData: { [key: string]: t };
   onInputChange: (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => void;
-  renderCareerNow?: (career: any, index: number) => React.ReactNode;
-  fieldLabels?: { [key: string]: string };
 
+  renderCareerNow?: (career: any, index: number) => React.ReactNode;
   onCreateOpen?: () => void;
   excludeFields?: string[];
 }
@@ -71,7 +44,6 @@ const EditModal: React.FC<EditModalProps> = ({
   formData,
   onInputChange,
   renderCareerNow,
-
   onCreateOpen,
 }) => {
   return (
@@ -82,7 +54,7 @@ const EditModal: React.FC<EditModalProps> = ({
         maxH="98vh"
         display="flex"
         flexDirection="column"
-        padding={0}
+        p={0}
       >
         <ModalHeader fontSize="28px" color="black" pl={6} fontWeight="bold">
           Editar {entityName}
@@ -103,11 +75,12 @@ const EditModal: React.FC<EditModalProps> = ({
                       borderWidth="4px"
                       borderRadius="15px"
                       h="50px"
-                      value={formData.lastName}
+                      value={(formData as any).lastName}
                       onChange={onInputChange}
                       placeholder="Apellido/s del alumno seleccionado"
                     />
                   </FormControl>
+
                   <FormControl flex={1} minW="200px">
                     <FormLabel>Nombre</FormLabel>
                     <Input
@@ -118,7 +91,7 @@ const EditModal: React.FC<EditModalProps> = ({
                       borderWidth="4px"
                       borderRadius="15px"
                       h="50px"
-                      value={formData.name}
+                      value={(formData as any).name}
                       onChange={onInputChange}
                       placeholder="Nombre del alumno seleccionado"
                     />
@@ -136,13 +109,14 @@ const EditModal: React.FC<EditModalProps> = ({
                       borderWidth="4px"
                       borderRadius="15px"
                       h="50px"
-                      value={formData.email}
+                      value={(formData as any).email}
                       onChange={onInputChange}
                       placeholder="Correo del alumno seleccionado"
                     />
                   </FormControl>
+
                   <FormControl flex={1} minW="200px">
-                    <FormLabel>Nro. De Telefono</FormLabel>
+                    <FormLabel>Nro. de teléfono</FormLabel>
                     <Input
                       name="telephone"
                       type="tel"
@@ -151,13 +125,14 @@ const EditModal: React.FC<EditModalProps> = ({
                       borderWidth="4px"
                       borderRadius="15px"
                       h="50px"
-                      value={formData.telephone}
+                      value={(formData as any).telephone}
                       onChange={onInputChange}
-                      placeholder="Nro. De telefono del alumno seleccionado"
+                      placeholder="Nro. de teléfono del alumno seleccionado"
                     />
                   </FormControl>
                 </HStack>
               </VStack>
+
               <FormControl flex={1} minW="200px">
                 <FormLabel>Observaciones</FormLabel>
                 <Textarea
@@ -167,44 +142,33 @@ const EditModal: React.FC<EditModalProps> = ({
                   borderWidth="4px"
                   borderRadius="15px"
                   h="145px"
-                  value={formData.observations}
+                  value={(formData as any).observations}
                   onChange={onInputChange}
                   py={3}
                   px={4}
                 />
               </FormControl>
             </HStack>
-{Array.isArray((formData as any).careers) && renderCareerNow && (
-            <Box
-              width="100%"
-              flex="1"
-              overflow="hidden"
-              display="flex"
-              flexDirection="column"
-            >
-              <GenericTable
-                data={(formData as any).careers}
-                TableHeader={["Carrera", "Estado", "Año de ingreso"]}
-                caption="Carreras"
-                renderRow={renderCareerNow}
-                onCreateOpen={onCreateOpen}
-                compact
-                itemsPerPage={2}
-                showAddMenu
-                isInModal
-                careerModalEdit
-                minH="auto"
-                paddingX={0}
-                paddingY={0}
-                fontSize="2xl"
-                marginLeft="-4"
-                marginTop="0"
-                width="100%"
-                maxWidth="100%"
-                padding={0}
-                height="100%"
-              />
-            </Box>
+
+            {Array.isArray((formData as any).careers) && renderCareerNow && (
+              <Box width="100%" flex="1" overflow="hidden">
+                <GenericTable
+                  data={(formData as any).careers}
+                  TableHeader={["Carrera", "Estado", "Año de ingreso"]}
+                  caption="Carreras"
+                  renderRow={renderCareerNow}
+                  showAddMenu
+                  onCreateOpen={onCreateOpen}
+                  compact
+                  itemsPerPage={2}
+                  /* layout dentro del modal */
+                  paddingX={0}
+                  paddingY={0}
+                  offsetLeft="0"
+                  columnWidths={["50%", "25%", "25%"]}
+                  actionsColWidth={0}
+                />
+              </Box>
             )}
           </VStack>
         </ModalBody>
