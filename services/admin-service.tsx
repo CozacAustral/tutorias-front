@@ -28,6 +28,64 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async createTutor(tutorData: any): Promise<void> {
+    try {
+      await axiosInstance.post(`${urlTutors}`, tutorData);
+    } catch (error: any) {
+      throw new Error(`Error al crear el tutor: ${error.message || error}`);
+    }
+  },
+
+  async fetchAdminUsers(page: number, limit: number) {
+    try {
+      const response = await axiosInstance.get(`/users/admins`, {
+        params: {
+          currentPage: page,
+          resultsPerPage: limit,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `Error al obtener administradores. ${error.message || error}`
+      );
+    }
+  },
+
+  async createUser(newUser: CreateUser) {
+    const res = await axiosInstance.post("/users", newUser);
+    return res.data;
+  },
+
+  async updateUser(
+    id: number,
+    updatedData: {
+      name?: string;
+      lastName?: string;
+      telephone?: string;
+      password?: string;
+    }
+  ): Promise<void> {
+    try {
+      await axiosInstance.patch(`users/${id}`, updatedData);
+    } catch (error: any) {
+      throw new Error(
+        `No se pudo actualizar el usuario. ${error.message || error}`
+      );
+    }
+  },
+
+  async fetchUserById(id: number): Promise<User> {
+    try {
+      const response = await axiosInstance.get<User>(`/users/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `No se pudo obtener el usuario con ID ${id}. ${error.message || error}`
+      );
+    }
+  },
+
   async fetchAllDepartments(): Promise<Department[]> {
     try {
       const response = await axiosInstance.get<Department[]>(
@@ -163,18 +221,19 @@ export const UserService = {
     }
   },
 
-  async tutorPatchMe(id_tutor: number, updatedTutor: TutorPatchMe): Promise<void> {
+  async tutorPatchMe(
+    id_tutor: number,
+    updatedTutor: TutorPatchMe
+  ): Promise<void> {
     try {
-      await axiosInstance.patch(`${urlTutors}/${id_tutor}`, 
-        {
-          "user": {
-            "name" : updatedTutor.name,
-            "lastName" : updatedTutor.lastName,
-            "telephone" : updatedTutor.telephone
-          },
-          "departmentId" : updatedTutor.departmentId
-        }
-      );
+      await axiosInstance.patch(`${urlTutors}/${id_tutor}`, {
+        user: {
+          name: updatedTutor.name,
+          lastName: updatedTutor.lastName,
+          telephone: updatedTutor.telephone,
+        },
+        departmentId: updatedTutor.departmentId,
+      });
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el tutor. ${error.message || error}`
@@ -196,29 +255,32 @@ export const UserService = {
 
   async deleteUser(id: number, password: string): Promise<void> {
     try {
-      await axiosInstance.delete(`${urlUsers}/${id}`,
-        {
-          data: { password }
-        }
-      );
+      await axiosInstance.delete(`${urlUsers}/${id}`, {
+        data: { password },
+      });
     } catch (error: any) {
       throw new Error(
-        `No se pudo eliminar al tutor con ID ${id}. ${
-          error.message || error
-        }`
+        `No se pudo eliminar al tutor con ID ${id}. ${error.message || error}`
       );
     }
   },
 
-  async fetchAllTutors(): Promise<Tutors[]> {
-    try {
-      const response = await axiosInstance.get<Tutors[]>(urlTutors);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        `Error al obtener los tutores: ${error.message || error}`
-      );
-    }
+  async fetchAllTutors(query: {
+    search?: string;
+    departmentName?: string;
+    orderBy?: [string, "asc" | "desc"];
+    currentPage?: number;
+    resultsPerPage?: number;
+  }): Promise<{
+    data: ResponseTutor[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const response = await axiosInstance.get("/tutors", {
+      params: query,
+    });
+    return response.data;
   },
 
   async fetchAllStudents(
@@ -253,17 +315,18 @@ export const UserService = {
   },
 
   async changePassword(currentPassword: string, newPassword: string) {
-    try{
-      const response = await axiosInstance.patch(`${urlUsers}/change-password`, 
+    try {
+      const response = await axiosInstance.patch(
+        `${urlUsers}/change-password`,
         {
-          "currentPassword" : currentPassword,
-          "newPassword" : newPassword
+          currentPassword: currentPassword,
+          newPassword: newPassword,
         }
-      )
-      return response.data
+      );
+      return response.data;
     } catch (error) {
-      throw new Error(`No se pudo actualizar la contraseña. ${ error }`)
-    } 
+      throw new Error(`No se pudo actualizar la contraseña. ${error}`);
+    }
   },
 
   async updateStudent(
@@ -359,5 +422,5 @@ export const UserService = {
         }`
       );
     }
-  }
+  },
 };

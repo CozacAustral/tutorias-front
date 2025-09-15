@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Flex,
@@ -19,22 +19,31 @@ import {
   MenuList,
   MenuItem,
   IconButton,
-  ModalHeader,
-  ModalContent,
   HStack,
 } from "@chakra-ui/react";
-
 import {
   SmallAddIcon,
   Search2Icon,
   TriangleDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  SearchIcon,
 } from "@chakra-ui/icons";
 import Search from "../../app/ui/search";
+
 interface GenericTableProps<T> {
-  data: T[];
+  // ---- NUEVO: server-side pagination / búsqueda / orden ----
+  currentPage?: number;                            // 1-based
+  totalItems?: number;                             // total global del backend
+  itemsPerPage?: number;                           // default 10
+  onPageChange?: (page: number) => void;           // callback para pedir otra página
+  searchTerm?: string;                             // término actual (controlado afuera)
+  onSearch?: (term: string) => void;               // callback de búsqueda (server)
+  orderBy?: [string, "ASC" | "DESC"];              // campo y dirección
+  onOrderChange?: (field: string, direction: "ASC" | "DESC") => void;
+  topRightComponent?: React.ReactNode;
+
+  // ---- existentes ----
+  data: T[] | { data: T[] } | null | undefined;
   caption: string;
   TableHeader: string[];
   renderRow: (row: T, index: number) => React.ReactNode;
@@ -43,7 +52,6 @@ interface GenericTableProps<T> {
   onCreateOpen?: () => void;
   compact?: boolean;
   filter?: boolean;
-  itemsPerPage?: number;
   minH?: string;
   paddingX?: number;
   paddingY?: number;
@@ -63,6 +71,18 @@ interface GenericTableProps<T> {
 }
 
 const GenericTable = <T,>({
+  // server-side props (opcionales)
+  currentPage,
+  totalItems,
+  itemsPerPage = 10,
+  onPageChange,
+  searchTerm,
+  onSearch,
+  orderBy,
+  onOrderChange,
+  topRightComponent,
+
+  // existentes
   data,
   caption,
   TableHeader,
@@ -71,7 +91,6 @@ const GenericTable = <T,>({
   onImportOpen,
   onCreateOpen,
   compact,
-  itemsPerPage = 10,
   minH,
   paddingX,
   paddingY,
@@ -90,39 +109,69 @@ const GenericTable = <T,>({
   filter = true,
   actions = true,
 }: GenericTableProps<T>) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
+  // ---- helper para normalizar data ----
+  const normalizeData = <U,>(d: U[] | { data: U[] } | null | undefined): U[] => {
+    if (Array.isArray(d)) return d;
+    if (d && typeof d === "object" && Array.isArray((d as any).data)) {
+      return (d as any).data as U[];
+    }
+    return [];
+  };
+  const safeData = normalizeData<T>(data);
+
+  // ---- modo server vs local ----
+  const serverMode =
+    typeof currentPage === "number" &&
+    typeof totalItems === "number" &&
+    typeof onPageChange === "function";
+
+  // ---- búsqueda: si recibo onSearch => server, si no => local ----
+  const [localSearch, setLocalSearch] = useState("");
+  const effectiveSearch = searchTerm ?? localSearch;
 
   const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    setCurrentPage(1);
+    if (onSearch) onSearch(term); // server
+    else {
+      setLocalSearch(term);       // local
+      setLocalPage(1);
+    }
   };
 
-  const filteredData = data.filter((row) =>
-    JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // ---- paginado local ----
+  const [localPage, setLocalPage] = useState(1);
+  const page = currentPage ?? localPage;
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  // ---- filtrado local si no hay onSearch ----
+  const filteredData = onSearch
+    ? safeData // server: el back ya filtró
+    : safeData.filter((row) =>
+        JSON.stringify(row).toLowerCase().includes(effectiveSearch.toLowerCase())
+      );
+
+  // ---- datos a mostrar ----
+  const startIndex = (page - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  const nextPage = () => {
-    if (endIndex < filteredData.length) {
-      setCurrentPage((prev) => prev + 1);
-    }
+  const currentData = serverMode
+    ? filteredData // server: ya viene paginado
+    : filteredData.slice(startIndex, endIndex);
+
+  const totalPages = serverMode
+    ? Math.max(1, Math.ceil((totalItems ?? 0) / itemsPerPage))
+    : Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+
+  const goPrev = () => {
+    if (page <= 1) return;
+    serverMode ? onPageChange!(page - 1) : setLocalPage((p) => Math.max(1, p - 1));
   };
 
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+  const goNext = () => {
+    if (page >= totalPages) return;
+    serverMode ? onPageChange!(page + 1) : setLocalPage((p) => p + 1);
   };
 
   const widthAccordingToModal = (index: number) => {
-    if (careerModalEdit) {
-      return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
-    }
+    if (careerModalEdit) return index === 0 ? "55%" : `${45 / (TableHeader.length - 1)}%`;
 
     if (subjectModalEdit) {
       if (actions === false && careerModalEdit === false) {
@@ -130,12 +179,19 @@ const GenericTable = <T,>({
         const remaining = 100 - 15;
         return index === 1 ? "15%" : `${remaining / otherCols}%`;
       }
-
       return index === 1 ? "15%" : `${80 / (TableHeader.length - 1)}%`;
     }
 
     return index === 0 ? "40%" : `${60 / (TableHeader.length - 1)}%`;
   };
+
+  // etiqueta de orden
+  const orderLabel =
+    orderBy?.[0]
+      ? orderBy[1] === "ASC"
+        ? "De la A - Z"
+        : "De la Z - A"
+      : "Ordenar por...";
 
   return (
     <Box
@@ -146,16 +202,16 @@ const GenericTable = <T,>({
       flexDirection="column"
       alignItems="center"
       width="100%"
-      paddingX={paddingX ? paddingX : 4}
+      paddingX={paddingX ?? 4}
       paddingY={paddingY ?? (isInModal ? 0 : 4)}
     >
       {!isInModal && (
         <Box width="100%" maxWidth="1200px" mb={4}>
           <Text
-            fontSize={fontSize ? fontSize : "6xl"}
+            fontSize={fontSize ?? "6xl"}
             color="black"
-            marginLeft={marginLeft ? marginLeft : "0"}
-            marginTop={marginTop ? marginTop : "7"}
+            marginLeft={marginLeft ?? "0"}
+            marginTop={marginTop ?? "7"}
             fontWeight={600}
           >
             {caption}
@@ -165,14 +221,14 @@ const GenericTable = <T,>({
 
       <Box
         width={width ?? "100%"}
-        maxWidth={maxWidth ? maxWidth : isInModal ? "100%" : "1210px"}
+        maxWidth={maxWidth ?? (isInModal ? "100%" : "1210px")}
         backgroundColor="white"
         borderRadius="20px"
         padding={padding ?? 4}
         display="flex"
         flexDirection="column"
-        flex={isInModal ? "1" : flex ? flex : "1"}
-        height={height ? height : isInModal ? "100%" : undefined}
+        flex={isInModal ? "1" : (flex ?? "1")}
+        height={height ?? (isInModal ? "100%" : undefined)}
       >
         {caption && (
           <Flex
@@ -184,7 +240,7 @@ const GenericTable = <T,>({
             gap={{ base: 2, md: 4 }}
           >
             <Text
-              fontSize={isInModal ? "28px" : fontSize ? fontSize : "2xl"}
+              fontSize={isInModal ? "28px" : (fontSize ?? "2xl")}
               color="black"
               fontWeight="bold"
               marginLeft={marginLeft}
@@ -193,7 +249,8 @@ const GenericTable = <T,>({
             </Text>
 
             <HStack spacing={2} gap="20px">
-              <Box width={isInModal ? "140px" : "auto"}>
+              {/* Buscar */}
+              <Box width={isInModal ? "140px" : "200px"}>
                 <InputGroup>
                   <InputRightElement mb={2}>
                     <Search2Icon />
@@ -202,28 +259,32 @@ const GenericTable = <T,>({
                 <Search onSearch={handleSearch} />
               </Box>
 
-              <Menu>
-                <MenuButton
-                  as={InputGroup}
-                  width={isInModal ? "140px" : "200px"}
-                >
-                  <Input placeholder="Ordenar por..." readOnly size="md" />
-                  <InputRightElement pointerEvents="none">
-                    <TriangleDownIcon color="black" />
-                  </InputRightElement>
-                </MenuButton>
-                <MenuList>
-                  <MenuItem>De la A - Z</MenuItem>
-                  <MenuItem>De la Z - A</MenuItem>
-                </MenuList>
-              </Menu>
+              {/* Ordenar (solo si hay onOrderChange) */}
+              {onOrderChange && (
+                <Menu>
+                  <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
+                    <Input placeholder="Ordenar por..." value={orderLabel} readOnly size="md" />
+                    <InputRightElement pointerEvents="none">
+                      <TriangleDownIcon color="black" />
+                    </InputRightElement>
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem onClick={() => onOrderChange!("name", "ASC")}>
+                      De la A - Z
+                    </MenuItem>
+                    <MenuItem onClick={() => onOrderChange!("name", "DESC")}>
+                      De la Z - A
+                    </MenuItem>
+                    <MenuItem onClick={() => onOrderChange!("createdAt", "DESC")}>
+                      Por defecto
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              )}
 
               {filter ? (
                 <Menu>
-                  <MenuButton
-                    as={InputGroup}
-                    width={isInModal ? "140px" : "200px"}
-                  >
+                  <MenuButton as={InputGroup} width={isInModal ? "140px" : "200px"}>
                     <Input placeholder="Filtrar por..." readOnly size="md" />
                     <InputRightElement pointerEvents="none">
                       <TriangleDownIcon color="black" />
@@ -236,6 +297,10 @@ const GenericTable = <T,>({
                 </Menu>
               ) : null}
 
+              {/* Acción derecha opcional */}
+              {topRightComponent}
+
+              {/* Menú agregar (si aplica) */}
               {showAddMenu && compact ? (
                 <Menu>
                   <MenuButton
@@ -287,7 +352,7 @@ const GenericTable = <T,>({
                     {header}
                   </Th>
                 ))}
-                {actions ? <Th width="150px">Acciones</Th> : null}
+                {actions ? <Th width="150px"></Th> : null}
               </Tr>
             </Thead>
             <Tbody>
@@ -314,36 +379,32 @@ const GenericTable = <T,>({
           </Table>
         </TableContainer>
 
-        {compact && (
-          <Flex
-            justifyContent="space-between"
-            alignItems="center"
-            marginTop={1}
-            marginBottom={2}
-            flexShrink={0}
-            minHeight="40px"
-            paddingX={2}
-          >
-            <Button
-              onClick={prevPage}
-              isDisabled={currentPage === 1}
-              leftIcon={<ChevronLeftIcon />}
-              variant="ghost"
-              size={isInModal ? "sm" : "md"}
-            ></Button>
-            <Text>
-              {" "}
-              Página {currentPage}/{totalPages}
-            </Text>
-            <Button
-              onClick={nextPage}
-              isDisabled={endIndex >= filteredData.length}
-              rightIcon={<ChevronRightIcon />}
-              variant="ghost"
-              size={isInModal ? "sm" : "md"}
-            ></Button>
-          </Flex>
-        )}
+        {/* Paginador (ahora funciona server/local igual que PaginateStudent) */}
+        <Flex
+          justifyContent="space-between"
+          alignItems="center"
+          marginTop={1}
+          marginBottom={2}
+          flexShrink={0}
+          minHeight="40px"
+          paddingX={2}
+        >
+          <Button
+            onClick={goPrev}
+            isDisabled={page === 1}
+            leftIcon={<ChevronLeftIcon />}
+            variant="ghost"
+            size={isInModal ? "sm" : "md"}
+          />
+          <Text> Página {page}/{totalPages} </Text>
+          <Button
+            onClick={goNext}
+            isDisabled={page >= totalPages}
+            rightIcon={<ChevronRightIcon />}
+            variant="ghost"
+            size={isInModal ? "sm" : "md"}
+          />
+        </Flex>
       </Box>
     </Box>
   );

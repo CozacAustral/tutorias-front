@@ -159,32 +159,37 @@ const Administradores: React.FC = () => {
     onDeleteOpen();
   };
 
-  const handleConfirmDelete = async () => {
-    if (!adminToDelete) return;
+const handleConfirmDelete = async () => {
+  if (!adminToDelete) return;
 
-    try {
-      await UserService.deleteUser(adminToDelete.id);
-      toast({
-        title: "Administrador eliminado",
-        status: "success",
-        duration: 4000,
-        isClosable: true,
-      });
-      fetchAdminUsers(currentPage, itemsPerPage);
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar al administrador.",
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
-    } finally {
-      setAdminToDelete(null);
-      onDeleteClose();
-    }
-  };
+  // pedir la contraseña del admin autenticado
+  const password = window.prompt("Ingresá tu contraseña para confirmar la eliminación:");
+  if (!password) return;
+
+  try {
+    await UserService.deleteUser(adminToDelete.id, password);
+    toast({
+      title: "Administrador eliminado",
+      status: "success",
+      duration: 4000,
+      isClosable: true,
+    });
+    fetchAdminUsers(currentPage, itemsPerPage);
+  } catch (err) {
+    console.error(err);
+    toast({
+      title: "Error",
+      description: "No se pudo eliminar al administrador.",
+      status: "error",
+      duration: 4000,
+      isClosable: true,
+    });
+  } finally {
+    setAdminToDelete(null);
+    onDeleteClose();
+  }
+};
+
 
   const renderAdminRow = (admin: User) => (
     <Tr key={admin.id}>
@@ -229,11 +234,7 @@ const Administradores: React.FC = () => {
             TableHeader={TableHeader}
             renderRow={renderAdminRow}
             caption="Administradores"
-            showPagination={true}
-            currentPage={currentPage}
             itemsPerPage={itemsPerPage}
-            totalItems={total}
-            onPageChange={(page) => fetchAdminUsers(page, itemsPerPage)}
             topRightComponent={
               <IconButton
                 aria-label="Crear administrador"

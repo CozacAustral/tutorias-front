@@ -1,10 +1,13 @@
-import { User } from "./user.interface";
-
+// interfaces/create.tutors.interface.ts
 export interface Tutors {
-    email: string;
-    password: string;
+  user: {
+    id: number;
     name: string;
     lastName: string;
-    roleId: number;
-  }
-  
+    email: string;
+    telephone?: string | null;
+  };
+  sex?: string | null;
+  department?: { id: number; name: string } | null;
+  category?: string | null;
+}
