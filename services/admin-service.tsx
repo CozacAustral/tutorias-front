@@ -28,6 +28,56 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+
+    async getStudentsByTutor(
+    tutorId: number,
+    query: {
+      search?: string;
+      currentPage?: number;
+      resultsPerPage?: number;
+    }
+  ): Promise<{
+    data: Student[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const response = await axiosInstance.get(
+      `/tutors/get-students/${tutorId}`,
+      {
+        params: query,
+      }
+    );
+    return response.data;
+  },
+
+  async deleteAssignment(dto: { tutorId: number; studentId: number }) {
+    return axiosInstance.delete("/users/delete-assignment", {
+      data: dto,
+    });
+  },
+  getStudentsWithoutTutor: async (
+    page: number,
+    search: string = "",
+    resultsPerPage: number = 7
+  ) => {
+    const params = new URLSearchParams();
+    params.append("currentPage", page.toString());
+    params.append("resultsPerPage", resultsPerPage.toString());
+    if (search) {
+      params.append("search", search);
+    }
+
+    const res = await axiosInstance.get(
+      `/students/without-tutor?${params.toString()}`
+    );
+    return res.data;
+  },
+
+  async assignStudentsToTutor(dto: { tutorId: number; studentsIds: number[] }) {
+    await axiosInstance.post("/users/create-assignment", dto);
+  },
+
   async createTutor(tutorData: any): Promise<void> {
     try {
       await axiosInstance.post(`${urlTutors}`, tutorData);

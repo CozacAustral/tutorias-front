@@ -1,13 +1,27 @@
+
 "use client";
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
-import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
+import {
+  HStack,
+  IconButton,
+  Td,
+  Tr,
+  useDisclosure,
+  useToast,
+} from "@chakra-ui/react";
 import { UserService } from "../../services/admin-service";
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import EditModal from "../../common/components/modals/edit-modal"; // (queda aunque no se use)
 import DeleteModal from "../../common/components/modals/detele-modal";
 import { Tutors } from "../interfaces/create.tutors.interface";
 import EditAdminTutores from "./modals/edit-admin-tutores";
+import TutorCreateModal from "./modals/tutor-create-modal";
+
+import { useRouter } from "next/navigation"; // ✅ en vez de next/router
+
+import { FaUser } from "react-icons/fa";
+import { ResponseTutor } from "../interfaces/response-tutor.interface";
+import page from "../page";
 
 const Tutores: React.FC = () => {
   const [tutors, setTutors] = useState<Tutors[] | null>(null);
@@ -15,14 +29,23 @@ const Tutores: React.FC = () => {
   const [selectedTutor, setSelectedTutor] = useState<Tutors | null>(null);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
-  const [formMode, setFormMode] = useState<"create" | "edit">("edit");
+  const router = useRouter(); // ✅ instancia del router del App Router
 
+  // MODAL CREAR
+  const {
+    isOpen: isCreateOpen,
+    onOpen: openCreateModal,
+    onClose: closeCreateModal,
+  } = useDisclosure();
+
+  // MODAL EDITAR
   const {
     isOpen: isEditModalOpen,
     onOpen: openEditModal,
     onClose: closeEditModal,
   } = useDisclosure();
 
+  // MODAL ELIMINAR
   const {
     isOpen: isDeleteModalOpen,
     onOpen: openDeleteModal,
@@ -41,8 +64,13 @@ const Tutores: React.FC = () => {
     setEditFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"];
-
+  const TableHeader = [
+    "Nombre",
+    "Apellido",
+    "Correo",
+    "Departamento",
+    "Acciones",
+  ];
 
   // ---------- helpers de fetch ----------
   const DEFAULT_QUERY = { currentPage: 1, resultsPerPage: 50 } as const;
@@ -50,7 +78,7 @@ const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"]
   const loadTutors = async () => {
     try {
       const resp = await UserService.fetchAllTutors(DEFAULT_QUERY);
-      setTutors(resp.data); // 👈 usamos el array de la respuesta paginada
+      setTutors(resp.data);
       setError(null);
     } catch (e) {
       console.error("Error fetching tutors:", e);
@@ -65,6 +93,7 @@ const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"]
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // --------- EDIT ---------
   const handleEditClick = (tutor: Tutors) => {
     setSelectedTutor(tutor);
     setEditFormData({
@@ -79,8 +108,7 @@ const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"]
     if (!selectedTutor) return;
     try {
       await UserService.updateTutor(selectedTutor.user.id, editFormData);
-
-      await loadTutors(); // 👈 recargar usando la nueva API
+      await loadTutors();
 
       toast({
         title: "Tutor actualizado.",
@@ -102,36 +130,29 @@ const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"]
     }
   };
 
+  // --------- CREATE (usa TutorCreateModal) ---------
   const handleCreateClick = () => {
-    setFormMode("create");
-    setSelectedTutor(null);
-    setEditFormData({ name: "", lastName: "", telephone: "" });
-    openEditModal();
+    openCreateModal();
   };
 
-  // (opcional) confirmar creación
-  const handleCreateConfirm = async () => {
-    try {
-      // Ajustá esta llamada a tu servicio real
-      await UserService.createTutor(editFormData);
-      await loadTutors();
-      toast({
-        title: "Tutor creado.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-      closeEditModal();
-    } catch {
-      toast({
-        title: "Error al crear tutor.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
+  // `TutorCreateModal` ya empaqueta los datos como { user: {..., roleId: 2 } }
+  const createTutorFn = async (payload: {
+    user: {
+      email: string;
+      password: string;
+      name: string;
+      lastName: string;
+      roleId: number;
+    };
+  }) => {
+    await UserService.createTutor(payload);
   };
 
+  const handleCreateSuccess = () => {
+    loadTutors();
+  };
+
+  // --------- DELETE ---------
   const handleDeleteClick = (tutor: Tutors) => {
     setSelectedTutor(tutor);
     openDeleteModal();
@@ -142,12 +163,11 @@ const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"]
     try {
       await UserService.deleteTutor(selectedTutor.user.id);
 
-      // Opcional: actualización optimista
+      // Optimista
       setTutors(
         (prev) => prev?.filter((u) => u.user.id !== selectedTutor.user.id) || []
       );
-
-      // Y luego sync con el back (por si hay efectos colaterales)
+      // Sync
       await loadTutors();
 
       toast({
@@ -170,36 +190,53 @@ const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"]
     }
   };
 
-  const renderStudentRow = (tutor: Tutors) => (
+  const renderTutorRow = (tutor: Tutors) => (
     <Tr key={tutor.user.id}>
       <Td>{tutor.user.name}</Td>
       <Td>{tutor.user.lastName}</Td>
       <Td>{tutor.user.email}</Td>
-      <Td>{tutor.department?.name ?? tutor.category ?? "-"}</Td>
+      <Td>{tutor.user.telephone}</Td>
       <Td>
-        <IconButton
-          icon={<EditIcon boxSize={5} />}
-          aria-label="Edit"
-          mr={5}
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => handleEditClick(tutor)}
-        />
-        <IconButton
-          icon={<DeleteIcon boxSize={5} />}
-          aria-label="Delete"
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => handleDeleteClick(tutor)}
-        />
+        <HStack spacing={5}>
+          <IconButton
+            icon={<EditIcon boxSize={5} />}
+            aria-label="Editar"
+            backgroundColor="white"
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleEditClick(tutor)}
+          />
+          <IconButton
+            icon={<FaUser />}
+            aria-label="Ver alumnos"
+            backgroundColor="white"
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => {
+              router.push(
+                `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=1`
+              );
+            }}
+          />
+
+          <IconButton
+            icon={<DeleteIcon boxSize={5} />}
+            aria-label="Eliminar"
+            backgroundColor="white"
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleDeleteClick(tutor)}
+          />
+        </HStack>
       </Td>
     </Tr>
   );
@@ -215,7 +252,7 @@ const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"]
           TableHeader={TableHeader}
           caption="Tutores"
           actions={false}
-          renderRow={renderStudentRow}
+          renderRow={renderTutorRow}
           topRightComponent={
             <IconButton
               aria-label="Crear tutor"
@@ -231,6 +268,15 @@ const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"]
         />
       )}
 
+      {/* CREAR TUTOR */}
+      <TutorCreateModal
+        isOpen={isCreateOpen}
+        onClose={closeCreateModal}
+        onCreateSuccess={handleCreateSuccess}
+        createFn={createTutorFn}
+      />
+
+      {/* EDITAR TUTOR */}
       <EditAdminTutores
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
@@ -241,6 +287,7 @@ const TableHeader = ["Nombre", "Apellido", "Correo", "Departamento", "Acciones"]
         onInputChange={handleEditInputChange}
       />
 
+      {/* ELIMINAR TUTOR */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}

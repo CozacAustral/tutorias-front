@@ -10,10 +10,11 @@ interface Props {
 }
 
 const tutorFields = [
-  { name: "email", label: "Email", type: "email", required: true },
-  { name: "password", label: "Contraseña", type: "password", required: true },
   { name: "name", label: "Nombre", required: true },
   { name: "lastName", label: "Apellido", required: true },
+  { name: "email", label: "Email", type: "email", required: true },
+  { name: "password", label: "Contraseña", type: "password", required: true },
+
 ];
 
 export default function TutorCreateModal({
