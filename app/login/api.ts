@@ -9,10 +9,11 @@ export const login = async (
   password: string
 ): Promise<LoginResponse> => {
   try {
-    const response = await axiosInstance.post("/auth/login", {
-      email,
-      password,
-    });
+    const response = await axiosInstance.post(
+      "/auth/login",
+      { email, password },
+      { meta: { silent: true } }
+    );
     return response.data;
   } catch (error) {
     console.error("Error en la autenticación:");
