@@ -1,4 +1,3 @@
-// app/administradores/page.tsx (o donde tengas este componente)
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -26,21 +25,18 @@ const Administradores: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { collapsed } = useSidebar();
 
-  // MODAL CREAR
   const {
     isOpen: isCreateOpen,
     onOpen: onCreateOpen,
     onClose: onCreateClose,
   } = useDisclosure();
 
-  // MODAL EDITAR
   const {
     isOpen: isEditOpen,
     onOpen: onEditOpen,
     onClose: onEditClose,
   } = useDisclosure();
 
-  // MODAL ELIMINAR
   const {
     isOpen: isDeleteOpen,
     onOpen: onDeleteOpen,
@@ -62,7 +58,13 @@ const Administradores: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const TableHeader = ["Nombre", "Apellido/s", "Correo", "Acciones"];
+  const TableHeader = [
+    "Nombre",
+    "Apellido/s",
+    "Correo",
+    "Teléfono",
+    "Acciones",
+  ];
 
   const fetchAdminUsers = async (page: number, items: number) => {
     try {
@@ -154,7 +156,7 @@ const Administradores: React.FC = () => {
       const { email, ...restData } = formData;
       await UserService.updateUser(editingUserId, {
         ...restData,
-        password: formData.password || undefined, 
+        password: formData.password || undefined,
       });
       toast({
         title: "Administrador actualizado",
@@ -177,7 +179,6 @@ const Administradores: React.FC = () => {
     }
   };
 
-  // DELETE
   const handleDeleteClick = (admin: User) => {
     setAdminToDelete(admin);
     onDeleteOpen();
@@ -219,6 +220,7 @@ const Administradores: React.FC = () => {
       <Td>{admin.name}</Td>
       <Td>{admin.lastName}</Td>
       <Td>{admin.email}</Td>
+      <Td>{(admin as any).telephone ?? (admin as any).phone ?? "-"}</Td> {/* 👈 nueva celda */}
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -253,23 +255,14 @@ const Administradores: React.FC = () => {
       <Box pl={collapsed ? "6.5rem" : "17rem"} px={5}>
         {users ? (
           <GenericTable
+            actions={false} 
             data={users}
             TableHeader={TableHeader}
             renderRow={renderAdminRow}
             caption="Administradores"
             itemsPerPage={itemsPerPage}
-            topRightComponent={
-              <IconButton
-                aria-label="Crear administrador"
-                icon={<AddIcon />}
-                onClick={handleCreateClick}
-                backgroundColor="#318AE4"
-                color="white"
-                borderRadius="50%"
-                boxSize="40px"
-                _hover={{ backgroundColor: "#2563eb" }}
-              />
-            }
+            
+            showAddMenu={true}
           />
         ) : (
           <p>Cargando...</p>

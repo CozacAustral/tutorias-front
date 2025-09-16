@@ -28,8 +28,22 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async fetchTutorById(tutorId: number): Promise<ResponseTutor> {
+    try {
+      const response = await axiosInstance.get<ResponseTutor>(
+        `${urlTutors}/${tutorId}`
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `No se pudo obtener el tutor con ID ${tutorId}. ${
+          error.message || error
+        }`
+      );
+    }
+  },
 
-    async getStudentsByTutor(
+  async getStudentsByTutor(
     tutorId: number,
     query: {
       search?: string;

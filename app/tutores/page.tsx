@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
@@ -17,7 +16,7 @@ import { Tutors } from "../interfaces/create.tutors.interface";
 import EditAdminTutores from "./modals/edit-admin-tutores";
 import TutorCreateModal from "./modals/tutor-create-modal";
 
-import { useRouter } from "next/navigation"; // ✅ en vez de next/router
+import { useRouter } from "next/navigation";
 
 import { FaUser } from "react-icons/fa";
 import { ResponseTutor } from "../interfaces/response-tutor.interface";
@@ -29,50 +28,41 @@ const Tutores: React.FC = () => {
   const [selectedTutor, setSelectedTutor] = useState<Tutors | null>(null);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
-  const router = useRouter(); // ✅ instancia del router del App Router
+  const router = useRouter();
 
-  // MODAL CREAR
   const {
     isOpen: isCreateOpen,
     onOpen: openCreateModal,
     onClose: closeCreateModal,
   } = useDisclosure();
 
-  // MODAL EDITAR
   const {
     isOpen: isEditModalOpen,
     onOpen: openEditModal,
     onClose: closeEditModal,
   } = useDisclosure();
 
-  // MODAL ELIMINAR
   const {
     isOpen: isDeleteModalOpen,
     onOpen: openDeleteModal,
     onClose: closeDeleteModal,
   } = useDisclosure();
 
-  // ► form del modal de edición (name, lastName, telephone)
   const [editFormData, setEditFormData] = useState({
     name: "",
     lastName: "",
     telephone: "",
   });
 
+  const [editLoading, setEditLoading] = useState(false);
+
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setEditFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const TableHeader = [
-    "Nombre",
-    "Apellido",
-    "Correo",
-    "Departamento",
-    "Acciones",
-  ];
+  const TableHeader = ["Nombre", "Apellido", "Correo", "telefono", "Acciones"];
 
-  // ---------- helpers de fetch ----------
   const DEFAULT_QUERY = { currentPage: 1, resultsPerPage: 50 } as const;
 
   const loadTutors = async () => {
@@ -90,18 +80,39 @@ const Tutores: React.FC = () => {
 
   useEffect(() => {
     loadTutors();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // --------- EDIT ---------
-  const handleEditClick = (tutor: Tutors) => {
+  const handleEditClick = async (tutor: Tutors) => {
     setSelectedTutor(tutor);
-    setEditFormData({
-      name: tutor.user.name ?? "",
-      lastName: tutor.user.lastName ?? "",
-      telephone: tutor.user.telephone ?? "",
-    });
-    openEditModal();
+    openEditModal(); // abrí el modal ya (podés esperar al fetch si preferís)
+
+    try {
+      setEditLoading(true);
+
+      // ⚠️ el endpoint espera tutorId; en tu lista usás tutor.user.id en todos lados,
+      // así que usamos ese id para el GET por consistencia
+      const fullTutor = await UserService.fetchTutorById(tutor.user.id);
+
+      // según tu API, ResponseTutor suele traer el user anidado
+      const u = (fullTutor as any).user ?? fullTutor;
+
+      setEditFormData({
+        name: u.name ?? tutor.user.name ?? "",
+        lastName: u.lastName ?? tutor.user.lastName ?? "",
+        telephone: u.telephone ?? tutor.user.telephone ?? "",
+      });
+    } catch (err) {
+      console.error("❌ Error al obtener tutor por id:", err);
+      toast({
+        title: "Error al cargar datos",
+        description: "No se pudieron cargar los datos del tutor.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const handleEditConfirm = async () => {
@@ -130,12 +141,10 @@ const Tutores: React.FC = () => {
     }
   };
 
-  // --------- CREATE (usa TutorCreateModal) ---------
   const handleCreateClick = () => {
     openCreateModal();
   };
 
-  // `TutorCreateModal` ya empaqueta los datos como { user: {..., roleId: 2 } }
   const createTutorFn = async (payload: {
     user: {
       email: string;
@@ -152,7 +161,6 @@ const Tutores: React.FC = () => {
     loadTutors();
   };
 
-  // --------- DELETE ---------
   const handleDeleteClick = (tutor: Tutors) => {
     setSelectedTutor(tutor);
     openDeleteModal();
@@ -163,11 +171,9 @@ const Tutores: React.FC = () => {
     try {
       await UserService.deleteTutor(selectedTutor.user.id);
 
-      // Optimista
       setTutors(
         (prev) => prev?.filter((u) => u.user.id !== selectedTutor.user.id) || []
       );
-      // Sync
       await loadTutors();
 
       toast({
@@ -253,22 +259,10 @@ const Tutores: React.FC = () => {
           caption="Tutores"
           actions={false}
           renderRow={renderTutorRow}
-          topRightComponent={
-            <IconButton
-              aria-label="Crear tutor"
-              icon={<AddIcon />}
-              onClick={handleCreateClick}
-              backgroundColor="#318AE4"
-              color="white"
-              borderRadius="50%"
-              boxSize="40px"
-              _hover={{ backgroundColor: "#2563eb" }}
-            />
-          }
+          showAddMenu={true}
         />
       )}
 
-      {/* CREAR TUTOR */}
       <TutorCreateModal
         isOpen={isCreateOpen}
         onClose={closeCreateModal}
@@ -276,8 +270,8 @@ const Tutores: React.FC = () => {
         createFn={createTutorFn}
       />
 
-      {/* EDITAR TUTOR */}
       <EditAdminTutores
+      
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onConfirm={handleEditConfirm}
@@ -287,7 +281,6 @@ const Tutores: React.FC = () => {
         onInputChange={handleEditInputChange}
       />
 
-      {/* ELIMINAR TUTOR */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}
