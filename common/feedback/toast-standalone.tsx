@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { createStandaloneToast, UseToastOptions } from "@chakra-ui/react";
-import AppToast, { AppToastStatus } from "../components/AppToast";
+import AppToast, { AppToastStatus } from "../components/app-toast";
 
 
 

@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
-import { toastError, toastSuccess } from "./common/feedback/toastStandalone";
+import { toastError, toastSuccess } from "./common/feedback/toast-standalone";
 
 function getCookie(name: string): string | undefined {
   const value = `; ${document.cookie}`;
