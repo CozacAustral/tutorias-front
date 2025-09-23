@@ -260,6 +260,8 @@ const Tutores: React.FC = () => {
           actions={false}
           renderRow={renderTutorRow}
           showAddMenu={true}
+          onCreateOpen={handleCreateClick}
+          filter={false}
         />
       )}
 

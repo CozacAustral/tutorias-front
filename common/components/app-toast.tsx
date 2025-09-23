@@ -4,6 +4,7 @@ import {
   Box, HStack, VStack, Text, Icon, CloseButton, useColorModeValue,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon, InfoIcon, WarningTwoIcon } from "@chakra-ui/icons";
+import { AppToastProps } from "../interfaces/app-toast-props.interface";
 
 export type AppToastStatus = "success" | "error" | "info" | "warning";
 
@@ -16,13 +17,6 @@ const statusConfig: Record<
   info:    { icon: InfoIcon,        accent: "#2563eb", bg: "blue.50",  fg: "blue.900" },
   warning: { icon: WarningIcon,     accent: "#d97706", bg: "yellow.50",fg: "yellow.900" },
 };
-
-export interface AppToastProps {
-  status: AppToastStatus;
-  title: string;
-  description?: string;
-  onClose: () => void;
-}
 
 const AppToast: React.FC<AppToastProps> = ({ status, title, description, onClose }) => {
   const cfg = statusConfig[status];

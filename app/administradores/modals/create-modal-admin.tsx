@@ -16,23 +16,8 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { GenericCreateModalProps } from "../interfaces/create-modal.interface";
 
-type Field = {
-  name: string;
-  label: string;
-  type?: string;
-  required?: boolean;
-};
-
-interface GenericCreateModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCreateSuccess: () => void;
-  title: string;
-  fields: Field[];
-  createFn: (data: any) => Promise<void>;
-  defaultValues?: Record<string, any>;
-}
 
 const GenericCreateModal: React.FC<GenericCreateModalProps> = ({
   isOpen,

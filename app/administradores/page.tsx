@@ -255,14 +255,15 @@ const Administradores: React.FC = () => {
       <Box pl={collapsed ? "6.5rem" : "17rem"} px={5}>
         {users ? (
           <GenericTable
+            onCreateOpen={handleCreateClick}
             actions={false} 
             data={users}
             TableHeader={TableHeader}
             renderRow={renderAdminRow}
             caption="Administradores"
             itemsPerPage={itemsPerPage}
-            
             showAddMenu={true}
+            filter={false}
           />
         ) : (
           <p>Cargando...</p>
