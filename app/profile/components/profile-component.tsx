@@ -29,10 +29,8 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import Cookies from "js-cookie";
 import { AuthService } from "../../../services/auth-service";
-import { PatchTutor } from "../../interfaces/patchTutor.interface";
 import { UserService } from "../../../services/admin-service";
 import { Department } from "../../interfaces/departments.interface";
-import { type } from "os";
 import { TutorPatchMe } from "../../interfaces/tutor-patch-me.interface";
 
 const jwt = require("jsonwebtoken");

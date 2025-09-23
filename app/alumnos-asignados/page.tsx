@@ -1,21 +1,21 @@
 "use client";
+import { AddIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
-  useDisclosure,
-  useToast,
+  Box,
+  IconButton,
   Td,
   Tr,
-  IconButton,
-  Box,
+  useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
-import React, { useEffect, useState, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { AddIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
 
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
-import { Student } from "../interfaces/student.interface";
-import { useSidebar } from "../contexts/SidebarContext";
 import AvailableStudentsModal from "../alumnos/modals/avilable-students-modal";
+import { useSidebar } from "../contexts/SidebarContext";
+import { Student } from "../interfaces/student.interface";
 
 const AlumnosAsignados: React.FC = () => {
   const router = useRouter();

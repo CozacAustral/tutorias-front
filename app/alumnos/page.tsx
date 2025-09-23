@@ -1,11 +1,5 @@
 "use client";
-import React, {
-  ChangeEvent,
-  ChangeEventHandler,
-  useEffect,
-  useState,
-} from "react";
-import GenericTable from "../../common/components/generic-table";
+import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 import {
   IconButton,
   Select,
@@ -14,29 +8,27 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { UserService } from "../../services/admin-service";
-import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
-import EditModal from "../../common/components/modals/edit-modal";
-import DeleteModal from "../../common/components/modals/detele-modal";
-import ImportModal from "../../common/components/modals/import-modal";
-import { useRouter } from "next/navigation";
-import { Student } from "../interfaces/student.interface";
-import { UpdateStudentDto } from "../interfaces/update-student";
-import { StudentCareer } from "../interfaces/studentCareer.interface";
-import { Career } from "../interfaces/career.interface";
-import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
-import { SubjectState } from "../enums/subject-state.enum";
-import { AssignedCareer } from "../interfaces/create-career.interface";
-import { ResponseCreateCareer } from "../interfaces/response-create-career.interface";
-import { Country } from "../interfaces/country.interface";
-import { CreateStudent } from "../interfaces/CreateStudent";
 import Cookies from "js-cookie";
-import { FaRegCalendarAlt, FaSadCry } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { FaRegCalendarAlt } from "react-icons/fa";
+import DeleteModal from "../../common/components/modals/detele-modal";
+import EditModal from "../../common/components/modals/edit-modal";
+import ImportModal from "../../common/components/modals/import-modal";
+import { UserService } from "../../services/admin-service";
+import { SubjectState } from "../enums/subject-state.enum";
+import { Career } from "../interfaces/career.interface";
+import { Country } from "../interfaces/country.interface";
+import { AssignedCareer } from "../interfaces/create-career.interface";
+import { CreateStudent } from "../interfaces/CreateStudent";
+import { Student } from "../interfaces/student.interface";
+import { StudentCareer } from "../interfaces/studentCareer.interface";
+import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
+import { UpdateStudentDto } from "../interfaces/update-student";
+import CareerModal from "./modals/create-career-student-modal";
+import CreateStudentModal from "./modals/create-student-modal";
 import PaginateStudent from "./modals/paginate-student";
 import SubjectModal from "./modals/subject-student-modal";
-import CareerModal from "./modals/create-career-student-modal";
 import ViewStudentModal from "./modals/view-student-modal";
-import CreateStudentModal from "./modals/create-student-modal";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -116,14 +108,14 @@ const Estudiantes: React.FC = () => {
     observations: "",
     countryId: 1,
     email: "",
-    careers: [ 
+    careers: [
       {
         careerId: 0,
         name: "",
         active: false,
         yearEntry: 0,
-        yearOfThePlan: 0
-      }
+        yearOfThePlan: 0,
+      },
     ],
   });
 
@@ -274,8 +266,10 @@ const Estudiantes: React.FC = () => {
         status: "error",
       });
     }
-    console.log("Datos CARRER CUANDO SE PRESIONA EDIT DESDE ADMIN: ", formData.careers);
-
+    console.log(
+      "Datos CARRER CUANDO SE PRESIONA EDIT DESDE ADMIN: ",
+      formData.careers
+    );
   };
 
   const handleChangeCreateStudent = (
@@ -289,8 +283,8 @@ const Estudiantes: React.FC = () => {
         name === "birthdate" || name === "yearEntry"
           ? value
           : name === "careerId" || name === "countryId"
-          ? parseInt(value)
-          : value,
+            ? parseInt(value)
+            : value,
     }));
   };
 
@@ -307,8 +301,8 @@ const Estudiantes: React.FC = () => {
         name === "birthdate" || name === "yearEntry"
           ? new Date(value).toISOString().split("T")[0] // yyyy-MM-dd
           : name === "careerId" || name === "countryId"
-          ? parseInt(value)
-          : value,
+            ? parseInt(value)
+            : value,
     }));
   };
 
@@ -575,8 +569,8 @@ const Estudiantes: React.FC = () => {
         name === "yearOfAdmission"
           ? parseInt(e.target.value)
           : name === "careerId"
-          ? parseInt(value)
-          : value,
+            ? parseInt(value)
+            : value,
     }));
   };
 
@@ -697,7 +691,7 @@ const Estudiantes: React.FC = () => {
     <Tr key={career.careerId}>
       <Td>{career.name}</Td>
       <Td>{career.active ? "Activa" : "Inactiva"}</Td>
-       <Td>{career.yearEntry}</Td>
+      <Td>{career.yearEntry}</Td>
       <Td>
         {role === 2 ? (
           <IconButton
@@ -862,34 +856,33 @@ const Estudiantes: React.FC = () => {
         role={role}
       />
 
-      { role === 2 ? (
+      {role === 2 ? (
         <SubjectModal
-        isOpen={isSubjectModalOpen}
-        onClose={handleCloseModalSubject}
-        onConfirm={handleEditSubject}
-        subjects={subjects}
-        renderSubjectNow={renderSubjectRow}
-        titleCareer={selectedCareer?.name}
-        entityName="Materias"
-        state={selectedCareerState}
-        role={role}
-        showButtonCancelSave={false}
-      />
+          isOpen={isSubjectModalOpen}
+          onClose={handleCloseModalSubject}
+          onConfirm={handleEditSubject}
+          subjects={subjects}
+          renderSubjectNow={renderSubjectRow}
+          titleCareer={selectedCareer?.name}
+          entityName="Materias"
+          state={selectedCareerState}
+          role={role}
+          showButtonCancelSave={false}
+        />
       ) : (
         <SubjectModal
-        isOpen={isSubjectModalOpen}
-        onClose={handleCloseModalSubject}
-        onConfirm={handleEditSubject}
-        subjects={subjects}
-        renderSubjectNow={renderSubjectRow}
-        titleCareer={selectedCareer?.name}
-        entityName="Materias"
-        state={selectedCareerState}
-        role={role}
-        showButtonCancelSave={true}
-      />
+          isOpen={isSubjectModalOpen}
+          onClose={handleCloseModalSubject}
+          onConfirm={handleEditSubject}
+          subjects={subjects}
+          renderSubjectNow={renderSubjectRow}
+          titleCareer={selectedCareer?.name}
+          entityName="Materias"
+          state={selectedCareerState}
+          role={role}
+          showButtonCancelSave={true}
+        />
       )}
-      
 
       <CareerModal
         isOpen={isCreateCareerModalOpen}
