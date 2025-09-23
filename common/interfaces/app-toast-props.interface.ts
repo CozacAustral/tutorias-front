@@ -1,4 +1,4 @@
-import { AppToastStatus } from "../components/app-toast";
+import { AppToastStatus } from '../type/app-toast-status.type';
 
 export interface AppToastProps {
   status: AppToastStatus;

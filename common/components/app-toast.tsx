@@ -5,8 +5,7 @@ import {
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon, InfoIcon, WarningTwoIcon } from "@chakra-ui/icons";
 import { AppToastProps } from "../interfaces/app-toast-props.interface";
-
-export type AppToastStatus = "success" | "error" | "info" | "warning";
+import { AppToastStatus } from '../type/app-toast-status.type';
 
 const statusConfig: Record<
   AppToastStatus,
