@@ -13,9 +13,9 @@ import React, { useEffect, useRef, useState } from "react";
 
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
+import { Student } from "../alumnos/interfaces/student.interface";
 import AvailableStudentsModal from "../alumnos/modals/avilable-students-modal";
 import { useSidebar } from "../contexts/SidebarContext";
-import { Student } from "../interfaces/student.interface";
 
 const AlumnosAsignados: React.FC = () => {
   const router = useRouter();

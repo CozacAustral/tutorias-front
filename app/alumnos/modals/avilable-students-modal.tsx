@@ -1,13 +1,21 @@
 "use client";
 
 import {
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
-  ModalBody, ModalFooter, Button, useToast, Spinner,
+  Button,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Spinner,
+  useToast,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Student } from "../../../app/interfaces/student.interface";
-import { UserService } from "../../../services/admin-service";
 import Select from "react-select";
+import { UserService } from "../../../services/admin-service";
+import { Student } from "../interfaces/student.interface";
 
 interface Props {
   isOpen: boolean;
@@ -43,9 +51,9 @@ export default function AvailableStudentsModal({
   const fetchStudents = async (inputValue: string) => {
     try {
       const { data } = await UserService.getStudentsWithoutTutor(
-        1,                 
-        inputValue || "",  
-        20         
+        1,
+        inputValue || "",
+        20
       );
       setStudents(data);
       return buildOptions(data, selectedStudents);
@@ -54,7 +62,6 @@ export default function AvailableStudentsModal({
       return [] as Option[];
     }
   };
-
 
   useEffect(() => {
     let mounted = true;
@@ -77,7 +84,7 @@ export default function AvailableStudentsModal({
   const handleInputChange = (value: string) => {
     const q = value.trim();
     fetchStudents(q).then(setOptions);
-    return value; 
+    return value;
   };
 
   const handleSelectChange = (selectedOptions: any) => {
@@ -121,7 +128,7 @@ export default function AvailableStudentsModal({
             <Select
               isMulti
               closeMenuOnSelect={false}
-              hideSelectedOptions={true} 
+              hideSelectedOptions={true}
               options={options}
               value={selectedStudents.map(toOption)}
               onChange={handleSelectChange}

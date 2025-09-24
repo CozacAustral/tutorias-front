@@ -1,24 +1,19 @@
+import { Student } from "../app/alumnos/interfaces/student.interface";
 import { Career } from "../app/interfaces/career.interface";
-import { CareerStudent } from "../app/interfaces/careerStudent.interface";
 import { Country } from "../app/interfaces/country.interface";
 import { AssignedCareer } from "../app/interfaces/create-career.interface";
 import { CreateStudent } from "../app/interfaces/CreateStudent";
-import { Department } from "../app/interfaces/departments.interface";
 import { CreateUser } from "../app/interfaces/createUser";
+import { Department } from "../app/interfaces/departments.interface";
 import { QueryParamsDto } from "../app/interfaces/query-params-dto";
 import { ResponseCreateCareer } from "../app/interfaces/response-create-career.interface";
 import { ResponsePaginateStudent } from "../app/interfaces/response-paginate";
-import { ResponseUpdateSubject } from "../app/interfaces/response-update-subject.interface";
+import { ResponseTutor } from "../app/interfaces/response-tutor.interface";
 import { SubjectCareerWithState } from "../app/interfaces/subject-career-student.interface";
 import { TutorPatchMe } from "../app/interfaces/tutor-patch-me.interface";
 import { UpdateStudentDto } from "../app/interfaces/update-student";
-import { UpdateStudentModalDto } from "../app/interfaces/update-student-modal.interface";
-import { PatchMeUser } from "../app/interfaces/patch-me-user.interface";
-import { Student } from "../app/interfaces/student.interface";
-import { Tutors } from "../app/interfaces/create.tutors.interface";
 import { User } from "../app/interfaces/user.interface";
 import axiosInstance from "../axiosConfig";
-import { ResponseTutor } from "../app/interfaces/response-tutor.interface";
 
 const urlUsers = "users";
 const urlTutors = "tutors";

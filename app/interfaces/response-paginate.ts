@@ -1,6 +1,6 @@
-import { Student } from "./student.interface";
+import { Student } from "../alumnos/interfaces/student.interface";
 
 export interface ResponsePaginateStudent {
-    students: Student[];
-    totalCount: number;
+  students: Student[];
+  totalCount: number;
 }
