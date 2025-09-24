@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
 import { createStandaloneToast, UseToastOptions } from "@chakra-ui/react";
-import AppToast, { AppToastStatus } from "../components/app-toast";
-
-
+import { AppToastStatus } from '../type/app-toast-status.type';
+import AppToast from '../components/app-toast';
+import { ShowArgs } from '../type/show-args.type';
 
 const { toast } = createStandaloneToast();
 
@@ -12,8 +12,6 @@ const DEFAULTS: UseToastOptions = {
   duration: 4000,
   isClosable: true,
 };
-
-type ShowArgs = { title: string; description?: string };
 
 function show(status: AppToastStatus, { title, description }: ShowArgs) {
   toast({

@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import Select from "react-select";
 import { UserService } from "../../../services/admin-service";
 import { Student } from "../interfaces/student.interface";
+import { Option } from "../type/option.type";
 
 interface Props {
   isOpen: boolean;
@@ -23,8 +24,6 @@ interface Props {
   tutorId: number;
   onAssignSuccess: () => void;
 }
-
-type Option = { value: number; label: string };
 
 export default function AvailableStudentsModal({
   isOpen,
