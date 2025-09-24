@@ -3,21 +3,18 @@ import {
   Box,
   Button,
   Container,
+  Flex,
   FormControl,
   FormLabel,
-  Input,
   Heading,
-  Text,
-  Flex,
-  Toast,
-  useToast,
+  Input,
   List,
   ListItem,
+  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import React, { MouseEventHandler, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { UserService } from "../../services/admin-service";
-import { AuthService } from "../../services/auth-service";
 
 const CambiarContraseña = () => {
   const router = useRouter();
@@ -217,8 +214,8 @@ const CambiarContraseña = () => {
                 !requirements.length && error.errorRequirements
                   ? "red.500"
                   : requirements.length
-                  ? "green.500"
-                  : "red"
+                    ? "green.500"
+                    : "red"
               }
               transition="color 0.3s ease"
             >
@@ -229,8 +226,8 @@ const CambiarContraseña = () => {
                 !requirements.length && error.errorRequirements
                   ? "red.500"
                   : requirements.number
-                  ? "green.500"
-                  : "red"
+                    ? "green.500"
+                    : "red"
               }
               transition="color 0.3s ease"
             >
@@ -241,8 +238,8 @@ const CambiarContraseña = () => {
                 !requirements.length && error.errorRequirements
                   ? "red.500"
                   : requirements.letter
-                  ? "green.500"
-                  : "red"
+                    ? "green.500"
+                    : "red"
               }
               transition="color 0.3s ease"
             >
@@ -253,8 +250,8 @@ const CambiarContraseña = () => {
                 !requirements.length && error.errorRequirements
                   ? "red.500"
                   : requirements.special
-                  ? "green.500"
-                  : "red"
+                    ? "green.500"
+                    : "red"
               }
               transition="color 0.3s ease"
             >

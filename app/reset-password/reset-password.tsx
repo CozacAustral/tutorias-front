@@ -1,72 +1,90 @@
-'use client';
+"use client";
 
-import { Container, Image, Stack, Text, FormControl, Input, Box, IconButton, Button, FormHelperText, Link, InputGroup, InputRightElement} from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  Container,
+  FormControl,
+  IconButton,
+  Image,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { HiEye, HiEyeOff } from "react-icons/hi";
-import { useState, useRef, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation';
-import { createPassword } from './api'
-import { CreatePasswordProps } from '../changePassword/interfaces/createPassword.interface'
+import { CreatePasswordProps } from "../changePassword/interfaces/createPassword.interface";
+import { createPassword } from "./api";
 
-const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
-    const [showPassword, setShowPassword] = useState({
-      password: false,
-      confirmPassword: false
-    });
-    const [password, setPassword] = useState("");
-    const [repeatPassword, setRepeatPassword] = useState('')
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState(false)
-    const errorPassword = useRef<HTMLInputElement>(null)
-    const errorRepeatPassword= useRef<HTMLInputElement> (null)
-    const router = useRouter()
+const CreatePassword = ({ token, linkId }: CreatePasswordProps) => {
+  const [showPassword, setShowPassword] = useState({
+    password: false,
+    confirmPassword: false,
+  });
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const errorPassword = useRef<HTMLInputElement>(null);
+  const errorRepeatPassword = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault()
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
-        if (!password){
-          setError('Debe ingresar una contraseña')
-          errorPassword.current?.focus()
-          return;
-        }
-
-        if (!repeatPassword){
-          setError('Debe ingresar la confirmacion de su nueva contraseña')
-          errorRepeatPassword.current?.focus()
-          return;
-        }
-
-        if (password != repeatPassword) {
-          setError('Las contraseñas tienen que coincidir!')
-          errorPassword.current?.focus()
-          errorRepeatPassword.current?.focus()
-          return;
-        }
-
-        try{
-          await createPassword(token, password)
-          setSuccess(true);
-          setTimeout(() => router.push('/Login'), 2000)
-        } catch(error) {
-          setError('Error al establecer la contraseña')
-          setSuccess(false)
-        }
+    if (!password) {
+      setError("Debe ingresar una contraseña");
+      errorPassword.current?.focus();
+      return;
     }
 
-    const handleSetPassword = (event: React.FormEvent<HTMLInputElement>) => {
-      setPassword(event.currentTarget.value)
+    if (!repeatPassword) {
+      setError("Debe ingresar la confirmacion de su nueva contraseña");
+      errorRepeatPassword.current?.focus();
+      return;
     }
 
-    const handleRepeatPassword = (event: React.FormEvent<HTMLInputElement>) => {
-      setRepeatPassword(event.currentTarget.value)
+    if (password != repeatPassword) {
+      setError("Las contraseñas tienen que coincidir!");
+      errorPassword.current?.focus();
+      errorRepeatPassword.current?.focus();
+      return;
     }
 
-    const handleClickPassword = () => {
-      setShowPassword(prevBool => ({ ...showPassword, password: !prevBool.password}))
+    try {
+      await createPassword(token, password);
+      setSuccess(true);
+      setTimeout(() => router.push("/Login"), 2000);
+    } catch (error) {
+      setError("Error al establecer la contraseña");
+      setSuccess(false);
     }
+  };
 
-     const handleClickConfirmPassword = () => {
-      setShowPassword(prevBool => ({ ...showPassword, confirmPassword: !prevBool.confirmPassword}))
-    }
+  const handleSetPassword = (event: React.FormEvent<HTMLInputElement>) => {
+    setPassword(event.currentTarget.value);
+  };
+
+  const handleRepeatPassword = (event: React.FormEvent<HTMLInputElement>) => {
+    setRepeatPassword(event.currentTarget.value);
+  };
+
+  const handleClickPassword = () => {
+    setShowPassword((prevBool) => ({
+      ...showPassword,
+      password: !prevBool.password,
+    }));
+  };
+
+  const handleClickConfirmPassword = () => {
+    setShowPassword((prevBool) => ({
+      ...showPassword,
+      confirmPassword: !prevBool.confirmPassword,
+    }));
+  };
 
   return (
     <Container
@@ -89,7 +107,7 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
         borderRadius="15px"
         shadow="md"
         width={{ base: "90%", sm: "70%", md: "50%", lg: "40%" }}
-        height='500px'
+        height="500px"
         maxW="500px"
       >
         <form onSubmit={handleSubmit}>
@@ -100,82 +118,84 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
               width="100%"
               height="150px"
               objectFit="none"
-              objectPosition='top'
+              objectPosition="top"
             />
 
-          <FormControl width="100%">
-            <InputGroup>
-              <Input
-                borderRadius="8px"
-                h="42px"
-                backgroundColor="light_gray"
-                type={showPassword.password ? "text" : "password"}
-                placeholder="Contraseña"
-                value={password}
-                onChange={handleSetPassword}
-                ref={errorPassword}
-                width="100%"
-                marginTop='10px'
-                padding={'21px'}
-                focusBorderColor={error ? 'red' : undefined}
-              />
-            <InputRightElement height={'100%'}>
-              <IconButton
-              aria-label="mostrar/ocultar contrasena"
-              icon={showPassword.password ? <HiEyeOff/> : <HiEye/>}
-              onClick={handleClickPassword}
-              position='absolute'
-              right='10px'
-              backgroundColor="light_gray"
-              top="58%"
-              transform="translateY(-50%)"
-              variant="link"
-              color="gray.900"
-              fontSize="24px"
-              pointerEvents={'auto'}
-              />
-            </InputRightElement>
-            </InputGroup>
-          </FormControl>
+            <FormControl width="100%">
+              <InputGroup>
+                <Input
+                  borderRadius="8px"
+                  h="42px"
+                  backgroundColor="light_gray"
+                  type={showPassword.password ? "text" : "password"}
+                  placeholder="Contraseña"
+                  value={password}
+                  onChange={handleSetPassword}
+                  ref={errorPassword}
+                  width="100%"
+                  marginTop="10px"
+                  padding={"21px"}
+                  focusBorderColor={error ? "red" : undefined}
+                />
+                <InputRightElement height={"100%"}>
+                  <IconButton
+                    aria-label="mostrar/ocultar contrasena"
+                    icon={showPassword.password ? <HiEyeOff /> : <HiEye />}
+                    onClick={handleClickPassword}
+                    position="absolute"
+                    right="10px"
+                    backgroundColor="light_gray"
+                    top="58%"
+                    transform="translateY(-50%)"
+                    variant="link"
+                    color="gray.900"
+                    fontSize="24px"
+                    pointerEvents={"auto"}
+                  />
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
 
-          <FormControl width="100%">
-            <InputGroup>
-             <Input
-                borderRadius="8px"
-                h="42px"
-                backgroundColor="light_gray"
-                type={showPassword.confirmPassword ? "text" : "password"}
-                placeholder="Repetir Contraseña"
-                value={repeatPassword}
-                onChange={handleRepeatPassword}
-                ref={errorRepeatPassword}
-                paddingLeft="1.5rem"
-                width="100%"
-                marginBottom={'30px'}
-                marginTop={'18px'}
-                padding={'21px'}
-                focusBorderColor={error ? 'red' : undefined}
-              />
-              <InputRightElement height={'100%'}>
-                <IconButton
-                aria-label="mostrar/ocultar contrasena"
-                icon={showPassword.confirmPassword ? <HiEyeOff/> : <HiEye/>}
-                onClick={handleClickConfirmPassword}
-                position='absolute'
-                right='10px'
-                backgroundColor="light_gray"
-                top="45%"
-                transform="translateY(-50%)"
-                variant="link"
-                color="gray.900"
-                fontSize="24px"
-                pointerEvents={'auto'}
-              />
-              </InputRightElement>
-            </InputGroup>
-          </FormControl>
+            <FormControl width="100%">
+              <InputGroup>
+                <Input
+                  borderRadius="8px"
+                  h="42px"
+                  backgroundColor="light_gray"
+                  type={showPassword.confirmPassword ? "text" : "password"}
+                  placeholder="Repetir Contraseña"
+                  value={repeatPassword}
+                  onChange={handleRepeatPassword}
+                  ref={errorRepeatPassword}
+                  paddingLeft="1.5rem"
+                  width="100%"
+                  marginBottom={"30px"}
+                  marginTop={"18px"}
+                  padding={"21px"}
+                  focusBorderColor={error ? "red" : undefined}
+                />
+                <InputRightElement height={"100%"}>
+                  <IconButton
+                    aria-label="mostrar/ocultar contrasena"
+                    icon={
+                      showPassword.confirmPassword ? <HiEyeOff /> : <HiEye />
+                    }
+                    onClick={handleClickConfirmPassword}
+                    position="absolute"
+                    right="10px"
+                    backgroundColor="light_gray"
+                    top="45%"
+                    transform="translateY(-50%)"
+                    variant="link"
+                    color="gray.900"
+                    fontSize="24px"
+                    pointerEvents={"auto"}
+                  />
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
 
-           {error && (
+            {error && (
               <Text color="red" textAlign="center">
                 {error}
               </Text>
@@ -190,7 +210,7 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
               maxW="300px"
               height="42px"
               mt={5}
-              margin={'6px'}
+              margin={"6px"}
             >
               Crear Contraseña
             </Button>
@@ -198,7 +218,7 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
         </form>
       </Box>
     </Container>
-  )
-}
+  );
+};
 
-export default CreatePassword
+export default CreatePassword;

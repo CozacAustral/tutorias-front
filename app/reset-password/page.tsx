@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import CreatePassword from './reset-password';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
+import CreatePassword from "./reset-password";
 
 const Page = () => {
   const searchParams = useSearchParams();
-  const token = searchParams.get('token') ?? ''
-  const linkId = searchParams.get('linkId') ?? ''
+  const token = searchParams.get("token") ?? "";
+  const linkId = searchParams.get("linkId") ?? "";
 
-  return <CreatePassword token={token} linkId={linkId}/>
-}
+  return <CreatePassword token={token} linkId={linkId} />;
+};
 
 export default Page;

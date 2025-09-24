@@ -14,9 +14,9 @@ function getToken() {
 declare module "axios" {
   export interface AxiosRequestConfig {
     meta?: {
-      successMessage?: string; 
-      errorMessage?: string;  
-      silent?: boolean;       
+      successMessage?: string;
+      errorMessage?: string;
+      silent?: boolean;
     };
   }
 }
@@ -33,7 +33,7 @@ function extractErrorMessage(error: unknown): string {
     if (data?.error) return data.error;
 
     if (Array.isArray(data?.errors)) {
-      return data.errors.map((e: any) => (e?.message ?? e)).join(", ");
+      return data.errors.map((e: any) => e?.message ?? e).join(", ");
     }
     if (data?.errors && typeof data.errors === "object") {
       const firstKey = Object.keys(data.errors)[0];
@@ -54,11 +54,15 @@ function shouldAutoSuccessToast(config?: AxiosRequestConfig) {
 
 function defaultSuccessMessage(method?: string) {
   switch ((method ?? "get").toLowerCase()) {
-    case "post":   return "Creado correctamente";
+    case "post":
+      return "Creado correctamente";
     case "put":
-    case "patch":  return "Actualizado correctamente";
-    case "delete": return "Eliminado correctamente";
-    default:       return "Operación realizada";
+    case "patch":
+      return "Actualizado correctamente";
+    case "delete":
+      return "Eliminado correctamente";
+    default:
+      return "Operación realizada";
   }
 }
 
@@ -83,7 +87,8 @@ axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     const { config } = response;
     if (!config?.meta?.silent && shouldAutoSuccessToast(config)) {
-      const msg = config.meta?.successMessage ?? defaultSuccessMessage(config.method);
+      const msg =
+        config.meta?.successMessage ?? defaultSuccessMessage(config.method);
       if (msg) toastSuccess({ title: msg });
     }
     return response;

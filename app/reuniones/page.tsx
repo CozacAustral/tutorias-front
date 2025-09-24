@@ -25,7 +25,7 @@ import {
   Tr,
   useDisclosure,
 } from "@chakra-ui/react";
-import React, { useRef } from "react";
+import { useRef } from "react";
 
 const mock = [
   {
@@ -80,7 +80,6 @@ const Reuniones = () => {
 
   return (
     <Flex ml="15.625rem" direction="column" minHeight="100vh">
-    
       <Heading
         as="h1"
         size="3xl"
@@ -117,7 +116,7 @@ const Reuniones = () => {
             <FormControl>
               <FormLabel>Tutor</FormLabel>
               <Select ref={initialRef} placeholder="Seleccionar Tutor">
-                {mock.map((i)=>(
+                {mock.map((i) => (
                   <option value={i.tutor}>{i.tutor}</option>
                 ))}
               </Select>
@@ -126,7 +125,7 @@ const Reuniones = () => {
             <FormControl mt={4}>
               <FormLabel>Alumno</FormLabel>
               <Select placeholder="Seleccionar alumno">
-                {mock.map((i)=>(
+                {mock.map((i) => (
                   <option value={i.alumno}>{i.alumno}</option>
                 ))}
               </Select>
