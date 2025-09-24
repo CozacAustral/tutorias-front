@@ -1,4 +1,4 @@
-import { User } from "../../interfaces/user.interface";
+import { User } from "../../administradores/interfaces/user.interface";
 import { StudentCareer } from "./studentCareer.interface";
 
 export interface Student {

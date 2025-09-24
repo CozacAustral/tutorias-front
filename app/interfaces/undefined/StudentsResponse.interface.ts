@@ -1,4 +1,4 @@
-import { Student } from "../alumnos/interfaces/student.interface";
+import { Student } from "../../alumnos/interfaces/student.interface";
 
 export interface FetchStudentsResponse {
   students: Student[];

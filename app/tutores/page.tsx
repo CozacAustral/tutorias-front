@@ -1,6 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import GenericTable from "../../common/components/generic-table";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   HStack,
   IconButton,
@@ -9,18 +8,17 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { UserService } from "../../services/admin-service";
-import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import React, { useEffect, useState } from "react";
+import GenericTable from "../../common/components/generic-table";
 import DeleteModal from "../../common/components/modals/detele-modal";
-import { Tutors } from "../interfaces/create.tutors.interface";
+import { UserService } from "../../services/admin-service";
+import { Tutors } from "./interfaces/create.tutors.interface";
 import EditAdminTutores from "./modals/edit-admin-tutores";
 import TutorCreateModal from "./modals/tutor-create-modal";
 
 import { useRouter } from "next/navigation";
 
 import { FaUser } from "react-icons/fa";
-import { ResponseTutor } from "../interfaces/response-tutor.interface";
-import page from "../page";
 
 const Tutores: React.FC = () => {
   const [tutors, setTutors] = useState<Tutors[] | null>(null);
@@ -273,7 +271,6 @@ const Tutores: React.FC = () => {
       />
 
       <EditAdminTutores
-      
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onConfirm={handleEditConfirm}

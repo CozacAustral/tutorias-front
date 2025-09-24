@@ -1,13 +1,13 @@
 'use client';
 
 import { Container, Image, Stack, Text, FormControl, Input, Box, IconButton, Button, FormHelperText, Link, InputGroup, InputRightElement} from '@chakra-ui/react'
-import { HiEye, HiEyeOff } from "react-icons/hi"; 
+import { HiEye, HiEyeOff } from "react-icons/hi";
 import { useState, useRef, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createPassword } from './api'
-import { CreatePasswordProps } from '../interfaces/createPassword.interface'
+import { CreatePasswordProps } from '../changePassword/interfaces/createPassword.interface'
 
-const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {  
+const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
     const [showPassword, setShowPassword] = useState({
       password: false,
       confirmPassword: false
@@ -41,7 +41,7 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
           errorRepeatPassword.current?.focus()
           return;
         }
-        
+
         try{
           await createPassword(token, password)
           setSuccess(true);
@@ -50,7 +50,7 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
           setError('Error al establecer la contraseña')
           setSuccess(false)
         }
-    }   
+    }
 
     const handleSetPassword = (event: React.FormEvent<HTMLInputElement>) => {
       setPassword(event.currentTarget.value)
@@ -193,7 +193,7 @@ const CreatePassword = ({ token, linkId } : CreatePasswordProps) => {
               margin={'6px'}
             >
               Crear Contraseña
-            </Button>         
+            </Button>
           </Stack>
         </form>
       </Box>

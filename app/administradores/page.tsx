@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Box,
   IconButton,
@@ -9,15 +9,15 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import React, { useEffect, useRef, useState } from "react";
 
 import GenericTable from "../../common/components/generic-table";
 import DeleteModal from "../../common/components/modals/detele-modal";
 
 import { UserService } from "../../services/admin-service";
-import { User } from "../interfaces/user.interface";
 import { useSidebar } from "../contexts/SidebarContext";
 import EditAdminTutores from "../tutores/modals/edit-admin-tutores";
+import { User } from "./interfaces/user.interface";
 import GenericCreateModal from "./modals/create-modal-admin";
 
 const Administradores: React.FC = () => {
@@ -220,7 +220,8 @@ const Administradores: React.FC = () => {
       <Td>{admin.name}</Td>
       <Td>{admin.lastName}</Td>
       <Td>{admin.email}</Td>
-      <Td>{(admin as any).telephone ?? (admin as any).phone ?? "-"}</Td> {/* 👈 nueva celda */}
+      <Td>{(admin as any).telephone ?? (admin as any).phone ?? "-"}</Td>{" "}
+      {/* 👈 nueva celda */}
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -256,7 +257,7 @@ const Administradores: React.FC = () => {
         {users ? (
           <GenericTable
             onCreateOpen={handleCreateClick}
-            actions={false} 
+            actions={false}
             data={users}
             TableHeader={TableHeader}
             renderRow={renderAdminRow}

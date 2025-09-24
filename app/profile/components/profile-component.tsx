@@ -1,37 +1,37 @@
 import { EditIcon } from "@chakra-ui/icons";
 import {
-  Modal,
   Box,
   Button,
   Container,
+  Flex,
   FormControl,
   FormLabel,
-  HStack,
-  Input,
-  Switch,
-  VStack,
-  Flex,
-  IconButton,
-  useDisclosure,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  useToast,
-  Text,
-  Spinner,
   Heading,
+  HStack,
+  IconButton,
+  Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Select,
+  Spinner,
+  Switch,
+  Text,
+  useDisclosure,
+  useToast,
+  VStack,
 } from "@chakra-ui/react";
+import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import Cookies from "js-cookie";
-import { AuthService } from "../../../services/auth-service";
 import { UserService } from "../../../services/admin-service";
-import { Department } from "../../interfaces/departments.interface";
-import { TutorPatchMe } from "../../interfaces/tutor-patch-me.interface";
+import { AuthService } from "../../../services/auth-service";
+import { Department } from "../interfaces/departments.interface";
+import { TutorPatchMe } from "../interfaces/tutor-patch-me.interface";
 
 const jwt = require("jsonwebtoken");
 
@@ -439,45 +439,43 @@ const ProfileComponent = () => {
             </VStack>
           )}
 
-          {isDelete ? (
-            null
-          ) : (
+          {isDelete ? null : (
             <Box mt={8} py={6}>
-            {!isEditing ? (
-              <Flex justify="flex-start" align="center" w="100%">
-                <Button
-                  color="primary"
-                  _hover={{ bg: "light_gray" }}
-                  onClick={handleChangePassword}
-                >
-                  Cambiar contraseña
-                </Button>
-              </Flex>
-            ) : (
-              <Flex justify="flex-end" align="center" width="100%" px={9}>
-                <HStack spacing={4}>
+              {!isEditing ? (
+                <Flex justify="flex-start" align="center" w="100%">
                   <Button
-                    bg="gray"
-                    color="black"
-                    w="150px"
-                    borderRadius="6px"
-                    onClick={cancelEdit}
+                    color="primary"
+                    _hover={{ bg: "light_gray" }}
+                    onClick={handleChangePassword}
                   >
-                    Cancelar
+                    Cambiar contraseña
                   </Button>
-                  <Button
-                    type="submit"
-                    bg="primary"
-                    color="white"
-                    w="150px"
-                    borderRadius="6px"
-                  >
-                    Editar Perfil
-                  </Button>
-                </HStack>
-              </Flex>
-            )}
-          </Box>
+                </Flex>
+              ) : (
+                <Flex justify="flex-end" align="center" width="100%" px={9}>
+                  <HStack spacing={4}>
+                    <Button
+                      bg="gray"
+                      color="black"
+                      w="150px"
+                      borderRadius="6px"
+                      onClick={cancelEdit}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      bg="primary"
+                      color="white"
+                      w="150px"
+                      borderRadius="6px"
+                    >
+                      Editar Perfil
+                    </Button>
+                  </HStack>
+                </Flex>
+              )}
+            </Box>
           )}
         </form>
       </Box>

@@ -1,5 +1,3 @@
-import { ChangeEvent, useEffect, useState } from "react";
-import { AssignedCareer } from "../../../app/interfaces/create-career.interface";
 import {
   Button,
   FormControl,
@@ -14,19 +12,21 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
-  Toast,
   VStack,
 } from "@chakra-ui/react";
-import { UserService } from "../../../services/admin-service";
-import { Career } from "../../../app/interfaces/career.interface";
+import { useState } from "react";
+import { Career } from "../interfaces/career.interface";
+import { AssignedCareer } from "../interfaces/create-career.interface";
 
 interface CreateCareerModal<t = any> {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => Promise<void>;
   careerData: AssignedCareer;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  careers: Career[]
+  handleChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => void;
+  careers: Career[];
 }
 
 const CareerModal: React.FC<CreateCareerModal> = ({
@@ -35,7 +35,7 @@ const CareerModal: React.FC<CreateCareerModal> = ({
   onConfirm,
   handleChange,
   careerData,
-  careers
+  careers,
 }) => {
   const [error, setError] = useState("");
 

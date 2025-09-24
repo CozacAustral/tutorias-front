@@ -8,14 +8,13 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalFooter,
-  ModalHeader,
   ModalOverlay,
   Text,
+  useBreakpointValue,
   VStack,
 } from "@chakra-ui/react";
-import { SubjectCareerWithState } from "../../../app/interfaces/subject-career-student.interface";
-import { useBreakpointValue } from "@chakra-ui/react";
 import GenericTable from "../../../common/components/generic-table";
+import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
 
 interface SubjectStudentModal<t = any> {
   isOpen: boolean;

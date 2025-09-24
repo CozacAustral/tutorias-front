@@ -1,4 +1,4 @@
-import { Student } from "../alumnos/interfaces/student.interface";
+import { Student } from "../../app/alumnos/interfaces/student.interface";
 
 export interface ResponsePaginateStudent {
   students: Student[];

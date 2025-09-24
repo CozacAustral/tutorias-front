@@ -1,49 +1,41 @@
-'use client'
+"use client";
 
+import { Td, Tr } from "@chakra-ui/react";
 import { useState } from "react";
-import { CareerStudent } from "../interfaces/careerStudent.interface";
-import { Td, Tr, Table, Thead, Tbody, Th } from "@chakra-ui/react";
 import GenericTable from "../../common/components/generic-table";
+import { CareerStudent } from "./interfaces/careerStudent.interface";
 
+const Carrera: React.FC = () => {
+  const [career, setCareer] = useState<CareerStudent[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-const Carrera: React.FC= () => {
-    const [career, setCareer] = useState<CareerStudent[]>([]);
-    const [error, setError] = useState<string | null>(null);
+  const TableHeader = ["Nombre Carrera", "Estado", "Año de ingreso"];
 
-
-
-    const TableHeader = [
-        "Nombre Carrera",
-        "Estado",
-        "Año de ingreso",
-    ];
-
-    const renderCarrerRow = (careerStudent: CareerStudent) => {
-      return(
+  const renderCarrerRow = (careerStudent: CareerStudent) => {
+    return (
       <Tr key={careerStudent.id}>
         <Td>{careerStudent.Career.name}</Td>
-        <Td>{careerStudent.active? "activo": "inactivo"}</Td>
+        <Td>{careerStudent.active ? "activo" : "inactivo"}</Td>
         <Td>{new Date(careerStudent.student.yearEntry).getFullYear()}</Td>
       </Tr>
-      );
-    };
-
+    );
+  };
 
   return (
     <>
-    {error && <p>{error}</p>}
-    {career ? (
-      <GenericTable
-      data={career}
-      TableHeader={TableHeader}
-      renderRow={renderCarrerRow}
-      caption="Carrera"
-      />
-    ) : (
-      <p>Loading....</p>
-    )}
+      {error && <p>{error}</p>}
+      {career ? (
+        <GenericTable
+          data={career}
+          TableHeader={TableHeader}
+          renderRow={renderCarrerRow}
+          caption="Carrera"
+        />
+      ) : (
+        <p>Loading....</p>
+      )}
     </>
   );
 };
 
-export default Carrera
+export default Carrera;
