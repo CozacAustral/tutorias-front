@@ -13,8 +13,8 @@ const tutorFields = [
   { name: "name", label: "Nombre", required: true },
   { name: "lastName", label: "Apellido", required: true },
   { name: "email", label: "Email", type: "email", required: true },
+  { name: "telephone", label: "Telefono", type: "telephone", required: true },
   { name: "password", label: "Contraseña", type: "password", required: true },
-
 ];
 
 export default function TutorCreateModal({
@@ -39,7 +39,7 @@ export default function TutorCreateModal({
         createFn({
           user: {
             ...formData,
-            roleId: 2, 
+            roleId: 2,
           },
         })
       }

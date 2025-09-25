@@ -86,12 +86,8 @@ const Tutores: React.FC = () => {
 
     try {
       setEditLoading(true);
-
-      // ⚠️ el endpoint espera tutorId; en tu lista usás tutor.user.id en todos lados,
-      // así que usamos ese id para el GET por consistencia
       const fullTutor = await UserService.fetchTutorById(tutor.user.id);
 
-      // según tu API, ResponseTutor suele traer el user anidado
       const u = (fullTutor as any).user ?? fullTutor;
 
       setEditFormData({
