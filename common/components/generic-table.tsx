@@ -294,7 +294,7 @@ const GenericTable = <T,>({
                 />
                 <MenuList>
                   <MenuItem onClick={onCreateOpen}>
-                    Agregar {caption.slice(0, -1)}
+                    Agregar {caption.slice(0, -2)}
                   </MenuItem>
                 </MenuList>
               </Menu>
