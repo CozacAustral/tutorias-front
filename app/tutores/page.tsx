@@ -1,33 +1,38 @@
 "use client";
-
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import {
+  HStack,
+  IconButton,
+  Td,
+  Tr,
+  useDisclosure,
+  useToast,
+} from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
-import { IconButton, Td, Tr, useDisclosure, useToast } from "@chakra-ui/react";
-import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import { FaUser } from "react-icons/fa";
-import { useRouter, useSearchParams } from "next/navigation";
-
-import DeleteModal from "../../common/components/modals/detele-modal";
-import EditModal from "../../common/components/modals/edit-modal";
-import TutorCreateModal from "../../common/components/modals/tutor-create-modal";
-
+import DeleteModal from "../../common/components/modals/detele.modal";
 import { UserService } from "../../services/admin-service";
-import { ResponseTutor } from "../interfaces/response-tutor.interface";
+import { Tutors } from "./interfaces/create.tutors.interface";
+import EditAdminTutores from "./modals/edit-admin-tutores.modal";
+import TutorCreateModal from "./modals/tutor-create-modal.modal";
+
+import { useRouter } from "next/navigation";
+
+import { FaUser } from "react-icons/fa";
 
 const Tutores: React.FC = () => {
-  const [tutors, setTutors] = useState<ResponseTutor[] | null>(null);
+  const [tutors, setTutors] = useState<Tutors[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTutor, setSelectedTutor] = useState<ResponseTutor | null>(
-    null
-  );
-  const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(7); // o 20, como quieras
-  const [totalItems, setTotalItems] = useState(0);
-
-  const totalItemsForUi = Math.max(totalItems, 1);
-
+  const [selectedTutor, setSelectedTutor] = useState<Tutors | null>(null);
+  const [loading, setLoading] = useState(true);
   const toast = useToast();
   const router = useRouter();
+
+  const {
+    isOpen: isCreateOpen,
+    onOpen: openCreateModal,
+    onClose: closeCreateModal,
+  } = useDisclosure();
 
   const {
     isOpen: isEditModalOpen,
@@ -41,58 +46,75 @@ const Tutores: React.FC = () => {
     onClose: closeDeleteModal,
   } = useDisclosure();
 
-  const {
-    isOpen: isCreateModalOpen,
-    onOpen: openCreateModal,
-    onClose: closeCreateModal,
-  } = useDisclosure();
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    lastName: "",
+    telephone: "",
+  });
 
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [editLoading, setEditLoading] = useState(false);
 
-  const TableHeader = ["Nombre", "Apellido", "Correo", "Acciones"];
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const loadTutors = async (p = 1) => {
+  const TableHeader = ["Nombre", "Apellido", "Correo", "telefono", "Acciones"];
+
+  const DEFAULT_QUERY = { currentPage: 1, resultsPerPage: 50 } as const;
+
+  const loadTutors = async () => {
     try {
-      const resp = await UserService.fetchAllTutors({
-        currentPage: p,
-        resultsPerPage: itemsPerPage, // usa el state
-      });
+      const resp = await UserService.fetchAllTutors(DEFAULT_QUERY);
       setTutors(resp.data);
-      setTotalItems(resp.total);
-      setItemsPerPage(resp.limit ?? itemsPerPage);
-      setPage(resp.page ?? p);
-    } catch (error) {
-      console.error("Error fetching tutors:", error);
+      setError(null);
+    } catch (e) {
+      console.error("Error fetching tutors:", e);
       setError("No se pudieron cargar los tutores.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const searchParams = useSearchParams();
-
   useEffect(() => {
-    const p = Number(searchParams.get("page") || 1);
-    loadTutors(p);
-  }, [searchParams]);
+    loadTutors();
+  }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleEditClick = (tutor: ResponseTutor) => {
+  const handleEditClick = async (tutor: Tutors) => {
     setSelectedTutor(tutor);
-    setFormData({
-      name: tutor.user.name,
-      email: tutor.user.email,
-    });
-    openEditModal();
+    openEditModal(); // abrí el modal ya (podés esperar al fetch si preferís)
+
+    try {
+      setEditLoading(true);
+      const fullTutor = await UserService.fetchTutorById(tutor.user.id);
+
+      const u = (fullTutor as any).user ?? fullTutor;
+
+      setEditFormData({
+        name: u.name ?? tutor.user.name ?? "",
+        lastName: u.lastName ?? tutor.user.lastName ?? "",
+        telephone: u.telephone ?? tutor.user.telephone ?? "",
+      });
+    } catch (err) {
+      console.error("❌ Error al obtener tutor por id:", err);
+      toast({
+        title: "Error al cargar datos",
+        description: "No se pudieron cargar los datos del tutor.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const handleEditConfirm = async () => {
     if (!selectedTutor) return;
     try {
-      await UserService.updateTutor(selectedTutor.user.id, { user: formData });
+      await UserService.updateTutor(selectedTutor.user.id, editFormData);
       await loadTutors();
+
       toast({
         title: "Tutor actualizado.",
         description: "El tutor ha sido actualizado con éxito.",
@@ -100,6 +122,7 @@ const Tutores: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
+
       closeEditModal();
     } catch {
       toast({
@@ -112,7 +135,27 @@ const Tutores: React.FC = () => {
     }
   };
 
-  const handleDeleteClick = (tutor: ResponseTutor) => {
+  const handleCreateClick = () => {
+    openCreateModal();
+  };
+
+  const createTutorFn = async (payload: {
+    user: {
+      email: string;
+      password: string;
+      name: string;
+      lastName: string;
+      roleId: number;
+    };
+  }) => {
+    await UserService.createTutor(payload);
+  };
+
+  const handleCreateSuccess = () => {
+    loadTutors();
+  };
+
+  const handleDeleteClick = (tutor: Tutors) => {
     setSelectedTutor(tutor);
     openDeleteModal();
   };
@@ -121,9 +164,12 @@ const Tutores: React.FC = () => {
     if (!selectedTutor) return;
     try {
       await UserService.deleteTutor(selectedTutor.user.id);
+
       setTutors(
-        (prev) => prev?.filter((t) => t.user.id !== selectedTutor.user.id) || []
+        (prev) => prev?.filter((u) => u.user.id !== selectedTutor.user.id) || []
       );
+      await loadTutors();
+
       toast({
         title: "Tutor eliminado.",
         description: "El tutor ha sido eliminado correctamente.",
@@ -131,6 +177,7 @@ const Tutores: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
+
       closeDeleteModal();
     } catch {
       toast({
@@ -143,51 +190,53 @@ const Tutores: React.FC = () => {
     }
   };
 
-  const renderStudentRow = (tutor: ResponseTutor) => (
+  const renderTutorRow = (tutor: Tutors) => (
     <Tr key={tutor.user.id}>
       <Td>{tutor.user.name}</Td>
       <Td>{tutor.user.lastName}</Td>
       <Td>{tutor.user.email}</Td>
+      <Td>{tutor.user.telephone}</Td>
       <Td>
-        <IconButton
-          icon={<EditIcon boxSize={5} />}
-          aria-label="Editar"
-          mr={3}
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => handleEditClick(tutor)}
-        />
-        <IconButton
-          icon={<FaUser />}
-          aria-label="Ver alumnos"
-          mr={3}
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() =>
-            router.push(
-              `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=${page}`
-            )
-          }
-        />
-        <IconButton
-          icon={<DeleteIcon boxSize={5} />}
-          aria-label="Eliminar"
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => handleDeleteClick(tutor)}
-        />
+        <HStack spacing={5}>
+          <IconButton
+            icon={<EditIcon boxSize={5} />}
+            aria-label="Editar"
+            backgroundColor="white"
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleEditClick(tutor)}
+          />
+          <IconButton
+            icon={<FaUser />}
+            aria-label="Ver alumnos"
+            backgroundColor="white"
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => {
+              router.push(
+                `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=1`
+              );
+            }}
+          />
+
+          <IconButton
+            icon={<DeleteIcon boxSize={5} />}
+            aria-label="Eliminar"
+            backgroundColor="white"
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleDeleteClick(tutor)}
+          />
+        </HStack>
       </Td>
     </Tr>
   );
@@ -195,42 +244,36 @@ const Tutores: React.FC = () => {
   return (
     <>
       {error && <p>{error}</p>}
-      {tutors ? (
+      {loading && !tutors ? (
+        <p>Loading...</p>
+      ) : (
         <GenericTable
-          showPagination
-          currentPage={page}
-          itemsPerPage={itemsPerPage}
-          totalItems={totalItemsForUi}
-          data={tutors}
+          data={tutors || []}
           TableHeader={TableHeader}
           caption="Tutores"
-          renderRow={renderStudentRow}
-          onPageChange={(newPage) => router.push(`/tutores?page=${newPage}`)}
-          topRightComponent={
-            <IconButton
-              icon={<AddIcon />}
-              aria-label="Crear tutor"
-              backgroundColor="#318AE4"
-              color="white"
-              borderRadius="50%"
-              boxSize="40px"
-              _hover={{ backgroundColor: "#2563eb" }}
-              onClick={openCreateModal}
-            />
-          }
+          actions={false}
+          renderRow={renderTutorRow}
+          showAddMenu={true}
+          onCreateOpen={handleCreateClick}
+          filter={false}
         />
-      ) : (
-        <p>Loading...</p>
       )}
 
-      <EditModal
+      <TutorCreateModal
+        isOpen={isCreateOpen}
+        onClose={closeCreateModal}
+        onCreateSuccess={handleCreateSuccess}
+        createFn={createTutorFn}
+      />
+
+      <EditAdminTutores
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onConfirm={handleEditConfirm}
-        formData={formData}
-        onInputChange={handleInputChange}
-        title="Editar Tutor"
         entityName="tutor"
+        title="Editar Tutor"
+        formData={editFormData}
+        onInputChange={handleEditInputChange}
       />
 
       <DeleteModal
@@ -238,14 +281,11 @@ const Tutores: React.FC = () => {
         onClose={closeDeleteModal}
         onDelete={handleDeleteConfirm}
         entityName="tutor"
-        entityDetails={`${selectedTutor?.user.name} ${selectedTutor?.user.lastName}`}
-      />
-
-      <TutorCreateModal
-        isOpen={isCreateModalOpen}
-        onClose={closeCreateModal}
-        onCreateSuccess={loadTutors}
-        createFn={UserService.createTutor}
+        entityDetails={
+          selectedTutor
+            ? `${selectedTutor.user.name} ${selectedTutor.user.lastName}`
+            : ""
+        }
       />
     </>
   );

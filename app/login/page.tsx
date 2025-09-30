@@ -1,23 +1,23 @@
 "use client";
-import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
-import { HiEye, HiEyeOff } from "react-icons/hi";
-import React, { useState } from "react";
 import {
-  Stack,
   Box,
-  Image,
-  FormControl,
-  Link,
-  Input,
   Button,
-  Text,
-  FormHelperText,
   Container,
+  FormControl,
+  FormHelperText,
   IconButton,
+  Image,
+  Input,
   InputGroup,
   InputRightElement,
+  Link,
+  Stack,
+  Text,
 } from "@chakra-ui/react";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { HiEye, HiEyeOff } from "react-icons/hi";
 import { login, sendRecoveryEmail } from "./api";
 
 const Login = () => {

@@ -1,6 +1,5 @@
 "use client";
-import React, { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
-import GenericTable from "../../common/components/generic-table";
+import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 import {
   IconButton,
   Select,
@@ -9,27 +8,27 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
+import Cookies from "js-cookie";
+import React, { useEffect, useState } from "react";
+import { FaRegCalendarAlt } from "react-icons/fa";
+import DeleteModal from "../../common/components/modals/detele.modal";
+import EditModal from "../../common/components/modals/edit.modal";
+import ImportModal from "../../common/components/modals/import.modal";
 import { UserService } from "../../services/admin-service";
-import { DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
-import EditModal from "../../common/components/modals/edit-modal";
-import DeleteModal from "../../common/components/modals/detele-modal";
-import ImportModal from "../../common/components/modals/import-modal";
-import CreateStudentModal from "../../common/components/modals/create-student-modal";
-import { useRouter } from "next/navigation";
-import ViewStudentModal from "../../common/components/modals/view-student-modal";
-import { Student } from "../interfaces/student.interface";
-import { UpdateStudentDto } from "../interfaces/update-student";
-import { StudentCareer } from "../interfaces/studentCareer.interface";
-import { Career } from "../interfaces/career.interface";
-import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
-import SubjectModal from "../../common/components/modals/subject-student-modal";
+import { CreateStudent } from "../carrera/interfaces/create-student.interface";
 import { SubjectState } from "../enums/subject-state.enum";
-import CareerModal from "../../common/components/modals/create-career-student-modal";
-import { AssignedCareer } from "../interfaces/create-career.interface";
-import { ResponseCreateCareer } from "../interfaces/response-create-career.interface";
-import { Country } from "../interfaces/country.interface";
-import { CreateStudent } from "../interfaces/CreateStudent";
-import PaginateStudent from "../../common/components/modals/paginate-student";
+import { Career } from "./interfaces/career.interface";
+import { Country } from "./interfaces/country.interface";
+import { AssignedCareer } from "./interfaces/create-career.interface";
+import { StudentCareer } from "./interfaces/student-career.interface";
+import { Student } from "./interfaces/student.interface";
+import { SubjectCareerWithState } from "./interfaces/subject-career-student.interface";
+import { UpdateStudentDto } from "./interfaces/update-student";
+import CareerModal from "./modals/create-career-student.modal";
+import CreateStudentModal from "./modals/create-student.modal";
+import PaginateStudent from "./modals/paginate-student.modal";
+import SubjectModal from "./modals/subject-student.modal";
+import ViewStudentModal from "./modals/view-student.modal";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -37,6 +36,9 @@ const Estudiantes: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
+  const [selectedCareerState, setSelectedCareerState] = useState<
+    boolean | null
+  >(null);
   const [subjects, setSubjects] = useState<SubjectCareerWithState[]>([]);
   const [editedSubjects, setEditedSubjects] = useState<{
     [subjectId: number]: string;
@@ -47,10 +49,15 @@ const Estudiantes: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [totalStudents, setTotalStudents] = useState(0);
-  const [orderBy, setOrderBy] = useState<[string, 'ASC' | 'DESC'] | undefined>(undefined);
+  const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
+    undefined
+  );
+  const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState(0);
 
   const toast = useToast();
-  const [loading, setLoading] = useState(true);
+
+  const jwt = require("jsonwebtoken");
 
   const {
     isOpen: isEditModalOpen,
@@ -101,7 +108,15 @@ const Estudiantes: React.FC = () => {
     observations: "",
     countryId: 1,
     email: "",
-    careers: [],
+    careers: [
+      {
+        careerId: 0,
+        name: "",
+        active: false,
+        yearEntry: 0,
+        yearOfThePlan: 0,
+      },
+    ],
   });
 
   const [studentData, setStudentData] = useState<CreateStudent>({
@@ -132,6 +147,14 @@ const Estudiantes: React.FC = () => {
     "Carrera/s",
   ];
 
+  const TableHeaderTutor = [
+    "Apellido/s",
+    "Nombre",
+    "Correo",
+    "Nro de telefono",
+    "Carrera/s",
+  ];
+
   useEffect(() => {
     const loadStudents = async () => {
       try {
@@ -139,7 +162,7 @@ const Estudiantes: React.FC = () => {
           search: searchTerm,
           currentPage,
           resultsPerPage: 10,
-          orderBy: orderBy
+          orderBy: orderBy,
         });
         setStudents(students);
         setTotalStudents(totalCount);
@@ -150,6 +173,21 @@ const Estudiantes: React.FC = () => {
         setLoading(false);
       }
     };
+
+    const token = Cookies.get("authTokens");
+    if (!token) {
+      console.log("No token found");
+      return;
+    }
+
+    try {
+      const decodedToken = jwt.decode(token);
+      console.log("Decode TOKEN: ", decodedToken);
+      setRole(decodedToken?.role);
+    } catch (error) {
+      console.error("Error decoding token: ", error);
+    }
+
     loadStudents();
   }, [currentPage, searchTerm, orderBy]);
 
@@ -166,20 +204,30 @@ const Estudiantes: React.FC = () => {
       }
     };
 
+    loadCareers();
+  }, []);
+
+  useEffect(() => {
+    if (role === 2) {
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const loadCountries = async () => {
       try {
         const fetchedCountries = await UserService.fetchAllCountries();
         setCountries(fetchedCountries);
       } catch (error) {
         console.error("Error fetching countries: ", error);
-        setError("No se puedieron cargar los paises.");
+        setError("No se pudieron cargar los países.");
       } finally {
         setLoading(false);
       }
     };
-    loadCareers();
+
     loadCountries();
-  }, []);
+  }, [role]);
 
   const handleDeleteClick = (student: Student) => {
     setSelectedStudent(student);
@@ -187,12 +235,13 @@ const Estudiantes: React.FC = () => {
     openDeleteModal();
   };
 
-  const handleOrderChange = (field: string, direction: 'ASC' | 'DESC') => {
+  const handleOrderChange = (field: string, direction: "ASC" | "DESC") => {
     setOrderBy([field, direction]);
-    setCurrentPage(1)
-  }
+    setCurrentPage(1);
+  };
 
   const handleEditClick = async (student: Student) => {
+    console.log("CUANDO SE PRESIONA EDIT DESDE ADMIN: ", student);
     try {
       const studentSelected = await UserService.fetchStudent(student.id);
       setSelectedStudent(studentSelected);
@@ -217,6 +266,10 @@ const Estudiantes: React.FC = () => {
         status: "error",
       });
     }
+    console.log(
+      "Datos CARRER CUANDO SE PRESIONA EDIT DESDE ADMIN: ",
+      formData.careers
+    );
   };
 
   const handleChangeCreateStudent = (
@@ -230,13 +283,15 @@ const Estudiantes: React.FC = () => {
         name === "birthdate" || name === "yearEntry"
           ? value
           : name === "careerId" || name === "countryId"
-          ? parseInt(value)
-          : value,
+            ? parseInt(value)
+            : value,
     }));
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -246,8 +301,8 @@ const Estudiantes: React.FC = () => {
         name === "birthdate" || name === "yearEntry"
           ? new Date(value).toISOString().split("T")[0] // yyyy-MM-dd
           : name === "careerId" || name === "countryId"
-          ? parseInt(value)
-          : value,
+            ? parseInt(value)
+            : value,
     }));
   };
 
@@ -306,8 +361,31 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleViewClick = (student: Student) => {
-    setSelectedStudent(student);
-    openViewModal();
+    console.log("Student cuando se presiona el view", student);
+
+    if (student && student.user) {
+      const formattedStudent: UpdateStudentDto = {
+        name: student.user.name || "",
+        lastName: student.user.lastName || "",
+        email: student.user.email || "",
+        telephone: student.telephone || "",
+        observations: student.observations || "",
+        careers: student.careers || [],
+        dni: student.dni || "",
+        birthdate: student.birthdate || "",
+        address: student.address || "",
+        year: student.yearEntry || "",
+        countryId: student.countryId || 1,
+      };
+
+      setSelectedStudent(student);
+      setFormData(formattedStudent);
+      openViewModal();
+    } else {
+      console.error("Student data is incomplete:", student);
+    }
+
+    console.log("CARRERAS DEL ESTUDIANTE: ", formData.careers);
   };
 
   const handleStudentUpdate = async () => {
@@ -364,6 +442,8 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleAllSubject = async (career: StudentCareer) => {
+    setSelectedCareerState(career.active);
+
     if (!selectedStudent?.id || !career?.careerId) {
       toast({
         title: "Error",
@@ -489,8 +569,8 @@ const Estudiantes: React.FC = () => {
         name === "yearOfAdmission"
           ? parseInt(e.target.value)
           : name === "careerId"
-          ? parseInt(value)
-          : value,
+            ? parseInt(value)
+            : value,
     }));
   };
 
@@ -535,53 +615,75 @@ const Estudiantes: React.FC = () => {
   };
 
   const renderStudentRow = (student: Student) => (
-    <Tr key={student.user.id}>
-      <Td>{student.user.name}</Td>
-      <Td>{student.user.lastName}</Td>
+    <Tr key={student.id}>
+      <Td>{student.user?.name}</Td>
+      <Td>{student.user?.lastName}</Td>
       <Td>{student.telephone}</Td>
-      <Td>{student.user.email}</Td>
+      <Td>{student.user?.email}</Td>
       <Td>
         {student.careers && student.careers.length > 0
           ? student.careers[0]?.name
           : "No name available"}
       </Td>
-      <Td>
-        <IconButton
-          icon={<ViewIcon boxSize={5} />}
-          aria-label="View"
-          backgroundColor="white"
-          mr={5}
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => handleViewClick(student)}
-        />
-        <IconButton
-          icon={<EditIcon boxSize={5} />}
-          aria-label="Edit"
-          mr={5}
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => handleEditClick(student)}
-        />
-        <IconButton
-          icon={<DeleteIcon boxSize={5} />}
-          aria-label="Delete"
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => handleDeleteClick(student)}
-        />
-      </Td>
+      {role !== 2 ? (
+        <Td>
+          <IconButton
+            icon={<ViewIcon boxSize={5} />}
+            aria-label="View"
+            backgroundColor="white"
+            mr={5}
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleViewClick(student)}
+          />
+          <IconButton
+            icon={<EditIcon boxSize={5} />}
+            aria-label="Edit"
+            mr={5}
+            backgroundColor="white"
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleEditClick(student)}
+          />
+          <IconButton
+            icon={<DeleteIcon boxSize={5} />}
+            aria-label="Delete"
+            backgroundColor="white"
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleDeleteClick(student)}
+          />
+        </Td>
+      ) : (
+        <Td>
+          <IconButton
+            icon={<ViewIcon boxSize={5} />}
+            aria-label="View"
+            backgroundColor="white"
+            mr={5}
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleViewClick(student)}
+          />
+          <IconButton
+            aria-label="Seleccionar fecha"
+            icon={<FaRegCalendarAlt />}
+            variant="ghost"
+          />
+        </Td>
+      )}
     </Tr>
   );
 
@@ -589,43 +691,60 @@ const Estudiantes: React.FC = () => {
     <Tr key={career.careerId}>
       <Td>{career.name}</Td>
       <Td>{career.active ? "Activa" : "Inactiva"}</Td>
-      <Td>{career.year}</Td>
+      <Td>{career.yearEntry}</Td>
       <Td>
-        <IconButton
-          icon={<ViewIcon boxSize={5} />}
-          aria-label="View"
-          backgroundColor="white"
-          mr={5}
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          // onClick={() => handleViewClick(student)}
-        />
-        <IconButton
-          icon={<EditIcon boxSize={5} />}
-          aria-label="Edit"
-          mr={5}
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => handleAllSubject(career)}
-        />
-        <IconButton
-          icon={<DeleteIcon boxSize={5} />}
-          aria-label="Delete"
-          backgroundColor="white"
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          // onClick={() => handleDeleteClick(student)}
-        />
+        {role === 2 ? (
+          <IconButton
+            icon={<ViewIcon boxSize={5} />}
+            aria-label="View"
+            backgroundColor="white"
+            mr={5}
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleAllSubject(career)}
+          />
+        ) : (
+          <>
+            <IconButton
+              icon={<ViewIcon boxSize={5} />}
+              aria-label="View"
+              backgroundColor="white"
+              mr={5}
+              _hover={{
+                borderRadius: 15,
+                backgroundColor: "#318AE4",
+                color: "White",
+              }}
+              // onClick={() => handleViewClick(student)}
+            />
+            <IconButton
+              icon={<EditIcon boxSize={5} />}
+              aria-label="Edit"
+              mr={5}
+              backgroundColor="white"
+              _hover={{
+                borderRadius: 15,
+                backgroundColor: "#318AE4",
+                color: "White",
+              }}
+              onClick={() => handleAllSubject(career)}
+            />
+            <IconButton
+              icon={<DeleteIcon boxSize={5} />}
+              aria-label="Delete"
+              backgroundColor="white"
+              _hover={{
+                borderRadius: 15,
+                backgroundColor: "#318AE4",
+                color: "White",
+              }}
+              // onClick={() => handleDeleteClick(student)}
+            />
+          </>
+        )}
       </Td>
     </Tr>
   );
@@ -652,7 +771,10 @@ const Estudiantes: React.FC = () => {
             ))}
           </Select>
         ) : (
-          SubjectState[(editedSubjects[subject.subjectId] || subject.subjectState) as keyof typeof SubjectState]  
+          SubjectState[
+            (editedSubjects[subject.subjectId] ||
+              subject.subjectState) as keyof typeof SubjectState
+          ]
         )}
       </Td>
       <Td>
@@ -661,57 +783,56 @@ const Estudiantes: React.FC = () => {
           : "-"}
       </Td>
       <Td>
-        <IconButton
-          icon={<EditIcon boxSize={5} />}
-          aria-label="Edit"
-          mr={5}
-          backgroundColor={
-            editedSubjects[subject.subjectId] ? "#318AE4" : "white"
-          }
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => {
-            setEditSubjectId(subject.subjectId);
-            setEditedSubjects((prev) => ({
-              ...prev,
-              [subject.subjectId]: subject.subjectState,
-            }));
-            handleEditSubjectClick(subject.subjectId);
-          }}
-        />
+        {role === 2 ? null : (
+          <IconButton
+            icon={<EditIcon boxSize={5} />}
+            aria-label="Edit"
+            mr={5}
+            backgroundColor={
+              editedSubjects[subject.subjectId] ? "#318AE4" : "white"
+            }
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => {
+              setEditSubjectId(subject.subjectId);
+              setEditedSubjects((prev) => ({
+                ...prev,
+                [subject.subjectId]: subject.subjectState,
+              }));
+              handleEditSubjectClick(subject.subjectId);
+            }}
+          />
+        )}
       </Td>
     </Tr>
   );
 
   return (
     <>
-      {error && <p>{error}</p>}
-      {students ? (
-        <PaginateStudent
-          data={students}
-          TableHeader={TableHeader}
-          caption="Alumnos"
-          renderRow={renderStudentRow}
-          showAddMenu={true}
-          onImportOpen={openImportModal}
-          onCreateOpen={handleCreateClick}
-          currentPage={currentPage}
-          totalItems={totalStudents}
-          onPageChange={ page => setCurrentPage(page)}
-          searchTerm={searchTerm}
-          onSearch={ term => {
-            setSearchTerm(term)
-            setCurrentPage(1)
-          }}
-          orderBy={orderBy}
-          onOrderChange={handleOrderChange}
-        />
-      ) : (
-        <p>Loading...</p>
-      )}
+      <PaginateStudent
+        data={students}
+        TableHeader={role === 2 ? TableHeaderTutor : TableHeader}
+        caption={role === 2 ? "Mis Alumnos" : "Alumnos"}
+        renderRow={renderStudentRow}
+        showAddMenu={role === 2 ? false : true}
+        onImportOpen={role !== 2 ? openImportModal : undefined}
+        onCreateOpen={role !== 2 ? handleCreateClick : undefined}
+        currentPage={currentPage}
+        totalItems={totalStudents}
+        onPageChange={(page) => setCurrentPage(page)}
+        searchTerm={searchTerm}
+        onSearch={(term) => {
+          setSearchTerm(term);
+          setCurrentPage(1);
+        }}
+        orderBy={orderBy}
+        onOrderChange={handleOrderChange}
+      />
+
+      {error && role !== 2 && <p>{error}</p>}
 
       <EditModal
         isOpen={isEditModalOpen}
@@ -719,10 +840,11 @@ const Estudiantes: React.FC = () => {
         onConfirm={handleStudentUpdate}
         formData={formData}
         onInputChange={handleChange}
-        title="Editar Alumno"
+        title="Ver Alumno"
         entityName="Alumno"
         renderCareerNow={renderCareerRow}
         createOpen={handleCreateCareerClick}
+        showButtonCancelSave={true}
         fieldLabels={{
           lastName: "Apellido/s",
           name: "Nombre",
@@ -731,17 +853,36 @@ const Estudiantes: React.FC = () => {
           observations: "Observaciones",
           careersId: "Carrera/s",
         }}
+        role={role}
       />
 
-      <SubjectModal
-        isOpen={isSubjectModalOpen}
-        onClose={handleCloseModalSubject}
-        onConfirm={handleEditSubject}
-        subjects={subjects}
-        renderSubjectNow={renderSubjectRow}
-        titleCareer={selectedCareer?.name}
-        entityName="Materias"
-      />
+      {role === 2 ? (
+        <SubjectModal
+          isOpen={isSubjectModalOpen}
+          onClose={handleCloseModalSubject}
+          onConfirm={handleEditSubject}
+          subjects={subjects}
+          renderSubjectNow={renderSubjectRow}
+          titleCareer={selectedCareer?.name}
+          entityName="Materias"
+          state={selectedCareerState}
+          role={role}
+          showButtonCancelSave={false}
+        />
+      ) : (
+        <SubjectModal
+          isOpen={isSubjectModalOpen}
+          onClose={handleCloseModalSubject}
+          onConfirm={handleEditSubject}
+          subjects={subjects}
+          renderSubjectNow={renderSubjectRow}
+          titleCareer={selectedCareer?.name}
+          entityName="Materias"
+          state={selectedCareerState}
+          role={role}
+          showButtonCancelSave={true}
+        />
+      )}
 
       <CareerModal
         isOpen={isCreateCareerModalOpen}
@@ -752,26 +893,54 @@ const Estudiantes: React.FC = () => {
         careers={careers}
       />
 
-      <ImportModal
-        isOpen={isImportModalOpen}
-        onClose={closeImportModal}
-        onImport={handleImport}
-      />
-      <ViewStudentModal
-        isOpen={isViewModalOpen}
-        onClose={closeViewModal}
-        student={selectedStudent}
-      />
+      {role !== 2 && (
+        <ImportModal
+          isOpen={isImportModalOpen}
+          onClose={closeImportModal}
+          onImport={handleImport}
+        />
+      )}
 
-      <CreateStudentModal
-        isOpen={isCreateModalOpen}
-        onClose={closeCreateModal}
-        onAddStudent={handleAddStudent}
-        handleChange={handleChangeCreateStudent}
-        careers={careers}
-        countries={countries}
-        studentData={studentData}
-      />
+      {role === 2 ? (
+        <EditModal
+          isOpen={isViewModalOpen}
+          onClose={closeViewModal}
+          onConfirm={handleStudentUpdate}
+          formData={formData}
+          onInputChange={handleChange}
+          caption="Ver Alumno"
+          renderCareerNow={renderCareerRow}
+          createOpen={handleCreateCareerClick}
+          forTutor={true}
+          isViewModal={true}
+          fieldLabels={{
+            lastName: "Apellido/s",
+            name: "Nombre",
+            mail: "Correo",
+            telephone: "Nro. De telefono",
+            observations: "Observaciones",
+          }}
+          showButtonCancelSave={false}
+        />
+      ) : (
+        <ViewStudentModal
+          isOpen={isViewModalOpen}
+          onClose={closeViewModal}
+          student={selectedStudent}
+        />
+      )}
+
+      {role !== 2 && (
+        <CreateStudentModal
+          isOpen={isCreateModalOpen}
+          onClose={closeCreateModal}
+          onAddStudent={handleAddStudent}
+          handleChange={handleChangeCreateStudent}
+          careers={careers}
+          countries={countries}
+          studentData={studentData}
+        />
+      )}
 
       <DeleteModal
         isOpen={isDeleteModalOpen}

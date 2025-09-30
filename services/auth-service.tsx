@@ -15,7 +15,6 @@ export const AuthService = {
           Authorization: `Bearer ${token}`,
         },
       });
-
       return response.data;
     } catch (error: any) {
       console.error(

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Box,
   IconButton,
@@ -9,27 +9,40 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import React, { useEffect, useRef, useState } from "react";
 
 import GenericTable from "../../common/components/generic-table";
-import DeleteModal from "../../common/components/modals/detele-modal";
+import DeleteModal from "../../common/components/modals/detele.modal";
+
 import { UserService } from "../../services/admin-service";
-import { User } from "../interfaces/user.interface";
 import { useSidebar } from "../contexts/SidebarContext";
-import EditModal from "../../common/components/modals/edit-modal";
+import EditAdminTutores from "../tutores/modals/edit-admin-tutores.modal";
+import { User } from "./interfaces/user.interface";
+import GenericCreateModal from "./modals/create-modal-admin";
 
 const Administradores: React.FC = () => {
   const [users, setUsers] = useState<User[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { collapsed } = useSidebar();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const {
+    isOpen: isCreateOpen,
+    onOpen: onCreateOpen,
+    onClose: onCreateClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isEditOpen,
+    onOpen: onEditOpen,
+    onClose: onEditClose,
+  } = useDisclosure();
+
   const {
     isOpen: isDeleteOpen,
     onOpen: onDeleteOpen,
     onClose: onDeleteClose,
   } = useDisclosure();
 
-  const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [formData, setFormData] = useState({
     name: "",
     lastName: "",
@@ -40,17 +53,22 @@ const Administradores: React.FC = () => {
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [adminToDelete, setAdminToDelete] = useState<User | null>(null);
   const toast = useToast();
-  const [admins, setAdmins] = useState<User[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
 
+  const [total, setTotal] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
-  const TableHeader = ["Nombre", "Apellido/s", "Correo", "Acciones"];
 
-  const fetchAdminUsers = async (page: number, itemsPerPage: number) => {
+  const TableHeader = [
+    "Nombre",
+    "Apellido/s",
+    "Correo",
+    "Teléfono",
+    "Acciones",
+  ];
+
+  const fetchAdminUsers = async (page: number, items: number) => {
     try {
-      const res = await UserService.fetchAdminUsers(page, itemsPerPage);
+      const res = await UserService.fetchAdminUsers(page, items);
       setUsers(res.data);
       setTotal(res.total);
       setItemsPerPage(res.limit);
@@ -68,11 +86,6 @@ const Administradores: React.FC = () => {
     fetchAdminUsers(1, itemsPerPage);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const resetForm = () => {
     setFormData({
       name: "",
@@ -82,53 +95,32 @@ const Administradores: React.FC = () => {
       telephone: "",
     });
     setEditingUserId(null);
-    setFormMode("create");
   };
 
-  const handleSubmit = async () => {
-    try {
-      if (formMode === "create") {
-        await UserService.createUser({ ...formData, roleId: 1 });
-        toast({
-          title: "Administrador creado",
-          status: "success",
-          duration: 4000,
-          isClosable: true,
-        });
-      } else if (formMode === "edit" && editingUserId !== null) {
-        const { email, ...restData } = formData;
-        await UserService.updateUser(editingUserId, {
-          ...restData,
-          password: formData.password || undefined,
-        });
-        toast({
-          title: "Administrador actualizado",
-          status: "success",
-          duration: 4000,
-          isClosable: true,
-        });
-      }
-      fetchAdminUsers(currentPage, itemsPerPage);
-      onClose();
-      resetForm();
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Operación fallida",
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
-      console.error(err);
-    }
-  };
-
+  // CREATE
   const handleCreateClick = () => {
-    setFormMode("create");
     resetForm();
-    onOpen();
+    onCreateOpen();
   };
 
+  const createFields = [
+    { name: "name", label: "Nombre", required: true },
+    { name: "lastName", label: "Apellido/s", required: true },
+    { name: "email", label: "Correo", type: "email", required: true },
+    { name: "password", label: "Contraseña", type: "password", required: true },
+    { name: "telephone", label: "Teléfono", required: true },
+  ] as const;
+
+  const createFn = async (data: any) => {
+    await UserService.createUser({ ...data, roleId: 1 });
+  };
+
+  const onCreateSuccess = () => {
+    fetchAdminUsers(currentPage, itemsPerPage);
+    resetForm();
+  };
+
+  // EDIT
   const handleEditClick = async (admin: User) => {
     try {
       const fetchedUser = await UserService.fetchUserById(admin.id);
@@ -139,9 +131,8 @@ const Administradores: React.FC = () => {
         telephone: (fetchedUser as any).telephone || "",
         password: "",
       });
-      setFormMode("edit");
       setEditingUserId(fetchedUser.id);
-      onOpen();
+      onEditOpen();
     } catch (error) {
       console.error("❌ Error al obtener el usuario por ID:", error);
       toast({
@@ -154,6 +145,40 @@ const Administradores: React.FC = () => {
     }
   };
 
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      if (editingUserId === null) return;
+      const { email, ...restData } = formData;
+      await UserService.updateUser(editingUserId, {
+        ...restData,
+        password: formData.password || undefined,
+      });
+      toast({
+        title: "Administrador actualizado",
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+      });
+      fetchAdminUsers(currentPage, itemsPerPage);
+      onEditClose();
+      resetForm();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Operación de edición fallida",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+      console.error(err);
+    }
+  };
+
   const handleDeleteClick = (admin: User) => {
     setAdminToDelete(admin);
     onDeleteOpen();
@@ -161,9 +186,13 @@ const Administradores: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     if (!adminToDelete) return;
+    const password = window.prompt(
+      "Ingresá tu contraseña para confirmar la eliminación:"
+    );
+    if (!password) return;
 
     try {
-      await UserService.deleteUser(adminToDelete.id);
+      await UserService.deleteUser(adminToDelete.id, password);
       toast({
         title: "Administrador eliminado",
         status: "success",
@@ -191,6 +220,8 @@ const Administradores: React.FC = () => {
       <Td>{admin.name}</Td>
       <Td>{admin.lastName}</Td>
       <Td>{admin.email}</Td>
+      <Td>{(admin as any).telephone ?? (admin as any).phone ?? "-"}</Td>{" "}
+      {/* 👈 nueva celda */}
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -225,54 +256,55 @@ const Administradores: React.FC = () => {
       <Box pl={collapsed ? "6.5rem" : "17rem"} px={5}>
         {users ? (
           <GenericTable
+            onCreateOpen={handleCreateClick}
+            actions={false}
             data={users}
             TableHeader={TableHeader}
             renderRow={renderAdminRow}
             caption="Administradores"
-            showPagination={true}
-            currentPage={currentPage}
             itemsPerPage={itemsPerPage}
-            totalItems={total}
-            onPageChange={(page) => fetchAdminUsers(page, itemsPerPage)}
-            topRightComponent={
-              <IconButton
-                aria-label="Crear administrador"
-                icon={<AddIcon />}
-                onClick={handleCreateClick}
-                backgroundColor="#318AE4"
-                color="white"
-                borderRadius="50%"
-                boxSize="40px"
-                _hover={{ backgroundColor: "#2563eb" }}
-              />
-            }
+            showAddMenu={true}
+            filter={false}
           />
         ) : (
           <p>Cargando...</p>
         )}
       </Box>
 
-      <EditModal
-        isOpen={isOpen}
+      <GenericCreateModal
+        isOpen={isCreateOpen}
         onClose={() => {
-          onClose();
+          onCreateClose();
           resetForm();
         }}
-        onConfirm={handleSubmit}
-        title={
-          formMode === "edit" ? "Editar Administrador" : "Crear Administrador"
-        }
-        entityName="Administrador"
-        formData={formData}
-        onInputChange={handleChange}
-        fieldLabels={{
-          name: "Nombre",
-          lastName: "Apellido",
-          email: "Correo",
-          telephone: "Teléfono",
-          password: formMode === "edit" ? "Cambiar contraseña" : "Contraseña",
+        onCreateSuccess={onCreateSuccess}
+        title="Crear Administrador"
+        fields={createFields as any}
+        createFn={createFn}
+        defaultValues={{
+          name: "",
+          lastName: "",
+          email: "",
+          password: "",
+          telephone: "",
         }}
-        excludeFields={formMode === "edit" ? ["email"] : []}
+      />
+
+      <EditAdminTutores
+        isOpen={isEditOpen}
+        onClose={() => {
+          onEditClose();
+          resetForm();
+        }}
+        onConfirm={handleEditSubmit}
+        entityName="Administrador"
+        title="Editar Administrador"
+        formData={{
+          name: formData.name,
+          lastName: formData.lastName,
+          telephone: formData.telephone,
+        }}
+        onInputChange={handleEditInputChange}
       />
 
       <DeleteModal
