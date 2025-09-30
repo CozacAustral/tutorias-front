@@ -16,7 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { HiEye, HiEyeOff } from "react-icons/hi";
-import { CreatePasswordProps } from "../changePassword/interfaces/createPassword.interface";
+import { CreatePasswordProps } from "../changePassword/interfaces/create-password.interface";
 import { createPassword } from "./api";
 
 const CreatePassword = ({ token, linkId }: CreatePasswordProps) => {

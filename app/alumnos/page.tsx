@@ -11,24 +11,24 @@ import {
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
-import DeleteModal from "../../common/components/modals/detele-modal";
-import EditModal from "../../common/components/modals/edit-modal";
-import ImportModal from "../../common/components/modals/import-modal";
+import DeleteModal from "../../common/components/modals/detele.modal";
+import EditModal from "../../common/components/modals/edit.modal";
+import ImportModal from "../../common/components/modals/import.modal";
 import { UserService } from "../../services/admin-service";
-import { CreateStudent } from "../carrera/interfaces/CreateStudent";
+import { CreateStudent } from "../carrera/interfaces/create-student.interface";
 import { SubjectState } from "../enums/subject-state.enum";
 import { Career } from "./interfaces/career.interface";
 import { Country } from "./interfaces/country.interface";
 import { AssignedCareer } from "./interfaces/create-career.interface";
+import { StudentCareer } from "./interfaces/student-career.interface";
 import { Student } from "./interfaces/student.interface";
-import { StudentCareer } from "./interfaces/studentCareer.interface";
 import { SubjectCareerWithState } from "./interfaces/subject-career-student.interface";
 import { UpdateStudentDto } from "./interfaces/update-student";
-import CareerModal from "./modals/create-career-student-modal";
-import CreateStudentModal from "./modals/create-student-modal";
-import PaginateStudent from "./modals/paginate-student";
-import SubjectModal from "./modals/subject-student-modal";
-import ViewStudentModal from "./modals/view-student-modal";
+import CareerModal from "./modals/create-career-student.modal";
+import CreateStudentModal from "./modals/create-student.modal";
+import PaginateStudent from "./modals/paginate-student.modal";
+import SubjectModal from "./modals/subject-student.modal";
+import ViewStudentModal from "./modals/view-student.modal";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);

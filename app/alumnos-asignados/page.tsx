@@ -14,7 +14,7 @@ import React, { useEffect, useRef, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
 import { Student } from "../alumnos/interfaces/student.interface";
-import AvailableStudentsModal from "../alumnos/modals/avilable-students-modal";
+import AvailableStudentsModal from "../alumnos/modals/avilable-student.modal";
 import { useSidebar } from "../contexts/SidebarContext";
 
 const AlumnosAsignados: React.FC = () => {

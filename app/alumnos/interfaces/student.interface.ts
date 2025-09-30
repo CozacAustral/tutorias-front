@@ -1,5 +1,5 @@
 import { User } from "../../administradores/interfaces/user.interface";
-import { StudentCareer } from "./studentCareer.interface";
+import { StudentCareer } from "./student-career.interface";
 
 export interface Student {
   id: number;

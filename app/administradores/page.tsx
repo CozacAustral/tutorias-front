@@ -12,11 +12,11 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 
 import GenericTable from "../../common/components/generic-table";
-import DeleteModal from "../../common/components/modals/detele-modal";
+import DeleteModal from "../../common/components/modals/detele.modal";
 
 import { UserService } from "../../services/admin-service";
 import { useSidebar } from "../contexts/SidebarContext";
-import EditAdminTutores from "../tutores/modals/edit-admin-tutores";
+import EditAdminTutores from "../tutores/modals/edit-admin-tutores.modal";
 import { User } from "./interfaces/user.interface";
 import GenericCreateModal from "./modals/create-modal-admin";
 

@@ -3,7 +3,7 @@
 import { Td, Tr } from "@chakra-ui/react";
 import { useState } from "react";
 import GenericTable from "../../common/components/generic-table";
-import { CareerStudent } from "./interfaces/careerStudent.interface";
+import { CareerStudent } from "./interfaces/career-student.interface";
 
 const Carrera: React.FC = () => {
   const [career, setCareer] = useState<CareerStudent[]>([]);

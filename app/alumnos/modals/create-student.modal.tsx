@@ -19,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { UserService } from "../../../services/admin-service";
-import { CreateStudent } from "../../carrera/interfaces/CreateStudent";
+import { CreateStudent } from "../../carrera/interfaces/create-student.interface";
 import { Career } from "../interfaces/career.interface";
 import { Country } from "../interfaces/country.interface";
 

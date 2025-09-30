@@ -5,12 +5,12 @@ import { AssignedCareer } from "../app/alumnos/interfaces/create-career.interfac
 import { Student } from "../app/alumnos/interfaces/student.interface";
 import { SubjectCareerWithState } from "../app/alumnos/interfaces/subject-career-student.interface";
 import { UpdateStudentDto } from "../app/alumnos/interfaces/update-student";
-import { CreateStudent } from "../app/carrera/interfaces/CreateStudent";
-import { CreateUser } from "./interfaces/createUser";
+import { CreateStudent } from "../app/carrera/interfaces/create-student.interface";
 import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
+import { CreateUser } from "./interfaces/createUser";
 import { QueryParamsDto } from "./interfaces/query-params-dto";
 import { ResponseCreateCareer } from "./interfaces/response-create-career.interface";
 import { ResponsePaginateStudent } from "./interfaces/response-paginate";

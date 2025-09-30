@@ -1,4 +1,4 @@
-import { StudentCareer } from "./studentCareer.interface";
+import { StudentCareer } from "./student-career.interface";
 
 export interface UpdateStudentDto {
   name: string;

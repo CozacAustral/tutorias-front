@@ -10,11 +10,11 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
-import DeleteModal from "../../common/components/modals/detele-modal";
+import DeleteModal from "../../common/components/modals/detele.modal";
 import { UserService } from "../../services/admin-service";
 import { Tutors } from "./interfaces/create.tutors.interface";
-import EditAdminTutores from "./modals/edit-admin-tutores";
-import TutorCreateModal from "./modals/tutor-create-modal";
+import EditAdminTutores from "./modals/edit-admin-tutores.modal";
+import TutorCreateModal from "./modals/tutor-create-modal.modal";
 
 import { useRouter } from "next/navigation";
 
