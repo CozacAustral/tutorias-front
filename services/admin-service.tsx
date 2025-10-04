@@ -8,8 +8,8 @@ import { UpdateStudentDto } from "../app/alumnos/interfaces/update-student";
 import { CreateStudent } from "../app/carrera/interfaces/create-student.interface";
 import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
-import { CreateMeetingBody } from '../app/reuniones/type/create-meeting-body.type';
-import { StudentOption } from '../app/reuniones/type/student-option.type';
+import { CreateMeetingBody } from "../app/reuniones/type/create-meeting-body.type";
+import { StudentOption } from "../app/reuniones/type/student-option.type";
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
 import { CreateUser } from "./interfaces/createUser";
@@ -25,50 +25,65 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async updateMeeting(id: number, body: any) {
+    const res = await axiosInstance.patch(`/tutors/meetings/${id}`, body);
+    return res.data;
+  },
 
-async getMyMeetings(page = 1, limit = 10): Promise<GetMeetingsResp> {
-  const res = await axiosInstance.get(`/tutors/me/meetings`, {
-    params: { page, limit, order: "asc" },
-  });
-  return res.data as GetMeetingsResp;
-},
+  // 🔹 Eliminar reunión
+  async deleteMeeting(id: number) {
+    const res = await axiosInstance.delete(`/tutors/meetings/${id}`);
+    return res.data;
+  },
 
-async schedule(body: CreateMeetingBody) {
-  const res = await axiosInstance.post(`/tutors/schedule-meeting`, body);
-  return res.data;
-},
+  async getMyMeetings(page = 1, limit = 10): Promise<GetMeetingsResp> {
+    const res = await axiosInstance.get(`/tutors/me/meetings`, {
+      params: { page, limit, order: "asc" },
+    });
+    return res.data as GetMeetingsResp;
+  },
 
-async getStudentsByTutorId(
-  tutorId: number,
-  opts?: { search?: string; currentPage?: number; resultsPerPage?: number }
-): Promise<GetTutorStudentsResp> {
-  const res = await axiosInstance.get(`/tutors/get-students/${tutorId}`, {
-    params: {
-      search: opts?.search ?? "",
-      currentPage: opts?.currentPage ?? 1,
-      resultsPerPage: opts?.resultsPerPage ?? 100,
-    },
-  });
-  return res.data as GetTutorStudentsResp;
-},
+  async schedule(body: CreateMeetingBody) {
+    const res = await axiosInstance.post(`/tutors/schedule-meeting`, body);
+    return res.data;
+  },
 
-async getMyStudents(opts?: { search?: string; currentPage?: number; resultsPerPage?: number }) {
-  const { data } = await axiosInstance.get(`/tutors/me/students`, {
-    params: {
-      search: opts?.search ?? '',
-      currentPage: opts?.currentPage ?? 1,
-      resultsPerPage: opts?.resultsPerPage ?? 999,
-    },
-  });
-  return data as {
-    data: { id: number; user: { name?: string; lastName?: string; email?: string } }[];
-    total: number;
-    page: number;
-    limit: number;
-  };
-},
+  async getStudentsByTutorId(
+    tutorId: number,
+    opts?: { search?: string; currentPage?: number; resultsPerPage?: number }
+  ): Promise<GetTutorStudentsResp> {
+    const res = await axiosInstance.get(`/tutors/get-students/${tutorId}`, {
+      params: {
+        search: opts?.search ?? "",
+        currentPage: opts?.currentPage ?? 1,
+        resultsPerPage: opts?.resultsPerPage ?? 100,
+      },
+    });
+    return res.data as GetTutorStudentsResp;
+  },
 
-
+  async getMyStudents(opts?: {
+    search?: string;
+    currentPage?: number;
+    resultsPerPage?: number;
+  }) {
+    const { data } = await axiosInstance.get(`/tutors/me/students`, {
+      params: {
+        search: opts?.search ?? "",
+        currentPage: opts?.currentPage ?? 1,
+        resultsPerPage: opts?.resultsPerPage ?? 999,
+      },
+    });
+    return data as {
+      data: {
+        id: number;
+        user: { name?: string; lastName?: string; email?: string };
+      }[];
+      total: number;
+      page: number;
+      limit: number;
+    };
+  },
 
   async fetchTutorById(tutorId: number): Promise<ResponseTutor> {
     try {
