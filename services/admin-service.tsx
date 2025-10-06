@@ -9,7 +9,6 @@ import { CreateStudent } from "../app/carrera/interfaces/create-student.interfac
 import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
 import { CreateMeetingBody } from "../app/reuniones/type/create-meeting-body.type";
-import { StudentOption } from "../app/reuniones/type/student-option.type";
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
 import { CreateUser } from "./interfaces/createUser";
@@ -36,9 +35,22 @@ export const UserService = {
     return res.data;
   },
 
-  async getMyMeetings(page = 1, limit = 10): Promise<GetMeetingsResp> {
+  async getMyMeetings(
+    page = 1,
+    limit = 10,
+    filters?: {
+      from?: string;
+      to?: string;
+      timeFrom?: string;
+      timeTo?: string;
+      studentId?: number;
+      studentQuery?: string;
+      status?: "upcoming" | "past" | "all";
+      order?: "asc" | "desc";
+    }
+  ): Promise<GetMeetingsResp> {
     const res = await axiosInstance.get(`/tutors/me/meetings`, {
-      params: { page, limit, order: "asc" },
+      params: { page, limit, ...filters },
     });
     return res.data as GetMeetingsResp;
   },
@@ -46,43 +58,6 @@ export const UserService = {
   async schedule(body: CreateMeetingBody) {
     const res = await axiosInstance.post(`/tutors/schedule-meeting`, body);
     return res.data;
-  },
-
-  async getStudentsByTutorId(
-    tutorId: number,
-    opts?: { search?: string; currentPage?: number; resultsPerPage?: number }
-  ): Promise<GetTutorStudentsResp> {
-    const res = await axiosInstance.get(`/tutors/get-students/${tutorId}`, {
-      params: {
-        search: opts?.search ?? "",
-        currentPage: opts?.currentPage ?? 1,
-        resultsPerPage: opts?.resultsPerPage ?? 100,
-      },
-    });
-    return res.data as GetTutorStudentsResp;
-  },
-
-  async getMyStudents(opts?: {
-    search?: string;
-    currentPage?: number;
-    resultsPerPage?: number;
-  }) {
-    const { data } = await axiosInstance.get(`/tutors/me/students`, {
-      params: {
-        search: opts?.search ?? "",
-        currentPage: opts?.currentPage ?? 1,
-        resultsPerPage: opts?.resultsPerPage ?? 999,
-      },
-    });
-    return data as {
-      data: {
-        id: number;
-        user: { name?: string; lastName?: string; email?: string };
-      }[];
-      total: number;
-      page: number;
-      limit: number;
-    };
   },
 
   async fetchTutorById(tutorId: number): Promise<ResponseTutor> {

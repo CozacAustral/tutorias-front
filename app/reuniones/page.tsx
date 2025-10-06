@@ -1,33 +1,36 @@
-// app/reuniones/page.tsx  (reemplazar por completo)
-
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { DeleteIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
   Flex,
   HStack,
+  IconButton,
   Image,
-  useDisclosure,
-  useToast,
   Td,
   Tr,
-  IconButton,
+  useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
-import { MeetingRow } from "./type/meeting-row.type";
-import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import EditMeetingModal from "./modals/edit-meeting-modal";
+import FilterMeetingsModal, { Filters } from "./modals/filtro-busqueda-modal";
+import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
+import { MeetingRow } from "./type/meeting-row.type";
 
 type StudentOption = { id: number; label: string };
 
 function fullName(u?: { name?: string; lastName?: string; email?: string }) {
   return [u?.name, u?.lastName].filter(Boolean).join(" ") || u?.email || "-";
 }
-function formatFechaHora(dateISO: string, time: string) {
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+function formatFechaHora(dateISO: string, time?: string) {
   try {
     const d = new Date(dateISO);
     const f = d.toLocaleDateString("es-AR", {
@@ -35,18 +38,16 @@ function formatFechaHora(dateISO: string, time: string) {
       month: "2-digit",
       year: "numeric",
     });
-    const h =
-      time ||
-      d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+    const h = time ? time : `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
     return `${f} ${h}`;
   } catch {
-    return `${dateISO} ${time}`;
+    return time ? `${dateISO} ${time}` : dateISO;
   }
 }
-function isFuture(dateISO: string, time: string) {
+function isFuture(dateISO: string, time?: string) {
   try {
     const d = new Date(dateISO);
-    if (/^\d{1,2}:\d{2}/.test(time)) {
+    if (time && /^\d{1,2}:\d{2}/.test(time)) {
       const [hh, mm] = time.split(":").map(Number);
       d.setHours(hh || 0, mm || 0, 0, 0);
     }
@@ -87,21 +88,30 @@ const Reuniones: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-
-  const { isOpen, onOpen, onClose } = useDisclosure(); // modal crear
+  const { isOpen, onOpen, onClose } = useDisclosure(); // crear
   const {
     isOpen: isEditOpen,
     onOpen: onEditOpen,
     onClose: onEditClose,
   } = useDisclosure();
 
-    const [meetingToEdit, setMeetingToEdit] = useState<MeetingRow | null>(null);
-
+  const [meetingToEdit, setMeetingToEdit] = useState<MeetingRow | null>(null);
   const [tutorName, setTutorName] = useState<string>(
     () => getTutorNameFromToken() ?? "—"
   );
 
-  // Opciones de alumnos para el modal
+  const {
+    isOpen: isFilterOpen,
+    onOpen: onFilterOpen,
+    onClose: onFilterClose,
+  } = useDisclosure();
+
+  const [filters, setFilters] = useState<Filters>({
+    status: "all",
+    order: "asc",
+  });
+
+  // opciones de alumnos para el modal crear/editar
   const [studentsOptions, setStudentsOptions] = useState<StudentOption[]>([]);
 
   const headers = useMemo(
@@ -121,7 +131,6 @@ const Reuniones: React.FC = () => {
           boxSize={6}
         />
       </Td>
-      {/* 👇 Nueva celda de Acciones */}
       <Td>
         <IconButton
           aria-label="Editar reunión"
@@ -150,34 +159,28 @@ const Reuniones: React.FC = () => {
     </Tr>
   );
 
-  async function loadMeetingsAndStudents(p = page) {
+  async function loadMeetings(p = page) {
     setLoading(true);
     try {
-      const [meetingsRes, studentsRes] = await Promise.all([
-        UserService.getMyMeetings(p, limit),
-        UserService.getMyStudents({ currentPage: 1, resultsPerPage: 100 }),
-      ]);
-
-      const studentsMap = new Map<number, string>(
-        (studentsRes.data ?? []).map((s: any) => [s.id, fullName(s.user)])
-      );
+      const meetingsRes = await UserService.getMyMeetings(p, limit, filters);
 
       if (tutorName === "—") {
         const t = getTutorNameFromToken();
         if (t) setTutorName(t);
       }
 
+      const uniqueStudents = new Map<number, string>();
+
       const mapped: MeetingRow[] = (meetingsRes.data ?? []).map((m: any) => {
-        const studentObj: any = m?.student ?? m?.tutorship?.student ?? null;
+        const student = m?.tutorship?.student ?? null;
+        const studentUser = student?.user ?? null;
+        const alumno = studentUser ? fullName(studentUser) : "-";
 
-        const sId: number | null =
-          m?.studentId ?? studentObj?.id ?? m?.tutorship?.studentId ?? null;
-
-        const alumno = studentObj?.user
-          ? fullName(studentObj.user)
-          : sId && studentsMap.has(sId)
-            ? (studentsMap.get(sId) as string)
-            : "-";
+        // recolecto opciones para el modal desde las reuniones (sin otra API)
+        if (student?.id) {
+          const label = fullName(studentUser) || "-";
+          uniqueStudents.set(student.id, label);
+        }
 
         return {
           id: m.id,
@@ -190,13 +193,9 @@ const Reuniones: React.FC = () => {
       });
 
       setRows(mapped);
-      setTotal(meetingsRes.total);
-
+      setTotal(meetingsRes.total ?? mapped.length);
       setStudentsOptions(
-        (studentsRes.data ?? []).map((s: any) => ({
-          id: s.id,
-          label: fullName(s.user),
-        }))
+        Array.from(uniqueStudents, ([id, label]) => ({ id, label }))
       );
     } catch (e: any) {
       toast({
@@ -206,27 +205,17 @@ const Reuniones: React.FC = () => {
       });
       setRows([]);
       setTotal(0);
+      setStudentsOptions([]); // sin alumnos si falla
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadMeetingsAndStudents(page);
-  }, [page]);
+    loadMeetings(page);
+  }, [page, JSON.stringify(filters)]);
 
   const openCreate = async () => {
-    if (!studentsOptions.length) {
-      try {
-        const res = await UserService.getMyStudents({
-          currentPage: 1,
-          resultsPerPage: 100,
-        });
-        setStudentsOptions(
-          res.data.map((s: any) => ({ id: s.id, label: fullName(s.user) }))
-        );
-      } catch {}
-    }
     onOpen();
     setTimeout(() => initialRef.current?.focus(), 0);
   };
@@ -238,7 +227,7 @@ const Reuniones: React.FC = () => {
     if (!ok) return;
     try {
       await UserService.deleteMeeting(row.id);
-      loadMeetingsAndStudents(page); // refresco
+      loadMeetings(page); // refresco
     } catch (e: any) {
       toast({
         title: "Error al eliminar",
@@ -271,6 +260,13 @@ const Reuniones: React.FC = () => {
           hasSidebar
           topRightComponent={
             <HStack>
+              <Button
+                leftIcon={<SearchIcon />}
+                variant="outline"
+                onClick={onFilterOpen}
+              >
+                Filtros
+              </Button>
               <Button onClick={openCreate} isLoading={loading}>
                 + Agendar
               </Button>
@@ -286,7 +282,7 @@ const Reuniones: React.FC = () => {
         students={studentsOptions}
         onCreated={() => {
           setPage(1);
-          loadMeetingsAndStudents(1);
+          loadMeetings(1);
         }}
       />
 
@@ -297,7 +293,22 @@ const Reuniones: React.FC = () => {
           setMeetingToEdit(null);
         }}
         meeting={meetingToEdit}
-        onUpdated={() => loadMeetingsAndStudents(page)}
+        onUpdated={() => loadMeetings(page)}
+      />
+
+      <FilterMeetingsModal
+        isOpen={isFilterOpen}
+        onClose={onFilterClose}
+        students={studentsOptions}
+        current={filters}
+        onApply={(f) => {
+          setFilters(f);
+          setPage(1);
+        }}
+        onClear={() => {
+          setFilters({ status: "all", order: "asc" });
+          setPage(1);
+        }}
       />
     </Flex>
   );
