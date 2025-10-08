@@ -4,7 +4,6 @@ import { DeleteIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
-  Flex,
   HStack,
   IconButton,
   Image,
@@ -20,11 +19,10 @@ import EditMeetingModal from "./modals/edit-meeting-modal";
 import FilterMeetingsModal, { Filters } from "./modals/filtro-busqueda-modal";
 import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
 import { MeetingRow } from "./type/meeting-row.type";
-import { useSidebar } from '../contexts/SidebarContext';
+import { useSidebar } from "../contexts/SidebarContext";
 
 type StudentOption = { id: number; label: string };
-
-
+type Row = MeetingRow & { fecha: string; hora: string };
 
 function fullName(u?: { name?: string; lastName?: string; email?: string }) {
   return [u?.name, u?.lastName].filter(Boolean).join(" ") || u?.email || "-";
@@ -33,20 +31,30 @@ function fullName(u?: { name?: string; lastName?: string; email?: string }) {
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
-function formatFechaHora(dateISO: string, time?: string) {
+
+function formatFecha(dateISO: string) {
   try {
     const d = new Date(dateISO);
-    const f = d.toLocaleDateString("es-AR", {
+    return d.toLocaleDateString("es-AR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
-    const h = time ? time : `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-    return `${f} ${h}`;
   } catch {
-    return time ? `${dateISO} ${time}` : dateISO;
+    return dateISO;
   }
 }
+
+function formatHora(dateISO: string, time?: string) {
+  try {
+    if (time && /^\d{1,2}:\d{2}/.test(time)) return time;
+    const d = new Date(dateISO);
+    return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  } catch {
+    return time ?? "";
+  }
+}
+
 function isFuture(dateISO: string, time?: string) {
   try {
     const d = new Date(dateISO);
@@ -88,7 +96,7 @@ const Reuniones: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(7);
 
-  const [rows, setRows] = useState<MeetingRow[]>([]);
+  const [rows, setRows] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -115,18 +123,18 @@ const Reuniones: React.FC = () => {
     order: "asc",
   });
 
-  // opciones de alumnos para el modal crear/editar
   const [studentsOptions, setStudentsOptions] = useState<StudentOption[]>([]);
 
   const headers = useMemo(
-    () => ["Alumno", "Fecha y hora", "Aula", "Status", "Acciones"],
+    () => ["Alumno", "Fecha", "Hora", "Aula", "Status", "Acciones"],
     []
   );
 
-  const renderRow = (r: MeetingRow) => (
+  const renderRow = (r: Row) => (
     <Tr key={r.id}>
       <Td>{r.alumno}</Td>
-      <Td>{r.fechaHora}</Td>
+      <Td>{r.fecha}</Td>
+      <Td>{r.hora}</Td>
       <Td>{r.aula}</Td>
       <Td>
         <Image
@@ -175,22 +183,27 @@ const Reuniones: React.FC = () => {
 
       const uniqueStudents = new Map<number, string>();
 
-      const mapped: MeetingRow[] = (meetingsRes.data ?? []).map((m: any) => {
+      const mapped: Row[] = (meetingsRes.data ?? []).map((m: any) => {
         const student = m?.tutorship?.student ?? null;
         const studentUser = student?.user ?? null;
         const alumno = studentUser ? fullName(studentUser) : "-";
 
-        // recolecto opciones para el modal desde las reuniones (sin otra API)
         if (student?.id) {
           const label = fullName(studentUser) || "-";
           uniqueStudents.set(student.id, label);
         }
 
+        const fecha = formatFecha(m.date);
+        const hora = formatHora(m.date, m.time);
+
         return {
           id: m.id,
           tutor: tutorName || "—",
           alumno,
-          fechaHora: formatFechaHora(m.date, m.time),
+          fecha,
+          hora,
+          // compat si algo sigue usando fechaHora
+          fechaHora: `${fecha} ${hora}`,
           aula: m.location,
           status: isFuture(m.date, m.time),
         };
@@ -209,7 +222,7 @@ const Reuniones: React.FC = () => {
       });
       setRows([]);
       setTotal(0);
-      setStudentsOptions([]); // sin alumnos si falla
+      setStudentsOptions([]);
     } finally {
       setLoading(false);
     }
@@ -217,6 +230,7 @@ const Reuniones: React.FC = () => {
 
   useEffect(() => {
     loadMeetings(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, JSON.stringify(filters)]);
 
   const openCreate = async () => {
@@ -224,14 +238,14 @@ const Reuniones: React.FC = () => {
     setTimeout(() => initialRef.current?.focus(), 0);
   };
 
-  const handleDelete = async (row: MeetingRow) => {
+  const handleDelete = async (row: Row) => {
     const ok = window.confirm(
-      `¿Eliminar la reunión con ${row.alumno} del ${row.fechaHora}?`
+      `¿Eliminar la reunión con ${row.alumno} del ${row.fecha} ${row.hora}?`
     );
     if (!ok) return;
     try {
       await UserService.deleteMeeting(row.id);
-      loadMeetings(page); // refresco
+      loadMeetings(page);
     } catch (e: any) {
       toast({
         title: "Error al eliminar",
@@ -241,7 +255,7 @@ const Reuniones: React.FC = () => {
     }
   };
 
-  const handleEdit = (row: MeetingRow) => {
+  const handleEdit = (row: Row) => {
     setMeetingToEdit(row);
     onEditOpen();
   };
@@ -249,7 +263,7 @@ const Reuniones: React.FC = () => {
   return (
     <>
       <Box pl={collapsed ? "6.5rem" : "17rem"} px={5}>
-        <GenericTable<MeetingRow>
+        <GenericTable<Row>
           showAddMenu={false}
           caption="Reuniones"
           data={rows}
