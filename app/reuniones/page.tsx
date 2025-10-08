@@ -20,8 +20,11 @@ import EditMeetingModal from "./modals/edit-meeting-modal";
 import FilterMeetingsModal, { Filters } from "./modals/filtro-busqueda-modal";
 import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
 import { MeetingRow } from "./type/meeting-row.type";
+import { useSidebar } from '../contexts/SidebarContext';
 
 type StudentOption = { id: number; label: string };
+
+
 
 function fullName(u?: { name?: string; lastName?: string; email?: string }) {
   return [u?.name, u?.lastName].filter(Boolean).join(" ") || u?.email || "-";
@@ -80,9 +83,10 @@ function getTutorNameFromToken(): string | null {
 const Reuniones: React.FC = () => {
   const toast = useToast();
   const initialRef = useRef<HTMLInputElement | null>(null);
+  const { collapsed } = useSidebar();
 
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(7);
 
   const [rows, setRows] = useState<MeetingRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -128,7 +132,7 @@ const Reuniones: React.FC = () => {
         <Image
           src={r.status ? "/icons/true-check.svg" : "/icons/false-check.svg"}
           alt={r.status ? "True" : "False"}
-          boxSize={6}
+          boxSize={30}
         />
       </Td>
       <Td>
@@ -243,8 +247,8 @@ const Reuniones: React.FC = () => {
   };
 
   return (
-    <Flex ml="15.625rem" direction="column" minHeight="100vh">
-      <Box mt={4}>
+    <>
+      <Box pl={collapsed ? "6.5rem" : "17rem"} px={5}>
         <GenericTable<MeetingRow>
           showAddMenu={false}
           caption="Reuniones"
@@ -310,7 +314,7 @@ const Reuniones: React.FC = () => {
           setPage(1);
         }}
       />
-    </Flex>
+    </>
   );
 };
 
