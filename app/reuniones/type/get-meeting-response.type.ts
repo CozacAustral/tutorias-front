@@ -4,8 +4,12 @@ type GetMeetingsResp = {
     date: string;
     time: string;
     location: string;
+    status: MeetingStatus;
     tutorship?: {
-      student?: { id: number; user?: { name?: string; lastName?: string; email?: string } };
+      student?: {
+        id: number;
+        user?: { name?: string; lastName?: string; email?: string };
+      };
       studentId?: number;
       tutorId?: number;
     };

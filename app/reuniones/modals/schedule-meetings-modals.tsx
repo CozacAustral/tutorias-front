@@ -1,7 +1,7 @@
 // src/components/meetings/ScheduleMeetingModal.tsx
 "use client";
 
-import { Props } from '../type/props.type';
+import { Props } from "../type/props.type";
 import { useRef, useState, useEffect } from "react";
 import {
   Button,
@@ -23,12 +23,22 @@ import { UserService } from "../../../services/admin-service";
 
 type StudentOption = { id: number; label: string };
 
+// ✅ helper: fecha "YYYY-MM-DD" -> ISO en UTC al mediodía
+function toIsoUtcNoon(dateStr: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  return dt.toISOString(); // evita el -1 día por TZ
+}
+
 export default function ScheduleMeetingModal({
   isOpen,
   onClose,
   students,
   onCreated,
-}: Props) {
+  // opcional: si algún día querés preseleccionar alumno por query
+  defaultStudentId,
+}: Props & { defaultStudentId?: number }) {
   const initialRef = useRef<HTMLInputElement | null>(null);
   const [studentId, setStudentId] = useState<number>(0);
   const [dateValue, setDateValue] = useState<string>("");
@@ -45,26 +55,35 @@ export default function ScheduleMeetingModal({
   };
 
   useEffect(() => {
-    if (!isOpen) resetForm();
-  }, [isOpen]);
-
-  const handleCreate = async () => {
-    if (!studentId || !dateValue || !timeValue || !locationValue) {
-      toast({ status: "warning", title: "Completa todos los campos" });
+    if (!isOpen) {
+      resetForm();
       return;
     }
-    const timeNorm = /^\d{1,2}:\d{2}(:\d{2})?$/.test(timeValue)
-      ? timeValue.length === 5
-        ? `${timeValue}:00`
-        : timeValue
-      : `${timeValue}:00`;
+    // si viene un defaultStudentId, lo seteamos al abrir
+    if (defaultStudentId && students.some(s => s.id === defaultStudentId)) {
+      setStudentId(defaultStudentId);
+    }
+  }, [isOpen, defaultStudentId, students]);
+
+  const handleCreate = async () => {
+    if (!studentId || !dateValue || !timeValue || !locationValue.trim()) {
+      toast({ status: "warning", title: "Completá todos los campos" });
+      return;
+    }
+
+    // normalizar hora a HH:mm:ss
+    const timeNorm =
+      /^\d{1,2}:\d{2}(:\d{2})?$/.test(timeValue)
+        ? (timeValue.length === 5 ? `${timeValue}:00` : timeValue)
+        : `${timeValue}:00`;
 
     const body: CreateMeetingBody = {
       studentId,
-      date: dateValue,
+      date: toIsoUtcNoon(dateValue), // ✅ clave para evitar -1 día
       time: timeNorm,
       location: locationValue.trim(),
     };
+
     try {
       setLoading(true);
       const resp = await UserService.schedule(body);
@@ -92,10 +111,11 @@ export default function ScheduleMeetingModal({
       }}
       size="xl"
       initialFocusRef={initialRef as any}
+      isCentered
     >
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Agenda una reunión</ModalHeader>
+        <ModalHeader>Agendar reunión</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <FormControl>
@@ -106,7 +126,7 @@ export default function ScheduleMeetingModal({
               value={studentId || ""}
               onChange={(e) => setStudentId(Number(e.target.value))}
             >
-              {students.map((s) => (
+              {students.map((s: StudentOption) => (
                 <option key={s.id} value={s.id}>
                   {s.label}
                 </option>
@@ -127,8 +147,9 @@ export default function ScheduleMeetingModal({
             <FormLabel>Hora</FormLabel>
             <Input
               type="time"
+              step="60"
               value={timeValue}
-              onChange={(e) => setTimeValue(e.target.value)}
+              onChange={(e) => setTimeValue(e.target.value.slice(0, 5))}
             />
           </FormControl>
 
@@ -143,12 +164,7 @@ export default function ScheduleMeetingModal({
         </ModalBody>
 
         <ModalFooter>
-          <Button
-            colorScheme="blue"
-            mr={3}
-            isLoading={loading}
-            onClick={handleCreate}
-          >
+          <Button colorScheme="blue" mr={3} isLoading={loading} onClick={handleCreate}>
             Guardar
           </Button>
           <Button

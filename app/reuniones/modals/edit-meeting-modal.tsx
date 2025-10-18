@@ -35,32 +35,36 @@ export default function EditMeetingModal({ isOpen, onClose, meeting, onUpdated }
     if (!isOpen) reset();
   }, [isOpen]);
 
-  const onSave = async () => {
-    if (!meeting) return;
+  function toIsoUtcNoon(dateStr: string) {
+  // dateStr: "YYYY-MM-DD"
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  const [y, m, d] = dateStr.split("-").map(Number);
+  // 12:00 UTC evita que, al convertir a hora local, te caiga en el día anterior
+  const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  return dt.toISOString(); // "2025-10-11T12:00:00.000Z"
+}
 
-    const timeNorm =
-      /^\d{1,2}:\d{2}(:\d{2})?$/.test(time) ? (time.length === 5 ? `${time}:00` : time) : `${time}:00`;
 
-    try {
-      await UserService.updateMeeting(meeting.id, {
-        date,
-        time: timeNorm,
-        location,
-      });
-      toast({ title: "Reunión actualizada", status: "success", duration: 3000, isClosable: true });
-      onUpdated?.();
-      onClose();
-      reset();
-    } catch (e: any) {
-      toast({
-        title: "Error al actualizar",
-        description: e?.response?.data?.message ?? "Error inesperado",
-        status: "error",
-        duration: 3500,
-        isClosable: true,
-      });
-    }
-  };
+const onSave = async () => {
+  if (!meeting) return;
+
+  const timeNorm =
+    /^\d{1,2}:\d{2}(:\d{2})?$/.test(time) ? (time.length === 5 ? `${time}:00` : time) : `${time}:00`;
+
+  try {
+    await UserService.updateMeeting(meeting.id, {
+      date: toIsoUtcNoon(date),   // <-- cambio clave
+      time: timeNorm,
+      location,
+    });
+    toast({ title: "Reunión actualizada", status: "success" });
+    onUpdated?.();
+    onClose();
+    reset();
+  } catch (e: any) {
+    toast({ title: "Error al actualizar", description: e?.response?.data?.message ?? "Error inesperado", status: "error" });
+  }
+};
 
   return (
     <Modal

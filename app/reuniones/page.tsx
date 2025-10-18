@@ -1,16 +1,18 @@
+// src/pages/reuniones/index.tsx
 "use client";
 
 import { DeleteIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
 import {
+  Badge,
   Box,
   Button,
   HStack,
   IconButton,
-  Image,
   Td,
   Tr,
   useDisclosure,
   useToast,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import GenericTable from "../../common/components/generic-table";
@@ -20,18 +22,59 @@ import FilterMeetingsModal, { Filters } from "./modals/filtro-busqueda-modal";
 import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
 import { MeetingRow } from "./type/meeting-row.type";
 import { useSidebar } from "../contexts/SidebarContext";
+import NextLink from "next/link";
+import CreateReportModal from "./modals/create-report-modal";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FiFilePlus, FiFileText } from "react-icons/fi";
+import ViewReportModal from './modals/view-report-modal';
+
+/* =========================
+   Tipos
+   ========================= */
+type MeetingStatus = "PENDING" | "CONFIRMED" | "REPORTMISSING";
+
+type GetMeetingsResp = {
+  data: {
+    id: number;
+    date: string;
+    time: string;
+    location: string;
+    status: MeetingStatus;
+    tutorship?: {
+      student?: {
+        id: number;
+        user?: { name?: string; lastName?: string; email?: string };
+      };
+      studentId?: number;
+      tutorId?: number;
+    };
+  }[];
+  total: number;
+  page: number;
+  limit: number;
+};
 
 type StudentOption = { id: number; label: string };
-type Row = MeetingRow & { fecha: string; hora: string };
 
-function fullName(u?: { name?: string; lastName?: string; email?: string }) {
-  return [u?.name, u?.lastName].filter(Boolean).join(" ") || u?.email || "-";
+type Row = Omit<MeetingRow, "status" | "fechaHora"> & {
+  fecha: string;
+  hora: string;
+  status: MeetingStatus;
+  fechaHora?: string;
+};
+
+/* =========================
+   Utils
+   ========================= */
+function fullName(
+  u?: { name?: string; lastName?: string; email?: string } | null
+) {
+  if (!u) return "-";
+  return [u.name, u.lastName].filter(Boolean).join(" ") || u.email || "-";
 }
-
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
-
 function formatFecha(dateISO: string) {
   try {
     const d = new Date(dateISO);
@@ -44,7 +87,6 @@ function formatFecha(dateISO: string) {
     return dateISO;
   }
 }
-
 function formatHora(dateISO: string, time?: string) {
   try {
     if (time && /^\d{1,2}:\d{2}/.test(time)) return time;
@@ -54,40 +96,29 @@ function formatHora(dateISO: string, time?: string) {
     return time ?? "";
   }
 }
-
-function isFuture(dateISO: string, time?: string) {
-  try {
-    const d = new Date(dateISO);
-    if (time && /^\d{1,2}:\d{2}/.test(time)) {
-      const [hh, mm] = time.split(":").map(Number);
-      d.setHours(hh || 0, mm || 0, 0, 0);
-    }
-    return d.getTime() >= Date.now();
-  } catch {
-    return false;
+function statusBadge(s: MeetingStatus) {
+  switch (s) {
+    case "CONFIRMED":
+      return <Badge colorScheme="green">Confirmada</Badge>;
+    case "PENDING":
+      return <Badge colorScheme="yellow">Pendiente</Badge>;
+    case "REPORTMISSING":
+      return <Badge colorScheme="red">Falta reporte</Badge>;
+    default:
+      return <Badge>—</Badge>;
   }
 }
-
-function getTutorNameFromToken(): string | null {
-  try {
-    const raw = localStorage.getItem("authTokens");
-    if (!raw) return null;
-    const obj = JSON.parse(raw);
-    const token: string =
-      obj?.accessToken || obj?.access_token || obj?.token || "";
-    if (!token.includes(".")) return null;
-    const payload = JSON.parse(atob(token.split(".")[1] ?? ""));
-    const nameLike = fullName({
-      name: payload?.name,
-      lastName: payload?.lastName,
-      email: payload?.email,
-    });
-    return nameLike && nameLike !== "-" ? nameLike : null;
-  } catch {
-    return null;
-  }
+function toMeetingRow(r: Row): MeetingRow {
+  return {
+    ...r,
+    fechaHora: r.fechaHora ?? `${r.fecha} ${r.hora}`,
+    status: r.status === "CONFIRMED",
+  } as MeetingRow;
 }
 
+/* =========================
+   Componente
+   ========================= */
 const Reuniones: React.FC = () => {
   const toast = useToast();
   const initialRef = useRef<HTMLInputElement | null>(null);
@@ -96,21 +127,28 @@ const Reuniones: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(7);
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const [rows, setRows] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const { isOpen, onOpen, onClose } = useDisclosure(); // crear
+  const { isOpen, onOpen, onClose } = useDisclosure(); // crear meeting
   const {
     isOpen: isEditOpen,
     onOpen: onEditOpen,
     onClose: onEditClose,
   } = useDisclosure();
 
+  const {
+    isOpen: isViewOpen,
+    onOpen: onViewOpen,
+    onClose: onViewClose,
+  } = useDisclosure();
+  const [viewMeetingId, setViewMeetingId] = useState<number | null>(null);
+
   const [meetingToEdit, setMeetingToEdit] = useState<MeetingRow | null>(null);
-  const [tutorName, setTutorName] = useState<string>(
-    () => getTutorNameFromToken() ?? "—"
-  );
 
   const {
     isOpen: isFilterOpen,
@@ -122,8 +160,32 @@ const Reuniones: React.FC = () => {
     status: "all",
     order: "asc",
   });
-
   const [studentsOptions, setStudentsOptions] = useState<StudentOption[]>([]);
+
+  // Modal de Reporte
+  const {
+    isOpen: isReportOpen,
+    onOpen: onReportOpen,
+    onClose: onReportClose,
+  } = useDisclosure();
+  const [reportMeetingId, setReportMeetingId] = useState<number | null>(null);
+
+  // Deep-links por query param
+  useEffect(() => {
+    // Abrir "Crear reporte" si viene ?createReportFor=ID
+    const crf = Number(searchParams.get("createReportFor"));
+    if (Number.isInteger(crf) && crf > 0) {
+      setReportMeetingId(crf);
+      onReportOpen();
+    }
+    // Abrir "Agendar" si viene ?openCreate=1 (opcional: preselección de alumno con ?studentId=)
+    const shouldOpenCreate = searchParams.get("openCreate") === "1";
+    if (shouldOpenCreate) {
+      onOpen();
+      setTimeout(() => initialRef.current?.focus(), 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // sólo primera carga
 
   const headers = useMemo(
     () => ["Alumno", "Fecha", "Hora", "Aula", "Status", "Acciones"],
@@ -136,37 +198,77 @@ const Reuniones: React.FC = () => {
       <Td>{r.fecha}</Td>
       <Td>{r.hora}</Td>
       <Td>{r.aula}</Td>
+      <Td>{statusBadge(r.status)}</Td>
       <Td>
-        <Image
-          src={r.status ? "/icons/true-check.svg" : "/icons/false-check.svg"}
-          alt={r.status ? "True" : "False"}
-          boxSize={30}
-        />
-      </Td>
-      <Td>
-        <IconButton
-          aria-label="Editar reunión"
-          icon={<EditIcon boxSize={5} />}
-          backgroundColor="white"
-          onClick={() => handleEdit(r)}
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "white",
-          }}
-          mr={2}
-        />
-        <IconButton
-          aria-label="Eliminar reunión"
-          icon={<DeleteIcon boxSize={5} />}
-          backgroundColor="white"
-          onClick={() => handleDelete(r)}
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "red.500",
-            color: "white",
-          }}
-        />
+        <HStack spacing={2}>
+          <IconButton
+            aria-label="Editar reunión"
+            icon={<EditIcon boxSize={5} />}
+            backgroundColor="white"
+            onClick={() => handleEdit(r)}
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "white",
+            }}
+          />
+          <IconButton
+            aria-label="Eliminar reunión"
+            icon={<DeleteIcon boxSize={5} />}
+            backgroundColor="white"
+            onClick={() => handleDelete(r)}
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "red.500",
+              color: "white",
+            }}
+          />
+
+          {/* solo mostrar si NO está pendiente */}
+          {r.status !== "PENDING" &&
+            (r.status === "REPORTMISSING" ? (
+              <IconButton
+                aria-label="Crear reporte"
+                icon={<FiFilePlus />}
+                backgroundColor="white"
+                _hover={{
+                  borderRadius: 15,
+                  backgroundColor: "#318AE4",
+                  color: "white",
+                }}
+                onClick={() => {
+                  setReportMeetingId(r.id);
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set("createReportFor", String(r.id));
+                  router.replace(`/reuniones?${params.toString()}`, {
+                    scroll: false,
+                  });
+                  onReportOpen();
+                }}
+              />
+            ) : (
+              <IconButton
+                aria-label="Ver reporte"
+                icon={<FiFileText />}
+                backgroundColor="white"
+                _hover={{
+                  borderRadius: 15,
+                  backgroundColor: "#318AE4",
+                  color: "white",
+                }}
+                onClick={() => {
+                  setViewMeetingId(r.id);
+                  // (opcional) deeplink para refrescar/compartir
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set("viewReportFor", String(r.id));
+                  router.replace(`/reuniones?${params.toString()}`, {
+                    scroll: false,
+                  });
+                  onViewOpen();
+                }}
+              />
+            ))}
+        </HStack>
       </Td>
     </Tr>
   );
@@ -174,40 +276,34 @@ const Reuniones: React.FC = () => {
   async function loadMeetings(p = page) {
     setLoading(true);
     try {
-      const meetingsRes = await UserService.getMyMeetings(p, limit, filters);
-
-      if (tutorName === "—") {
-        const t = getTutorNameFromToken();
-        if (t) setTutorName(t);
-      }
-
+      const meetingsRes = await UserService.getMyMeetings(p, limit, {
+        ...filters,
+      });
       const uniqueStudents = new Map<number, string>();
 
-      const mapped: Row[] = (meetingsRes.data ?? []).map((m: any) => {
-        const student = m?.tutorship?.student ?? null;
-        const studentUser = student?.user ?? null;
-        const alumno = studentUser ? fullName(studentUser) : "-";
+      const mapped: Row[] = (meetingsRes.data ?? []).map(
+        (m: GetMeetingsResp["data"][number]) => {
+          const student = m?.tutorship?.student ?? null;
+          const studentUser = student?.user ?? null;
+          const alumno = fullName(studentUser);
 
-        if (student?.id) {
-          const label = fullName(studentUser) || "-";
-          uniqueStudents.set(student.id, label);
+          if (student?.id) uniqueStudents.set(student.id, alumno);
+
+          const fecha = formatFecha(m.date);
+          const hora = formatHora(m.date, m.time);
+
+          return {
+            id: m.id,
+            tutor: "—",
+            alumno,
+            fecha,
+            hora,
+            fechaHora: `${fecha} ${hora}`,
+            aula: m.location,
+            status: m.status,
+          };
         }
-
-        const fecha = formatFecha(m.date);
-        const hora = formatHora(m.date, m.time);
-
-        return {
-          id: m.id,
-          tutor: tutorName || "—",
-          alumno,
-          fecha,
-          hora,
-          // compat si algo sigue usando fechaHora
-          fechaHora: `${fecha} ${hora}`,
-          aula: m.location,
-          status: isFuture(m.date, m.time),
-        };
-      });
+      );
 
       setRows(mapped);
       setTotal(meetingsRes.total ?? mapped.length);
@@ -234,6 +330,10 @@ const Reuniones: React.FC = () => {
   }, [page, JSON.stringify(filters)]);
 
   const openCreate = async () => {
+    // abrir modal y dejar URL shareable: ?openCreate=1
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("openCreate", "1");
+    router.replace(`/reuniones?${params.toString()}`, { scroll: false });
     onOpen();
     setTimeout(() => initialRef.current?.focus(), 0);
   };
@@ -256,9 +356,15 @@ const Reuniones: React.FC = () => {
   };
 
   const handleEdit = (row: Row) => {
-    setMeetingToEdit(row);
+    setMeetingToEdit(toMeetingRow(row));
     onEditOpen();
   };
+
+  const defaultStudentIdFromQuery = Number(searchParams.get("studentId"));
+  const defaultStudentId =
+    Number.isInteger(defaultStudentIdFromQuery) && defaultStudentIdFromQuery > 0
+      ? defaultStudentIdFromQuery
+      : undefined;
 
   return (
     <>
@@ -296,11 +402,23 @@ const Reuniones: React.FC = () => {
 
       <ScheduleMeetingModal
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={() => {
+          onClose();
+          const params = new URLSearchParams(searchParams.toString());
+          params.delete("openCreate");
+          params.delete("studentId");
+          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
+        }}
         students={studentsOptions}
+        // si tu modal soporta preselección por prop:
+        // defaultStudentId={defaultStudentId}
         onCreated={() => {
           setPage(1);
           loadMeetings(1);
+          const params = new URLSearchParams(searchParams.toString());
+          params.delete("openCreate");
+          params.delete("studentId");
+          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
         }}
       />
 
@@ -326,6 +444,41 @@ const Reuniones: React.FC = () => {
         onClear={() => {
           setFilters({ status: "all", order: "asc" });
           setPage(1);
+        }}
+      />
+
+      <CreateReportModal
+        isOpen={isReportOpen}
+        onClose={() => {
+          onReportClose();
+          setReportMeetingId(null);
+          const params = new URLSearchParams(searchParams.toString());
+          params.delete("createReportFor");
+          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
+        }}
+        meetingId={reportMeetingId}
+        onCreated={() => {
+          onReportClose();
+          setReportMeetingId(null);
+          const params = new URLSearchParams(searchParams.toString());
+          params.delete("createReportFor");
+          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
+          loadMeetings(page);
+        }}
+      />
+      <ViewReportModal
+        isOpen={isViewOpen}
+        onClose={() => {
+          onViewClose();
+          setViewMeetingId(null);
+          const params = new URLSearchParams(searchParams.toString());
+          params.delete("viewReportFor");
+          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
+        }}
+        meetingId={viewMeetingId}
+        onDeleted={() => {
+          // si eliminan el reporte, refrescamos la tabla (status pasa a REPORTMISSING o PENDING)
+          loadMeetings(page);
         }}
       />
     </>

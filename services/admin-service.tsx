@@ -24,6 +24,48 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async getReportInfo(meetingId: number): Promise<ReportInfo> {
+    const res = await axiosInstance.get(
+      `/tutors/meetings/${meetingId}/report-info`
+    );
+    return res.data as ReportInfo;
+  },
+
+  async createReport(
+    meetingId: number,
+    dto: { topicos: string; comments?: string }
+  ) {
+    const res = await axiosInstance.post(
+      `/tutors/meetings/${meetingId}/report`,
+      dto
+    );
+    return res.data;
+  },
+
+  async getReport(meetingId: number) {
+    const res = await axiosInstance.get(`/tutors/meetings/${meetingId}/report`);
+    return res.data as {
+      id: number;
+      meetingId: number;
+      studentId: number;
+      careerId: number;
+      yearOfAdmission: number;
+      topicos: string | null;
+      comments: string | null;
+      createdAt: string;
+      updatedAt: string;
+      career?: { id: number; name: string };
+      meeting?: { id: number; date: string; time: string; location: string };
+    };
+  },
+
+  async deleteReport(meetingId: number) {
+    const res = await axiosInstance.delete(
+      `/tutors/meetings/${meetingId}/report`
+    );
+    return res.data;
+  },
+
   async updateMeeting(id: number, body: any) {
     const res = await axiosInstance.patch(`/tutors/meetings/${id}`, body);
     return res.data;
