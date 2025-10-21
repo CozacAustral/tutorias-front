@@ -33,7 +33,7 @@ export const UserService = {
 
   async createReport(
     meetingId: number,
-    dto: { topicos: string; comments?: string }
+    dto: { topicos: string; comments?: string; careerId?: number } 
   ) {
     const res = await axiosInstance.post(
       `/tutors/meetings/${meetingId}/report`,

@@ -61,6 +61,7 @@ type Row = Omit<MeetingRow, "status" | "fechaHora"> & {
   hora: string;
   status: MeetingStatus;
   fechaHora?: string;
+  studentId?: number;
 };
 
 /* =========================
@@ -120,6 +121,7 @@ function toMeetingRow(r: Row): MeetingRow {
    Componente
    ========================= */
 const Reuniones: React.FC = () => {
+    const [reportStudentId, setReportStudentId] = useState<number | null>(null);
   const toast = useToast();
   const initialRef = useRef<HTMLInputElement | null>(null);
   const { collapsed } = useSidebar();
@@ -231,18 +233,14 @@ const Reuniones: React.FC = () => {
                 aria-label="Crear reporte"
                 icon={<FiFilePlus />}
                 backgroundColor="white"
-                _hover={{
-                  borderRadius: 15,
-                  backgroundColor: "#318AE4",
-                  color: "white",
-                }}
+                _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "white" }}
                 onClick={() => {
                   setReportMeetingId(r.id);
+                  setReportStudentId(r.studentId ?? null); // 👈 pasa studentId
                   const params = new URLSearchParams(searchParams.toString());
                   params.set("createReportFor", String(r.id));
-                  router.replace(`/reuniones?${params.toString()}`, {
-                    scroll: false,
-                  });
+                  if (r.studentId) params.set("studentId", String(r.studentId)); // 👈 (deeplink opcional)
+                  router.replace(`/reuniones?${params.toString()}`, { scroll: false });
                   onReportOpen();
                 }}
               />
@@ -251,19 +249,12 @@ const Reuniones: React.FC = () => {
                 aria-label="Ver reporte"
                 icon={<FiFileText />}
                 backgroundColor="white"
-                _hover={{
-                  borderRadius: 15,
-                  backgroundColor: "#318AE4",
-                  color: "white",
-                }}
+                _hover={{ borderRadius: 15, backgroundColor: "#318AE4", color: "white" }}
                 onClick={() => {
                   setViewMeetingId(r.id);
-                  // (opcional) deeplink para refrescar/compartir
                   const params = new URLSearchParams(searchParams.toString());
                   params.set("viewReportFor", String(r.id));
-                  router.replace(`/reuniones?${params.toString()}`, {
-                    scroll: false,
-                  });
+                  router.replace(`/reuniones?${params.toString()}`, { scroll: false });
                   onViewOpen();
                 }}
               />
@@ -276,46 +267,36 @@ const Reuniones: React.FC = () => {
   async function loadMeetings(p = page) {
     setLoading(true);
     try {
-      const meetingsRes = await UserService.getMyMeetings(p, limit, {
-        ...filters,
-      });
+      const meetingsRes = await UserService.getMyMeetings(p, limit, { ...filters });
       const uniqueStudents = new Map<number, string>();
 
-      const mapped: Row[] = (meetingsRes.data ?? []).map(
-        (m: GetMeetingsResp["data"][number]) => {
-          const student = m?.tutorship?.student ?? null;
-          const studentUser = student?.user ?? null;
-          const alumno = fullName(studentUser);
+      const mapped: Row[] = (meetingsRes.data ?? []).map((m) => {
+        const student = m?.tutorship?.student ?? null;
+        const studentUser = student?.user ?? null;
+        const alumno = fullName(studentUser);
+        if (student?.id) uniqueStudents.set(student.id, alumno);
 
-          if (student?.id) uniqueStudents.set(student.id, alumno);
+        const fecha = formatFecha(m.date);
+        const hora = formatHora(m.date, m.time);
 
-          const fecha = formatFecha(m.date);
-          const hora = formatHora(m.date, m.time);
-
-          return {
-            id: m.id,
-            tutor: "—",
-            alumno,
-            fecha,
-            hora,
-            fechaHora: `${fecha} ${hora}`,
-            aula: m.location,
-            status: m.status,
-          };
-        }
-      );
+        return {
+          id: m.id,
+          tutor: "—",
+          alumno,
+          fecha,
+          hora,
+          fechaHora: `${fecha} ${hora}`,
+          aula: m.location,
+          status: m.status,
+          studentId: m?.tutorship?.studentId, // 👈 tomarlo del payload
+        };
+      });
 
       setRows(mapped);
       setTotal(meetingsRes.total ?? mapped.length);
-      setStudentsOptions(
-        Array.from(uniqueStudents, ([id, label]) => ({ id, label }))
-      );
+      setStudentsOptions(Array.from(uniqueStudents, ([id, label]) => ({ id, label })));
     } catch (e: any) {
-      toast({
-        title: "Error al cargar reuniones",
-        description: e?.message ?? "",
-        status: "error",
-      });
+      toast({ title: "Error al cargar reuniones", description: e?.message ?? "", status: "error" });
       setRows([]);
       setTotal(0);
       setStudentsOptions([]);
@@ -452,16 +433,21 @@ const Reuniones: React.FC = () => {
         onClose={() => {
           onReportClose();
           setReportMeetingId(null);
+          setReportStudentId(null); // 👈 limpiar
           const params = new URLSearchParams(searchParams.toString());
           params.delete("createReportFor");
+          params.delete("studentId");
           router.replace(`/reuniones?${params.toString()}`, { scroll: false });
         }}
         meetingId={reportMeetingId}
+        studentId={reportStudentId}
         onCreated={() => {
           onReportClose();
           setReportMeetingId(null);
+          setReportStudentId(null);
           const params = new URLSearchParams(searchParams.toString());
           params.delete("createReportFor");
+          params.delete("studentId");
           router.replace(`/reuniones?${params.toString()}`, { scroll: false });
           loadMeetings(page);
         }}
