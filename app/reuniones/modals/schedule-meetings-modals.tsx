@@ -34,9 +34,8 @@ function toIsoUtcNoon(dateStr: string) {
 export default function ScheduleMeetingModal({
   isOpen,
   onClose,
-  students,
+  students,            // ya no se usa, pero lo dejamos por compatibilidad con Props
   onCreated,
-  // opcional: si algún día querés preseleccionar alumno por query
   defaultStudentId,
 }: Props & { defaultStudentId?: number }) {
   const initialRef = useRef<HTMLInputElement | null>(null);
@@ -45,6 +44,9 @@ export default function ScheduleMeetingModal({
   const [timeValue, setTimeValue] = useState<string>("");
   const [locationValue, setLocationValue] = useState<string>("");
   const [loading, setLoading] = useState(false);
+
+  const [localStudents, setLocalStudents] = useState<StudentOption[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const toast = useToast();
 
   const resetForm = () => {
@@ -54,16 +56,57 @@ export default function ScheduleMeetingModal({
     setLocationValue("");
   };
 
+  // 🔹 Cargar alumnos del tutor autenticado (JWT) al abrir
   useEffect(() => {
     if (!isOpen) {
+      setLocalStudents([]);
       resetForm();
       return;
     }
-    // si viene un defaultStudentId, lo seteamos al abrir
-    if (defaultStudentId && students.some(s => s.id === defaultStudentId)) {
-      setStudentId(defaultStudentId);
-    }
-  }, [isOpen, defaultStudentId, students]);
+
+    const loadMyStudents = async () => {
+      try {
+        setLoadingStudents(true);
+        const res = await UserService.getMyStudents(1, 500); // suficiente para el selector
+        const arr = res?.data?.data ?? res?.data ?? []; // según cómo devuelva tu axiosInstance
+        const opts: StudentOption[] = arr.map((s: any) => ({
+          id: s.id,
+          label:
+            `${s?.user?.name ?? ""} ${s?.user?.lastName ?? ""}`.trim() ||
+            s?.user?.email ||
+            `#${s.id}`,
+        }));
+        setLocalStudents(opts);
+
+        if (defaultStudentId && opts.some((o) => o.id === defaultStudentId)) {
+          setStudentId(defaultStudentId);
+        } else {
+          setStudentId(0);
+        }
+      } catch (e: any) {
+        toast({
+          status: "error",
+          title: "No se pudieron cargar tus alumnos",
+          description: e?.response?.data?.message ?? e?.message ?? "Error inesperado",
+        });
+        // fallback: si te pasaron algo por props (legacy)
+        const fallback: StudentOption[] =
+          (students as any[])?.map((s: any) => ({
+            id: s.id,
+            label:
+              `${s?.user?.name ?? ""} ${s?.user?.lastName ?? ""}`.trim() ||
+              s?.user?.email ||
+              `#${s.id}`,
+          })) ?? [];
+        setLocalStudents(fallback);
+      } finally {
+        setLoadingStudents(false);
+      }
+    };
+
+    void loadMyStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, defaultStudentId]);
 
   const handleCreate = async () => {
     if (!studentId || !dateValue || !timeValue || !locationValue.trim()) {
@@ -71,15 +114,16 @@ export default function ScheduleMeetingModal({
       return;
     }
 
-    // normalizar hora a HH:mm:ss
     const timeNorm =
       /^\d{1,2}:\d{2}(:\d{2})?$/.test(timeValue)
-        ? (timeValue.length === 5 ? `${timeValue}:00` : timeValue)
+        ? timeValue.length === 5
+          ? `${timeValue}:00`
+          : timeValue
         : `${timeValue}:00`;
 
     const body: CreateMeetingBody = {
       studentId,
-      date: toIsoUtcNoon(dateValue), // ✅ clave para evitar -1 día
+      date: toIsoUtcNoon(dateValue),
       time: timeNorm,
       location: locationValue.trim(),
     };
@@ -122,11 +166,12 @@ export default function ScheduleMeetingModal({
             <FormLabel>Alumno</FormLabel>
             <Select
               ref={initialRef as any}
-              placeholder="Seleccionar alumno"
+              placeholder={loadingStudents ? "Cargando..." : "Seleccionar alumno"}
               value={studentId || ""}
               onChange={(e) => setStudentId(Number(e.target.value))}
+              isDisabled={loadingStudents}
             >
-              {students.map((s: StudentOption) => (
+              {localStudents.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.label}
                 </option>

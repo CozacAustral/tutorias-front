@@ -31,7 +31,13 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   meetingId: number | null;
-  onDeleted?: () => void; // callback opcional tras eliminar
+  studentId?: number | null;
+  onDeleted?: () => void;
+  onOpenSubjects: (args: {
+    studentId: number | null;
+    careerId: number | undefined;
+    careerName: string | undefined;
+  }) => void;
 };
 
 type Report = {
@@ -44,12 +50,18 @@ type Report = {
   meeting?: { date: string; time: string; location: string };
 };
 
-const ViewReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, onDeleted }) => {
+const ViewReportModal: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  meetingId,
+  studentId = null,
+  onDeleted,
+  onOpenSubjects,
+}) => {
   const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
 
-  // Confirmación de borrado
   const [confirmOpen, setConfirmOpen] = useState(false);
   const cancelRef = useRef<HTMLButtonElement | null>(null);
 
@@ -138,6 +150,20 @@ const ViewReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, onDelete
           </ModalBody>
 
           <ModalFooter>
+            <Button
+              variant="outline"
+              mr={3}
+              onClick={() =>
+                onOpenSubjects({
+                  studentId: studentId ?? null,
+                  careerId: report?.career?.id,
+                  careerName: report?.career?.name,
+                })
+              }
+              isDisabled={!report?.career?.id || !studentId}
+            >
+              Materias
+            </Button>
             <Button variant="ghost" mr={3} onClick={onClose}>
               Cerrar
             </Button>
@@ -148,7 +174,6 @@ const ViewReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, onDelete
         </ModalContent>
       </Modal>
 
-      {/* Confirmación de borrado */}
       <AlertDialog
         isOpen={confirmOpen}
         leastDestructiveRef={cancelRef}

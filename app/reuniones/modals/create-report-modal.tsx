@@ -2,10 +2,29 @@
 "use client";
 
 import {
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton,
-  FormControl, FormLabel, Input, Textarea, Button, HStack, useToast, SkeletonText, Skeleton,
-  AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody,
-  AlertDialogFooter, Select,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  Button,
+  FormControl,
+  FormLabel,
+  HStack,
+  Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Select,
+  Skeleton,
+  SkeletonText,
+  Textarea,
+  useToast,
 } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 import { UserService } from "../../../services/admin-service";
@@ -14,50 +33,80 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   meetingId: number | null;
-  studentId: number | null; // 👈 nuevo
+  studentId: number | null;
   onCreated?: () => void;
 };
 
 type CreateReportDto = {
   topicos: string;
   comments?: string;
-  careerId?: number; // 👈 ahora lo enviamos cuando haya múltiples
+  careerId?: number;
 };
 
-// tipado defensivo para distintas formas de “careers” en Student
 type AnyStudent = {
   id: number;
   careers?:
-    | Array<{ id?: number; name?: string; yearOfAdmission?: number; active?: boolean; careerId?: number; career?: { id?: number; name?: string } }>
+    | Array<{
+        id?: number;
+        name?: string;
+        yearOfAdmission?: number;
+        active?: boolean;
+        careerId?: number;
+        career?: { id?: number; name?: string };
+      }>
     | undefined;
   assignedCareers?:
-    | Array<{ careerId?: number; yearOfAdmission?: number; active?: boolean; career?: { id?: number; name?: string } }>
+    | Array<{
+        careerId?: number;
+        yearOfAdmission?: number;
+        active?: boolean;
+        career?: { id?: number; name?: string };
+      }>
     | undefined;
   studentCareers?:
-    | Array<{ careerId?: number; yearOfAdmission?: number; active?: boolean; career?: { id?: number; name?: string } }>
+    | Array<{
+        careerId?: number;
+        yearOfAdmission?: number;
+        active?: boolean;
+        career?: { id?: number; name?: string };
+      }>
     | undefined;
 };
 
-type UiCareer = { id: number; name: string; yearOfAdmission: number; active: boolean };
+type UiCareer = {
+  id: number;
+  name: string;
+  yearOfAdmission: number;
+  active: boolean;
+};
 
 function extractActiveCareers(student: AnyStudent | null | undefined): UiCareer[] {
   if (!student) return [];
   const sources =
-    student.careers ??
-    student.assignedCareers ??
-    student.studentCareers ??
-    [];
-
-  return (sources as any[]).map((c) => {
-    const id = c.careerId ?? c.id ?? c?.career?.id;
-    const name = c?.career?.name ?? c.name ?? "Carrera";
-    const yoa = c.yearOfAdmission ?? 0;
-    const active = c.active !== false; // por defecto true
-    return { id: Number(id), name: String(name), yearOfAdmission: Number(yoa), active } as UiCareer;
-  }).filter(x => !!x.id && x.active);
+    student.careers ?? student.assignedCareers ?? student.studentCareers ?? [];
+  return (sources as any[])
+    .map((c) => {
+      const id = c.careerId ?? c.id ?? c?.career?.id;
+      const name = c?.career?.name ?? c.name ?? "Carrera";
+      const yoa = c.yearOfAdmission ?? 0;
+      const active = c.active !== false;
+      return {
+        id: Number(id),
+        name: String(name),
+        yearOfAdmission: Number(yoa),
+        active,
+      } as UiCareer;
+    })
+    .filter((x) => !!x.id && x.active);
 }
 
-const CreateReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, studentId, onCreated }) => {
+const CreateReportModal: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  meetingId,
+  studentId,
+  onCreated,
+}) => {
   const toast = useToast();
   const [loadingInfo, setLoadingInfo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -71,50 +120,40 @@ const CreateReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, studen
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const cancelRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    if (!isOpen || !meetingId) return;
+useEffect(() => {
+  if (!isOpen || !meetingId) return;
 
-    setTopicos("");
-    setComments("");
-    setActiveCareers([]);
-    setSelectedCareerId("");
-    setLoadingInfo(true);
+  setTopicos("");
+  setComments("");
+  setActiveCareers([]);
+  setSelectedCareerId("");
+  setLoadingInfo(true);
 
-    // 🔸 estrategia sin tocar back: usar /students/:id si lo tenemos
-    const fetchCareers = async () => {
-      try {
-        if (studentId) {
-          const student = (await UserService.fetchStudentById(studentId)) as unknown as AnyStudent;
-          const actives = extractActiveCareers(student);
-          setActiveCareers(actives);
-          if (actives.length === 1) setSelectedCareerId(actives[0].id);
-        } else {
-          // fallback: mantener compat con endpoint actual (si trae una sola carrera "implícita")
-          const res = await UserService.getReportInfo(meetingId);
-
-          if ((res as any)?.careerName) {
-            setActiveCareers([{
-              id: -1, // back no nos da id → evitar que el select falle
-              name: (res as any).careerName ?? "—",
-              yearOfAdmission: Number((res as any).yearOfAdmission ?? 0),
-              active: true,
-            }]);
-            setSelectedCareerId("");
-          }
+  const fetchCareers = async () => {
+    try {
+      if (studentId) {
+        const actives = await UserService.getStudentCareers(studentId);
+        setActiveCareers(actives ?? []);
+        if ((actives ?? []).length >= 1) setSelectedCareerId(actives[0].id);
+      } else {
+        // fallback (si abrís el modal sin studentId)
+        const res = await UserService.getReportInfo(meetingId);
+        if (res?.careerName) {
+          const only = { id: -1, name: res.careerName, yearOfAdmission: Number(res.yearOfAdmission ?? 0), active: true };
+          setActiveCareers([only]);
+          setSelectedCareerId(only.id);
         }
-      } catch (e: any) {
-        toast({
-          title: "No se pudo obtener datos de la(s) carrera(s)",
-          description: e?.message ?? "",
-          status: "warning",
-        });
-      } finally {
-        setLoadingInfo(false);
       }
-    };
+    } catch (e: any) {
+      toast({ title: "No se pudieron cargar las carreras", description: e?.message ?? "", status: "warning" });
+    } finally {
+      setLoadingInfo(false);
+    }
+  };
 
-    void fetchCareers();
-  }, [isOpen, meetingId, studentId]); // eslint-disable-line react-hooks/exhaustive-deps
+  void fetchCareers();
+}, [isOpen, meetingId, studentId]); // deja estas deps
+ // eslint-disable-line react-hooks/exhaustive-deps
 
   const openConfirm = () => {
     if (!meetingId) return;
@@ -123,8 +162,9 @@ const CreateReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, studen
       toast({ title: "Faltan datos", description: "Ingresá los temas tratados.", status: "error" });
       return;
     }
-    if (activeCareers.length > 1 && !selectedCareerId) {
-      toast({ title: "Seleccioná una carrera", description: "El alumno tiene múltiples carreras activas.", status: "error" });
+    // ahora siempre pedimos una selección si hay al menos una carrera cargada
+    if (activeCareers.length >= 1 && !selectedCareerId) {
+      toast({ title: "Seleccioná una carrera", status: "error" });
       return;
     }
     setIsConfirmOpen(true);
@@ -134,16 +174,14 @@ const CreateReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, studen
     if (!meetingId) return;
     setSubmitting(true);
 
-    // Si hay múltiples activas, mandamos la elegida; si hay 1 y vino con id válido, también.
-    const chosenId =
-      activeCareers.length >= 1
-        ? Number(selectedCareerId) || (activeCareers[0]?.id > 0 ? activeCareers[0].id : undefined)
-        : undefined;
+    const sel = Number(selectedCareerId);
+    // si el id es inválido (p.ej. -1 del fallback), no enviamos careerId
+    const chosenId = sel > 0 ? sel : undefined;
 
     const dto: CreateReportDto = {
       topicos: topicos.trim(),
       comments: comments.trim() ? comments.trim() : undefined,
-      careerId: chosenId, // puede ser undefined si no hay info confiable
+      careerId: chosenId,
     };
 
     try {
@@ -159,7 +197,7 @@ const CreateReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, studen
     }
   };
 
-  const single = activeCareers.length === 1 ? activeCareers[0] : null;
+  const selected = activeCareers.find((c) => c.id === Number(selectedCareerId)) || null;
 
   return (
     <>
@@ -174,35 +212,34 @@ const CreateReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, studen
                 <Skeleton height="38px" flex={1} />
                 <Skeleton height="38px" flex={1} />
               </HStack>
-            ) : activeCareers.length <= 1 ? (
-              <HStack spacing={4}>
-                <FormControl isDisabled>
-                  <FormLabel>Carrera</FormLabel>
-                  <Input value={single ? single.name : "—"} readOnly />
-                </FormControl>
-                <FormControl isDisabled>
-                  <FormLabel>Año de ingreso</FormLabel>
-                  <Input value={single?.yearOfAdmission ? String(single.yearOfAdmission) : "—"} readOnly />
-                </FormControl>
-              </HStack>
             ) : (
-              <HStack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Carrera (múltiples activas)</FormLabel>
-                  <Select
-                    placeholder="Seleccioná una carrera"
-                    value={selectedCareerId}
-                    onChange={(e) => setSelectedCareerId(Number(e.target.value))}
-                    isDisabled={submitting}
-                  >
-                    {activeCareers.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} — Ingreso {c.yearOfAdmission}
-                      </option>
-                    ))}
-                  </Select>
-                </FormControl>
-              </HStack>
+              <>
+                <HStack spacing={4}>
+                  <FormControl isRequired={activeCareers.length >= 1}>
+                    <FormLabel>Carrera</FormLabel>
+                    <Select
+                      placeholder={activeCareers.length ? "Seleccioná una carrera" : "Sin carreras activas"}
+                      value={selectedCareerId}
+                      onChange={(e) => setSelectedCareerId(Number(e.target.value))}
+                      isDisabled={submitting || !activeCareers.length}
+                    >
+                      {activeCareers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl isDisabled>
+                    <FormLabel>Año de ingreso</FormLabel>
+                    <Input
+                      value={selected?.yearOfAdmission ? String(selected.yearOfAdmission) : "—"}
+                      readOnly
+                    />
+                  </FormControl>
+                </HStack>
+              </>
             )}
 
             <FormControl mt={4} isRequired>
@@ -240,7 +277,12 @@ const CreateReportModal: React.FC<Props> = ({ isOpen, onClose, meetingId, studen
         </ModalContent>
       </Modal>
 
-      <AlertDialog isOpen={isConfirmOpen} leastDestructiveRef={cancelRef} onClose={() => setIsConfirmOpen(false)} isCentered>
+      <AlertDialog
+        isOpen={isConfirmOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setIsConfirmOpen(false)}
+        isCentered
+      >
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">

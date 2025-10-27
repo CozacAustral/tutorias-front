@@ -24,6 +24,20 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async getStudentCareers(studentId: number) {
+    const r = await axiosInstance.get(`/tutors/${studentId}/careers`);
+    return r.data?.data ?? r.data; // ajustá al envoltorio real de tu API
+  },
+
+  async getMyStudents(page = 1, limit = 7, search?: string) {
+    const params = new URLSearchParams({
+      currentPage: String(page),
+      resultsPerPage: String(limit),
+    });
+    if (search) params.set("search", search);
+    return axiosInstance.get(`/tutors/me/students?${params.toString()}`);
+  },
+
   async getReportInfo(meetingId: number): Promise<ReportInfo> {
     const res = await axiosInstance.get(
       `/tutors/meetings/${meetingId}/report-info`
@@ -33,7 +47,7 @@ export const UserService = {
 
   async createReport(
     meetingId: number,
-    dto: { topicos: string; comments?: string; careerId?: number } 
+    dto: { topicos: string; comments?: string; careerId?: number }
   ) {
     const res = await axiosInstance.post(
       `/tutors/meetings/${meetingId}/report`,
@@ -87,7 +101,7 @@ export const UserService = {
       timeTo?: string;
       studentId?: number;
       studentQuery?: string;
-      status?: "upcoming" | "past" | "all";
+       status?: "all" | "PENDING" | "REPORTMISSING" | "CONFIRMED";
       order?: "asc" | "desc";
     }
   ): Promise<GetMeetingsResp> {

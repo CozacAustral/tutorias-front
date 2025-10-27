@@ -1,5 +1,6 @@
-// app/reuniones/modals/filter-meetings-modal.tsx
+// src/app/reuniones/modals/filtro-busqueda-modal.tsx
 "use client";
+
 import {
   Button,
   FormControl,
@@ -13,30 +14,32 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Select,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import AsyncSelect from "react-select/async";
+import { UserService } from "../../../services/admin-service";
 
 export type Filters = {
   from?: string;
   to?: string;
-  timeFrom?: string;
-  timeTo?: string;
   studentId?: number;
-  studentQuery?: string;
-  status?: "all" | "upcoming" | "past";
+  // studentQuery?: string; // 🔸 eliminado del UI (se mantiene afuera si tu API lo usa en otros lugares)
+  status?: "all" | "PENDING" | "REPORTMISSING" | "CONFIRMED";
   order?: "asc" | "desc";
 };
 
 type StudentOption = { id: number; label: string };
+
+type Option = { value: number; label: string };
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   onApply: (f: Filters) => void;
   onClear: () => void;
-  students: StudentOption[];
+  /** Opcional: opciones iniciales (alumnos del tutor) para mostrar al abrir el menú */
+  students?: StudentOption[];
   current?: Filters;
 };
 
@@ -45,34 +48,82 @@ export default function FilterMeetingsModal({
   onClose,
   onApply,
   onClear,
-  students,
+  students = [],
   current,
 }: Props) {
   const [local, setLocal] = useState<Filters>({
     status: "all",
-    order: "asc",
+    order: "desc",
   });
 
   useEffect(() => {
     setLocal({
       status: current?.status ?? "all",
-      order: current?.order ?? "asc",
+      order: current?.order ?? "desc",
       from: current?.from ?? "",
       to: current?.to ?? "",
-      timeFrom: current?.timeFrom ?? "",
-      timeTo: current?.timeTo ?? "",
       studentId: current?.studentId,
-      studentQuery: current?.studentQuery ?? "",
     });
   }, [current, isOpen]);
 
-  const studentOptions = useMemo(
+  // ---------- Helpers ----------
+  const toOption = (s: StudentOption): Option => ({
+    value: s.id,
+    label: s.label,
+  });
+
+  const initialOptions = useMemo<Option[]>(
     () =>
-      [{ id: 0, label: "Todos" }, ...students].filter(
-        (s, idx, arr) => arr.findIndex((x) => x.id === s.id) === idx
-      ),
+      (students ?? [])
+        .filter((s, idx, arr) => arr.findIndex((x) => x.id === s.id) === idx)
+        .map(toOption),
     [students]
   );
+
+  const selectedOption = useMemo<Option | null>(() => {
+    if (!local.studentId) return null;
+    const found =
+      initialOptions.find((o) => o.value === local.studentId) ?? null;
+    return found;
+  }, [local.studentId, initialOptions]);
+
+  // Cache básico por query
+  const cacheRef = useRef<Map<string, Option[]>>(new Map());
+
+  const loadOptions = async (inputValue: string): Promise<Option[]> => {
+    const q = (inputValue ?? "").trim();
+    if (cacheRef.current.has(q)) return cacheRef.current.get(q)!;
+
+    try {
+      // Trae mis alumnos con búsqueda (server-side)
+      const resp = await UserService.getMyStudents(1, 20, q);
+      const list = resp?.data?.data ?? resp?.data?.students ?? resp?.data ?? [];
+
+      // Normaliza a StudentOption -> Option
+      const opts: Option[] = (list ?? [])
+        .map((s: any) => {
+          const name = s?.user?.name ?? "";
+          const last = s?.user?.lastName ?? "";
+          const email = s?.user?.email ?? "";
+          const full = [name, last].filter(Boolean).join(" ");
+          return {
+            value: s.id,
+            label: full || email || `Alumno #${s?.id ?? "-"}`,
+          } as Option;
+        })
+        .filter((o: Option) => o.value && o.label) // ✅ tipado explícito
+        .reduce((acc: Option[], cur: Option) => {
+          if (!acc.some((x) => x.value === cur.value)) acc.push(cur);
+          return acc;
+        }, [])
+        .sort((a: Option, b: Option) => a.label.localeCompare(b.label, "es"));
+
+      cacheRef.current.set(q, opts);
+      return opts;
+    } catch {
+      return [];
+    }
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
@@ -105,63 +156,40 @@ export default function FilterMeetingsModal({
               </FormControl>
             </HStack>
 
-            <HStack>
-              <FormControl>
-                <FormLabel>Hora desde</FormLabel>
-                <Input
-                  type="time"
-                  value={local.timeFrom ?? ""}
-                  onChange={(e) =>
-                    setLocal((p) => ({ ...p, timeFrom: e.target.value }))
-                  }
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Hora hasta</FormLabel>
-                <Input
-                  type="time"
-                  value={local.timeTo ?? ""}
-                  onChange={(e) =>
-                    setLocal((p) => ({ ...p, timeTo: e.target.value }))
-                  }
-                />
-              </FormControl>
-            </HStack>
-
+            {/* 🔹 Alumno (select con búsqueda async) */}
             <FormControl>
               <FormLabel>Alumno</FormLabel>
-              <Select
-                value={String(local.studentId ?? 0)}
-                onChange={(e) =>
+              <AsyncSelect
+                cacheOptions
+                defaultOptions={initialOptions.length ? initialOptions : true}
+                loadOptions={loadOptions}
+                isClearable
+                value={selectedOption}
+                onChange={(opt) =>
                   setLocal((p) => ({
                     ...p,
-                    studentId: Number(e.target.value) || undefined,
+                    studentId: opt ? (opt as Option).value : undefined,
                   }))
                 }
-              >
-                {studentOptions.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Buscar por nombre/apellido/email</FormLabel>
-              <Input
-                placeholder="Ej: Clark, Kent, ckent@mail..."
-                value={local.studentQuery ?? ""}
-                onChange={(e) =>
-                  setLocal((p) => ({ ...p, studentQuery: e.target.value }))
-                }
+                placeholder="Buscar alumno por nombre, apellido o email..."
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    borderColor: "#3182ce",
+                    borderRadius: 8,
+                    boxShadow: "none",
+                    ":hover": { borderColor: "#2b6cb0" },
+                    minHeight: 40,
+                  }),
+                  menu: (base) => ({ ...base, zIndex: 10 }),
+                }}
               />
             </FormControl>
 
             <HStack>
               <FormControl>
                 <FormLabel>Estado</FormLabel>
-                <Select
+                <select
                   value={local.status ?? "all"}
                   onChange={(e) =>
                     setLocal((p) => ({
@@ -169,30 +197,45 @@ export default function FilterMeetingsModal({
                       status: e.target.value as Filters["status"],
                     }))
                   }
+                  style={{
+                    height: 40,
+                    borderRadius: 8,
+                    border: "1px solid #CBD5E0",
+                    padding: "0 12px",
+                  }}
                 >
                   <option value="all">Todos</option>
-                  <option value="upcoming">Próximas</option>
-                  <option value="past">Pasadas</option>
-                </Select>
+                  <option value="PENDING">Pendiente</option>
+                  <option value="REPORTMISSING">Falta reporte</option>
+                  <option value="CONFIRMED">Confirmada</option>
+                </select>
               </FormControl>
+
               <FormControl>
                 <FormLabel>Orden</FormLabel>
-                <Select
-                  value={local.order ?? "asc"}
+                <select
+                  value={local.order ?? "desc"}
                   onChange={(e) =>
                     setLocal((p) => ({
                       ...p,
                       order: e.target.value as Filters["order"],
                     }))
                   }
+                  style={{
+                    height: 40,
+                    borderRadius: 8,
+                    border: "1px solid #CBD5E0",
+                    padding: "0 12px",
+                  }}
                 >
                   <option value="asc">Ascendente</option>
                   <option value="desc">Descendente</option>
-                </Select>
+                </select>
               </FormControl>
             </HStack>
           </VStack>
         </ModalBody>
+
         <ModalFooter>
           <HStack spacing={3}>
             <Button
@@ -212,9 +255,9 @@ export default function FilterMeetingsModal({
                     Object.entries(f).filter(([k, v]) => {
                       if (v === "" || v === null || v === undefined)
                         return false;
-                      if (k === "studentId" && !v) return false; // 0 = "Todos"
+                      if (k === "studentId" && !v) return false;
                       if (k === "status" && v === "all") return false;
-                      if (k === "order" && v === "asc") return false;
+                      if (k === "order" && v === "desc") return false;
                       return true;
                     })
                   ) as Filters;
