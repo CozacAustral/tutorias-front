@@ -13,10 +13,6 @@ import {
   Tr,
   useDisclosure,
   useToast,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
 } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -31,17 +27,30 @@ import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
 import ViewReportModal from "./modals/view-report-modal";
 import { MeetingRow } from "./type/meeting-row.type";
 
-import { ChevronDownIcon } from "@chakra-ui/icons";
-
 import { Student } from "../alumnos/interfaces/student.interface";
 import { SubjectCareerWithState } from "../alumnos/interfaces/subject-career-student.interface";
 import SubjectModal from "../alumnos/modals/subject-student.modal";
-import { SubjectState } from "../enums/subject-state.enum";
 
 /* =========================
    Tipos
    ========================= */
 type MeetingStatus = "PENDING" | "CONFIRMED" | "REPORTMISSING";
+
+const capitalize = (s: string) =>
+  s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
+
+function labelForMeetingStatus(s: MeetingStatus) {
+  switch (s) {
+    case "CONFIRMED":
+      return "Completada"; // ← renombrada
+    case "PENDING":
+      return "Pendiente";
+    case "REPORTMISSING":
+      return "Falta reporte";
+    default:
+      return "—";
+  }
+}
 
 type GetMeetingsResp = {
   data: {
@@ -116,15 +125,36 @@ function formatHora(dateISO: string, time?: string) {
   }
 }
 function statusBadge(s: MeetingStatus) {
+  const label =
+    s === "CONFIRMED"
+      ? "Completada"
+      : s === "PENDING"
+        ? "Pendiente"
+        : s === "REPORTMISSING"
+          ? "Falta reporte"
+          : "—";
+
   switch (s) {
     case "CONFIRMED":
-      return <Badge colorScheme="green">Confirmada</Badge>;
+      return (
+        <Badge colorScheme="green" textTransform="none">
+          {label}
+        </Badge>
+      );
     case "PENDING":
-      return <Badge colorScheme="yellow">Pendiente</Badge>;
+      return (
+        <Badge colorScheme="gray" textTransform="none">
+          {label}
+        </Badge>
+      );
     case "REPORTMISSING":
-      return <Badge colorScheme="red">Falta reporte</Badge>;
+      return (
+        <Badge colorScheme="yellow" textTransform="none">
+          {label}
+        </Badge>
+      );
     default:
-      return <Badge>—</Badge>;
+      return <Badge textTransform="none">—</Badge>;
   }
 }
 function toMeetingRow(r: Row): MeetingRow {
