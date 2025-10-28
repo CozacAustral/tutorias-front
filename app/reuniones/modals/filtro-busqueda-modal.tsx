@@ -111,7 +111,7 @@ export default function FilterMeetingsModal({
             label: full || email || `Alumno #${s?.id ?? "-"}`,
           } as Option;
         })
-        .filter((o: Option) => o.value && o.label) // ✅ tipado explícito
+        .filter((o: Option) => o.value && o.label) // tipado explícito
         .reduce((acc: Option[], cur: Option) => {
           if (!acc.some((x) => x.value === cur.value)) acc.push(cur);
           return acc;

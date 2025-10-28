@@ -1,3 +1,4 @@
+// src/app/reuniones/page.tsx
 "use client";
 
 import { DeleteIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
@@ -7,10 +8,15 @@ import {
   Button,
   HStack,
   IconButton,
+  Select,
   Td,
   Tr,
   useDisclosure,
   useToast,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -25,9 +31,12 @@ import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
 import ViewReportModal from "./modals/view-report-modal";
 import { MeetingRow } from "./type/meeting-row.type";
 
+import { ChevronDownIcon } from "@chakra-ui/icons";
+
+import { Student } from "../alumnos/interfaces/student.interface";
 import { SubjectCareerWithState } from "../alumnos/interfaces/subject-career-student.interface";
 import SubjectModal from "../alumnos/modals/subject-student.modal";
-import { Student } from "../alumnos/interfaces/student.interface";
+import { SubjectState } from "../enums/subject-state.enum";
 
 /* =========================
    Tipos
@@ -127,6 +136,21 @@ function toMeetingRow(r: Row): MeetingRow {
 }
 
 /* =========================
+   Etiquetas ES para estados de materia
+   ========================= */
+const SUBJECT_STATE_LABELS: Record<string, string> = {
+  APPROVED: "APROBADO",
+  REGULAR: "REGULARIZADO",
+  FREE: "LIBRE",
+  IN_PROGRESS: "EN CURSO",
+  PENDING: "NO CURSADA",
+  FAILED: "RECURSANDO",
+  RETAKING: "RECURSANDO",
+};
+
+const labelForSubjectState = (key: string) => SUBJECT_STATE_LABELS[key] ?? key;
+
+/* =========================
    Componente
    ========================= */
 const Reuniones: React.FC = () => {
@@ -195,6 +219,59 @@ const Reuniones: React.FC = () => {
   const [subjectsTitle, setSubjectsTitle] = useState<string | undefined>();
   const [subjectsState] = useState<boolean | null>(null);
   const [subjectsRole] = useState<number | null>(2);
+  const [editedSubjects, setEditedSubjects] = useState<Record<number, string>>(
+    {}
+  );
+  const [currentSubjectsStudentId, setCurrentSubjectsStudentId] = useState<
+    number | null
+  >(null);
+  const [currentSubjectsCareerId, setCurrentSubjectsCareerId] = useState<
+    number | null
+  >(null);
+  const [savingSubjects, setSavingSubjects] = useState(false);
+
+  // Claves del enum que vienen del backend
+  const SUBJECT_STATE_CANON = [
+    "APPROVED",
+    "REGULARIZED",
+    "FREE",
+    "INPROGRESS",
+    "NOTATTENDED",
+    "RETAKING",
+  ] as const;
+  type SubjectStateKey = (typeof SUBJECT_STATE_CANON)[number];
+
+  const SUBJECT_STATE_LABEL_ES: Record<SubjectStateKey, string> = {
+    APPROVED: "APROBADO",
+    REGULARIZED: "REGULARIZADO",
+    FREE: "LIBRE",
+    INPROGRESS: "EN CURSO",
+    NOTATTENDED: "NO CURSADA",
+    RETAKING: "RECURSANDO",
+  };
+
+  // Orden preferido (se filtra por los que existan en el enum real)
+  const normalizeSubjectState = (
+    raw: string | undefined | null
+  ): SubjectStateKey => {
+    const k = String(raw ?? "").toUpperCase();
+    switch (k) {
+      case "IN_PROGRESS":
+        return "INPROGRESS";
+      case "NOT_TAKEN":
+        return "NOTATTENDED";
+      case "REGULAR":
+        return "REGULARIZED";
+      // si ya viene en forma canónica, se deja igual
+      default:
+        return (SUBJECT_STATE_CANON as readonly string[]).includes(k)
+          ? (k as SubjectStateKey)
+          : "NOTATTENDED"; // fallback seguro
+    }
+  };
+
+  const labelForSubjectState = (raw: string | undefined | null) =>
+    SUBJECT_STATE_LABEL_ES[normalizeSubjectState(raw)];
 
   // Deep-links por query param
   useEffect(() => {
@@ -278,10 +355,6 @@ const Reuniones: React.FC = () => {
                   setReportStudentId(r.studentId ?? null);
                   const params = new URLSearchParams(searchParams.toString());
                   params.set("createReportFor", String(r.id));
-                  if (r.studentId) params.set("studentId", String(r.studentId));
-                  router.replace(`/reuniones?${params.toString()}`, {
-                    scroll: false,
-                  });
                   onReportOpen();
                 }}
               />
@@ -350,11 +423,6 @@ const Reuniones: React.FC = () => {
       setRows(mapped);
       setTotal(meetingsRes.total ?? mapped.length);
     } catch (e: any) {
-      toast({
-        title: "Error al cargar reuniones",
-        description: e?.message ?? "",
-        status: "error",
-      });
       setRows([]);
       setTotal(0);
       setStudentsOptions([]);
@@ -384,13 +452,7 @@ const Reuniones: React.FC = () => {
     try {
       await UserService.deleteMeeting(row.id);
       loadMeetings(page);
-    } catch (e: any) {
-      toast({
-        title: "Error al eliminar",
-        description: e?.message ?? "",
-        status: "error",
-      });
-    }
+    } catch (e: any) {}
   };
 
   const handleEdit = (row: Row) => {
@@ -410,7 +472,7 @@ const Reuniones: React.FC = () => {
       if ((!list || list.length === 0) && tutorId) {
         const byId = await UserService.getStudentsByTutor(tutorId, {
           currentPage: 1,
-          resultsPerPage: 500,
+          resultsPerPage: 7,
         });
         list = byId?.data ?? [];
       }
@@ -460,58 +522,112 @@ const Reuniones: React.FC = () => {
         (await UserService.fetchStudentSubject(studentId, careerId)) ?? [];
       setSubjects(list);
       setSubjectsTitle(careerName);
+      setEditedSubjects({});
+      setCurrentSubjectsStudentId(studentId);
+      setCurrentSubjectsCareerId(careerId);
       onSubjectsOpen();
+    } catch (e: any) {}
+  };
+
+  // ⬇️ guardar cambios del SubjectModal (persistencia + estado local)
+  const handleSaveSubjects = async () => {
+    if (!currentSubjectsStudentId) {
+      onSubjectsClose();
+      return;
+    }
+    const updates = Object.entries(editedSubjects);
+    if (updates.length === 0) {
+      onSubjectsClose();
+      return;
+    }
+    try {
+      setSavingSubjects(true);
+      await Promise.all(
+        updates.map(([subjectIdStr, newState]) =>
+          UserService.updateStateSubject(
+            currentSubjectsStudentId,
+            parseInt(subjectIdStr, 10),
+            newState
+          )
+        )
+      );
+
+      setSubjects((prev) =>
+        prev.map((s) =>
+          editedSubjects[s.subjectId]
+            ? {
+                ...s,
+                subjectState: editedSubjects[s.subjectId],
+                updateAt: new Date(), // local
+              }
+            : s
+        )
+      );
+      setEditedSubjects({});
+      onSubjectsClose();
     } catch (e: any) {
-      toast({
-        title: "No se pudieron cargar las materias",
-        description: e?.message ?? "",
-        status: "error",
-      });
+    } finally {
+      setSavingSubjects(false);
     }
   };
 
   // ⬇️ renderer para filas del SubjectModal
-  const renderSubjectNow = (item: SubjectCareerWithState, idx: number) => {
-    const anyItem = item as any;
-
-    const nombre =
-      anyItem?.subjectName ?? anyItem?.subject?.name ?? anyItem?.name ?? "—";
-
-    const anio = anyItem?.year ?? anyItem?.anio ?? "—";
-
-    const rawState = anyItem?.subjectState ?? anyItem?.state ?? anyItem?.active;
-
-    const estado = (() => {
-      if (rawState === true) return "Activa";
-      if (rawState === false) return "Inactiva";
-      switch (String(rawState ?? "").toUpperCase()) {
-        case "NOTATTENDED":
-          return "No cursada";
-        case "INPROGRESS":
-          return "Cursando";
-        case "APPROVED":
-          return "Aprobada";
-        case "FAILED":
-          return "Reprobada";
-        case "ATTENDED":
-          return "Cursada";
-        default:
-          return rawState ? String(rawState) : "—";
-      }
-    })();
-
-    const updated =
-      anyItem?.updateAt ?? anyItem?.updatedAt ?? anyItem?.lastUpdate ?? "—";
-
-    return (
-      <Tr key={idx}>
-        <Td>{nombre}</Td>
-        <Td>{anio}</Td>
-        <Td>{estado}</Td>
-        <Td>{typeof updated === "string" ? updated : "—"}</Td>
-      </Tr>
-    );
-  };
+  const renderSubjectNow = (subject: SubjectCareerWithState) => (
+    <Tr key={subject.subjectId}>
+      <Td>{subject.subjectName}</Td>
+      <Td>{subject.year}</Td>
+      <Td>
+        {editedSubjects[subject.subjectId] !== undefined ? (
+          <Select
+            value={
+              editedSubjects[subject.subjectId] ??
+              normalizeSubjectState(String(subject.subjectState))
+            }
+            onChange={(e) =>
+              setEditedSubjects((prev) => ({
+                ...prev,
+                [subject.subjectId]: e.target.value, // ← ya es clave canónica
+              }))
+            }
+          >
+            <option value="APPROVED">APROBADO</option>
+            <option value="REGULARIZED">REGULARIZADO</option>
+            <option value="FREE">LIBRE</option>
+            <option value="INPROGRESS">EN CURSO</option>
+            <option value="NOTATTENDED">NO CURSADA</option>
+            <option value="RETAKING">RECURSANDO</option>
+          </Select>
+        ) : (
+          <Td>{labelForSubjectState(String(subject.subjectState))}</Td>
+        )}
+      </Td>
+      <Td>
+        {subject.updateAt
+          ? new Date(subject.updateAt).toLocaleDateString()
+          : "-"}
+      </Td>
+      <Td>
+        <IconButton
+          icon={<EditIcon boxSize={5} />}
+          aria-label="Editar"
+          backgroundColor={
+            editedSubjects[subject.subjectId] ? "#318AE4" : "white"
+          }
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "white",
+          }}
+          onClick={() =>
+            setEditedSubjects((prev) => ({
+              ...prev,
+              [subject.subjectId]: String(subject.subjectState),
+            }))
+          }
+        />
+      </Td>
+    </Tr>
+  );
 
   return (
     <>
@@ -598,6 +714,7 @@ const Reuniones: React.FC = () => {
           onReportClose();
           setReportMeetingId(null);
           setReportStudentId(null);
+          setFilters((p) => ({ ...p, studentId: undefined }));
           const params = new URLSearchParams(searchParams.toString());
           params.delete("createReportFor");
           params.delete("studentId");
@@ -609,6 +726,7 @@ const Reuniones: React.FC = () => {
           onReportClose();
           setReportMeetingId(null);
           setReportStudentId(null);
+          setFilters((p) => ({ ...p, studentId: undefined }));
           const params = new URLSearchParams(searchParams.toString());
           params.delete("createReportFor");
           params.delete("studentId");
@@ -641,15 +759,16 @@ const Reuniones: React.FC = () => {
           onSubjectsClose();
           setSubjects([]);
           setSubjectsTitle(undefined);
+          setEditedSubjects({});
         }}
-        onConfirm={async () => {}}
+        onConfirm={handleSaveSubjects}
         entityName="Materias"
         titleCareer={subjectsTitle}
         subjects={subjects}
         renderSubjectNow={renderSubjectNow}
         state={subjectsState}
-        role={2}
-        showButtonCancelSave={false}
+        role={3}
+        showButtonCancelSave={!savingSubjects}
       />
     </>
   );

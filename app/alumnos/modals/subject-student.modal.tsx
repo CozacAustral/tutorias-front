@@ -24,8 +24,11 @@ interface SubjectStudentModal<t = any> {
   titleCareer: string | undefined;
   subjects: SubjectCareerWithState[];
   renderSubjectNow: (career: any, index: number) => React.ReactNode;
+  /** ignorado para el encabezado; se mantiene por compatibilidad */
   state?: boolean | null;
+  /** ignorado; siempre editable */
   role?: number | null;
+  /** por defecto TRUE (muestra footer). Pasá false si no querés botones. */
   showButtonCancelSave?: boolean;
 }
 
@@ -37,9 +40,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
   titleCareer,
   subjects,
   renderSubjectNow,
-  state,
-  role,
-  showButtonCancelSave,
+  showButtonCancelSave = true,
 }) => {
   const itemsPerPage = useBreakpointValue({
     base: 3,
@@ -58,35 +59,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
         flexDirection="column"
         padding={0}
       >
-        {role === 2 ? (
-          <Flex justifyContent="center" alignItems="center">
-            <Text
-              fontSize="35px"
-              color="black"
-              marginTop="40px"
-              marginRight={8}
-              marginBottom={1}
-            >
-              <Text as="span" fontWeight="bold">
-                Ver:{" "}
-              </Text>
-              {titleCareer}
-            </Text>
-            <Text
-              fontSize="35px"
-              color="black"
-              marginTop="40px"
-              marginLeft={8}
-              marginRight={12}
-              marginBottom={1}
-            >
-              <Text as="span" fontWeight="bold">
-                Estado:{" "}
-              </Text>
-              {state ? "Activa" : "Inactiva"}
-            </Text>
-          </Flex>
-        ) : (
+        <Flex justifyContent="flex-start" alignItems="center">
           <Text
             fontSize="35px"
             color="black"
@@ -100,10 +73,12 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
             </Text>
             {titleCareer}
           </Text>
-        )}
+        </Flex>
+
         <ModalCloseButton />
+
         <ModalBody
-          paddingY={showButtonCancelSave ? 10 : 10}
+          paddingY={10}
           flex="1"
           display="flex"
           flexDirection="column"
@@ -130,11 +105,11 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                       ]}
                       caption={entityName}
                       renderRow={renderSubjectNow}
-                      compact={true}
+                      compact
                       itemsPerPage={itemsPerPage}
                       showAddMenu={false}
-                      isInModal={true}
-                      subjectModalEdit={true}
+                      isInModal
+                      subjectModalEdit
                       minH="auto"
                       paddingX={3}
                       paddingY={3}
@@ -145,8 +120,9 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                       maxWidth="100%"
                       padding={2}
                       height="100%"
-                      filter={role === 2 ? false : true}
-                      actions={role === 2 ? false : true}
+                      /** Siempre editable: filtros/acciones ON */
+                      filter
+                      actions
                     />
                   </Box>
                 </HStack>

@@ -24,7 +24,6 @@ import {
   Skeleton,
   SkeletonText,
   Textarea,
-  useToast,
 } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 import { UserService } from "../../../services/admin-service";
@@ -107,7 +106,6 @@ const CreateReportModal: React.FC<Props> = ({
   studentId,
   onCreated,
 }) => {
-  const toast = useToast();
   const [loadingInfo, setLoadingInfo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -145,7 +143,6 @@ useEffect(() => {
         }
       }
     } catch (e: any) {
-      toast({ title: "No se pudieron cargar las carreras", description: e?.message ?? "", status: "warning" });
     } finally {
       setLoadingInfo(false);
     }
@@ -159,12 +156,10 @@ useEffect(() => {
     if (!meetingId) return;
 
     if (!topicos.trim()) {
-      toast({ title: "Faltan datos", description: "Ingresá los temas tratados.", status: "error" });
       return;
     }
     // ahora siempre pedimos una selección si hay al menos una carrera cargada
     if (activeCareers.length >= 1 && !selectedCareerId) {
-      toast({ title: "Seleccioná una carrera", status: "error" });
       return;
     }
     setIsConfirmOpen(true);
@@ -186,12 +181,10 @@ useEffect(() => {
 
     try {
       await UserService.createReport(meetingId, dto);
-      toast({ title: "Reporte creado", status: "success" });
       setIsConfirmOpen(false);
       onClose();
       onCreated?.();
     } catch (e: any) {
-      toast({ title: "Error al crear reporte", description: e?.message ?? "", status: "error" });
     } finally {
       setSubmitting(false);
     }

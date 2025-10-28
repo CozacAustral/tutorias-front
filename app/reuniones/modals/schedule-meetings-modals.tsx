@@ -1,7 +1,7 @@
 // src/components/meetings/ScheduleMeetingModal.tsx
 "use client";
 
-import { Props } from "../type/props.type";
+
 import { useRef, useState, useEffect } from "react";
 import {
   Button,
@@ -20,6 +20,7 @@ import {
 } from "@chakra-ui/react";
 import { CreateMeetingBody } from "../type/create-meeting-body.type";
 import { UserService } from "../../../services/admin-service";
+import { Props } from '../type/props.type';
 
 type StudentOption = { id: number; label: string };
 
