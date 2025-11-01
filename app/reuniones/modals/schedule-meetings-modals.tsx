@@ -1,7 +1,6 @@
 "use client";
 
-
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import {
   Button,
   FormControl,
@@ -15,11 +14,12 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import { CreateMeetingBody } from "../type/create-meeting-body.type";
 import { UserService } from "../../../services/admin-service";
-import { Props } from '../type/props.type';
-import { StudentOption } from '../type/student-option.type';
+import { Props } from "../type/props.type";
+import { StudentOption } from "../type/student-option.type";
 
 function toIsoUtcNoon(dateStr: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
@@ -31,7 +31,7 @@ function toIsoUtcNoon(dateStr: string) {
 export default function ScheduleMeetingModal({
   isOpen,
   onClose,
-  students,            // ya no se usa, pero lo dejamos por compatibilidad con Props
+  students,
   onCreated,
   defaultStudentId,
 }: Props & { defaultStudentId?: number }) {
@@ -44,6 +44,16 @@ export default function ScheduleMeetingModal({
 
   const [localStudents, setLocalStudents] = useState<StudentOption[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
+
+  // Solo letras (incluye tildes/ñ), números, espacios y separadores comunes . - _ /
+  // Requiere al menos un carácter alfanumérico para evitar entradas como "///"
+  const locationRegex = useMemo(
+    () =>
+      /^(?=.*[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9])[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9\s._\/-]+$/,
+    []
+  );
+  const isLocationValid =
+    locationValue.trim().length > 0 && locationRegex.test(locationValue.trim());
 
   const resetForm = () => {
     setStudentId(0);
@@ -94,10 +104,13 @@ export default function ScheduleMeetingModal({
     };
 
     void loadMyStudents();
-  }, [isOpen, defaultStudentId]);
+  }, [isOpen, defaultStudentId, students]);
 
   const handleCreate = async () => {
     if (!studentId || !dateValue || !timeValue || !locationValue.trim()) {
+      return;
+    }
+    if (!isLocationValid) {
       return;
     }
 
@@ -179,18 +192,35 @@ export default function ScheduleMeetingModal({
             />
           </FormControl>
 
-          <FormControl mt={4}>
+          <FormControl mt={4} isInvalid={locationValue.trim().length > 0 && !isLocationValid}>
             <FormLabel>Aula</FormLabel>
             <Input
               placeholder="A1 / B2 / etc."
               value={locationValue}
               onChange={(e) => setLocationValue(e.target.value)}
+              maxLength={40}
             />
+            <FormErrorMessage>
+              Solo letras, números, espacios y . _ - /. Debe contener al menos un carácter alfanumérico.
+            </FormErrorMessage>
           </FormControl>
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} isLoading={loading} onClick={handleCreate}>
+          <Button
+            colorScheme="blue"
+            mr={3}
+            isLoading={loading}
+            onClick={handleCreate}
+            isDisabled={
+              loading ||
+              !studentId ||
+              !dateValue ||
+              !timeValue ||
+              !locationValue.trim() ||
+              !isLocationValid
+            }
+          >
             Guardar
           </Button>
           <Button
