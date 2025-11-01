@@ -19,22 +19,24 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FiFilePlus, FiFileText } from "react-icons/fi";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
+import { Student } from "../alumnos/interfaces/student.interface";
+import { SubjectCareerWithState } from "../alumnos/interfaces/subject-career-student.interface";
+import SubjectModal from "../alumnos/modals/subject-student.modal";
 import { useSidebar } from "../contexts/SidebarContext";
 import CreateReportModal from "./modals/create-report-modal";
 import EditMeetingModal from "./modals/edit-meeting-modal";
 import FilterMeetingsModal, { Filters } from "./modals/filtro-busqueda-modal";
 import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
 import ViewReportModal from "./modals/view-report-modal";
+import { GetMeetingsResp } from "./type/get-meeting-response.type";
 import { MeetingRow } from "./type/meeting-row.type";
-
-import { Student } from "../alumnos/interfaces/student.interface";
-import { SubjectCareerWithState } from "../alumnos/interfaces/subject-career-student.interface";
-import SubjectModal from "../alumnos/modals/subject-student.modal";
+import { MeetingStatus } from "./type/meetings-status.type";
+import { Row } from "./type/rows.type";
+import { StudentOption } from "./type/student-option.type";
 
 /* =========================
    Tipos
    ========================= */
-type MeetingStatus = "PENDING" | "CONFIRMED" | "REPORTMISSING";
 
 const capitalize = (s: string) =>
   s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
@@ -42,7 +44,7 @@ const capitalize = (s: string) =>
 function labelForMeetingStatus(s: MeetingStatus) {
   switch (s) {
     case "CONFIRMED":
-      return "Completada"; // ← renombrada
+      return "Completada"; 
     case "PENDING":
       return "Pendiente";
     case "REPORTMISSING":
@@ -51,38 +53,6 @@ function labelForMeetingStatus(s: MeetingStatus) {
       return "—";
   }
 }
-
-type GetMeetingsResp = {
-  data: {
-    id: number;
-    date: string;
-    time: string;
-    location: string;
-    status: MeetingStatus;
-    tutorship?: {
-      student?: {
-        id: number;
-        user?: { name?: string; lastName?: string; email?: string };
-      };
-      studentId?: number;
-      tutorId?: number;
-    };
-  }[];
-  total: number;
-  page: number;
-  limit: number;
-};
-
-type StudentOption = { id: number; label: string };
-
-type Row = Omit<MeetingRow, "status" | "fechaHora"> & {
-  fecha: string;
-  hora: string;
-  status: MeetingStatus;
-  fechaHora?: string;
-  studentId?: number;
-  tutorId?: number;
-};
 
 /* =========================
    Utils

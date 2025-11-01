@@ -1,4 +1,6 @@
-type GetMeetingsResp = {
+import { MeetingStatus } from './meetings-status.type';
+
+export type GetMeetingsResp = {
   data: {
     id: number;
     date: string;

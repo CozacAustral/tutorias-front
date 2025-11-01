@@ -9,6 +9,7 @@ import { CreateStudent } from "../app/carrera/interfaces/create-student.interfac
 import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
 import { CreateMeetingBody } from "../app/reuniones/type/create-meeting-body.type";
+import { GetMeetingsResp } from '../app/reuniones/type/get-meeting-response.type';
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
 import { CreateUser } from "./interfaces/createUser";
