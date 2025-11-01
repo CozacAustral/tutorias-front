@@ -14,7 +14,6 @@ import {
   Textarea,
   Button,
   HStack,
-  useToast,
   Skeleton,
   SkeletonText,
   AlertDialog,
@@ -26,6 +25,7 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 import { UserService } from "../../../services/admin-service";
+import { Report } from "./type/report.type";
 
 type Props = {
   isOpen: boolean;
@@ -40,16 +40,6 @@ type Props = {
   }) => void;
 };
 
-type Report = {
-  id: number;
-  meetingId: number;
-  topicos: string | null;
-  comments: string | null;
-  yearOfAdmission: number;
-  career?: { id: number; name: string };
-  meeting?: { date: string; time: string; location: string };
-};
-
 const ViewReportModal: React.FC<Props> = ({
   isOpen,
   onClose,
@@ -58,7 +48,6 @@ const ViewReportModal: React.FC<Props> = ({
   onDeleted,
   onOpenSubjects,
 }) => {
-  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
 
@@ -72,29 +61,18 @@ const ViewReportModal: React.FC<Props> = ({
     UserService.getReport(meetingId)
       .then((res) => setReport(res as any))
       .catch((e: any) => {
-        toast({
-          title: "No se pudo cargar el reporte",
-          description: e?.message ?? "",
-          status: "error",
-        });
       })
       .finally(() => setLoading(false));
-  }, [isOpen, meetingId]); // eslint-disable-line
+  }, [isOpen, meetingId]);
 
   const handleDelete = async () => {
     if (!meetingId) return;
     try {
       await UserService.deleteReport(meetingId);
-      toast({ title: "Reporte eliminado", status: "success" });
       setConfirmOpen(false);
       onClose();
       onDeleted?.();
     } catch (e: any) {
-      toast({
-        title: "Error al eliminar",
-        description: e?.message ?? "",
-        status: "error",
-      });
     }
   };
 

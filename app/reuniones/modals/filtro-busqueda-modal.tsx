@@ -1,4 +1,3 @@
-// src/app/reuniones/modals/filtro-busqueda-modal.tsx
 "use client";
 
 import {
@@ -19,26 +18,15 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import AsyncSelect from "react-select/async";
 import { UserService } from "../../../services/admin-service";
-
-export type Filters = {
-  from?: string;
-  to?: string;
-  studentId?: number;
-  // studentQuery?: string; // 🔸 eliminado del UI (se mantiene afuera si tu API lo usa en otros lugares)
-  status?: "all" | "PENDING" | "REPORTMISSING" | "CONFIRMED";
-  order?: "asc" | "desc";
-};
-
-type StudentOption = { id: number; label: string };
-
-type Option = { value: number; label: string };
+import { StudentOption } from '../type/student-option.type';
+import { Filters } from '../type/filters.type';
+import { Option } from '../../alumnos/type/option.type';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   onApply: (f: Filters) => void;
   onClear: () => void;
-  /** Opcional: opciones iniciales (alumnos del tutor) para mostrar al abrir el menú */
   students?: StudentOption[];
   current?: Filters;
 };
@@ -87,7 +75,6 @@ export default function FilterMeetingsModal({
     return found;
   }, [local.studentId, initialOptions]);
 
-  // Cache básico por query
   const cacheRef = useRef<Map<string, Option[]>>(new Map());
 
   const loadOptions = async (inputValue: string): Promise<Option[]> => {
@@ -95,11 +82,9 @@ export default function FilterMeetingsModal({
     if (cacheRef.current.has(q)) return cacheRef.current.get(q)!;
 
     try {
-      // Trae mis alumnos con búsqueda (server-side)
       const resp = await UserService.getMyStudents(1, 20, q);
       const list = resp?.data?.data ?? resp?.data?.students ?? resp?.data ?? [];
 
-      // Normaliza a StudentOption -> Option
       const opts: Option[] = (list ?? [])
         .map((s: any) => {
           const name = s?.user?.name ?? "";

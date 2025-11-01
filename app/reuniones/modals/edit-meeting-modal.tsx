@@ -4,13 +4,12 @@ import { useEffect, useState } from "react";
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody,
   ModalCloseButton, ModalFooter, Button, FormControl, FormLabel,
-  Input, VStack, HStack, Text, useToast
+  Input, VStack, HStack, Text,
 } from "@chakra-ui/react";
 import { UserService } from "../../../services/admin-service";
 import { Props } from "../type/edit-props.type";
 
 export default function EditMeetingModal({ isOpen, onClose, meeting, onUpdated }: Props) {
-  const toast = useToast();
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
@@ -39,9 +38,8 @@ export default function EditMeetingModal({ isOpen, onClose, meeting, onUpdated }
   // dateStr: "YYYY-MM-DD"
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
   const [y, m, d] = dateStr.split("-").map(Number);
-  // 12:00 UTC evita que, al convertir a hora local, te caiga en el día anterior
   const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-  return dt.toISOString(); // "2025-10-11T12:00:00.000Z"
+  return dt.toISOString();
 }
 
 
@@ -53,16 +51,14 @@ const onSave = async () => {
 
   try {
     await UserService.updateMeeting(meeting.id, {
-      date: toIsoUtcNoon(date),   // <-- cambio clave
+      date: toIsoUtcNoon(date),  
       time: timeNorm,
       location,
     });
-    toast({ title: "Reunión actualizada", status: "success" });
     onUpdated?.();
     onClose();
     reset();
   } catch (e: any) {
-    toast({ title: "Error al actualizar", description: e?.response?.data?.message ?? "Error inesperado", status: "error" });
   }
 };
 

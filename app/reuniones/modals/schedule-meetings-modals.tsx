@@ -1,4 +1,3 @@
-// src/components/meetings/ScheduleMeetingModal.tsx
 "use client";
 
 
@@ -16,20 +15,17 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
-  useToast,
 } from "@chakra-ui/react";
 import { CreateMeetingBody } from "../type/create-meeting-body.type";
 import { UserService } from "../../../services/admin-service";
 import { Props } from '../type/props.type';
+import { StudentOption } from '../type/student-option.type';
 
-type StudentOption = { id: number; label: string };
-
-// ✅ helper: fecha "YYYY-MM-DD" -> ISO en UTC al mediodía
 function toIsoUtcNoon(dateStr: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
   const [y, m, d] = dateStr.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-  return dt.toISOString(); // evita el -1 día por TZ
+  return dt.toISOString();
 }
 
 export default function ScheduleMeetingModal({
@@ -48,7 +44,6 @@ export default function ScheduleMeetingModal({
 
   const [localStudents, setLocalStudents] = useState<StudentOption[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
-  const toast = useToast();
 
   const resetForm = () => {
     setStudentId(0);
@@ -57,7 +52,6 @@ export default function ScheduleMeetingModal({
     setLocationValue("");
   };
 
-  // 🔹 Cargar alumnos del tutor autenticado (JWT) al abrir
   useEffect(() => {
     if (!isOpen) {
       setLocalStudents([]);
@@ -68,8 +62,8 @@ export default function ScheduleMeetingModal({
     const loadMyStudents = async () => {
       try {
         setLoadingStudents(true);
-        const res = await UserService.getMyStudents(1, 500); // suficiente para el selector
-        const arr = res?.data?.data ?? res?.data ?? []; // según cómo devuelva tu axiosInstance
+        const res = await UserService.getMyStudents(1, 500);
+        const arr = res?.data?.data ?? res?.data ?? [];
         const opts: StudentOption[] = arr.map((s: any) => ({
           id: s.id,
           label:
@@ -85,12 +79,6 @@ export default function ScheduleMeetingModal({
           setStudentId(0);
         }
       } catch (e: any) {
-        toast({
-          status: "error",
-          title: "No se pudieron cargar tus alumnos",
-          description: e?.response?.data?.message ?? e?.message ?? "Error inesperado",
-        });
-        // fallback: si te pasaron algo por props (legacy)
         const fallback: StudentOption[] =
           (students as any[])?.map((s: any) => ({
             id: s.id,
@@ -106,12 +94,10 @@ export default function ScheduleMeetingModal({
     };
 
     void loadMyStudents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, defaultStudentId]);
 
   const handleCreate = async () => {
     if (!studentId || !dateValue || !timeValue || !locationValue.trim()) {
-      toast({ status: "warning", title: "Completá todos los campos" });
       return;
     }
 
@@ -132,16 +118,10 @@ export default function ScheduleMeetingModal({
     try {
       setLoading(true);
       const resp = await UserService.schedule(body);
-      toast({ status: "success", title: "Reunión creada" });
       onCreated?.(resp);
       onClose();
       resetForm();
     } catch (e: any) {
-      toast({
-        status: "error",
-        title: "No se pudo crear la reunión",
-        description: e?.response?.data?.message ?? "Error inesperado",
-      });
     } finally {
       setLoading(false);
     }

@@ -12,7 +12,6 @@ import {
   Td,
   Tr,
   useDisclosure,
-  useToast,
 } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -25,7 +24,7 @@ import SubjectModal from "../alumnos/modals/subject-student.modal";
 import { useSidebar } from "../contexts/SidebarContext";
 import CreateReportModal from "./modals/create-report-modal";
 import EditMeetingModal from "./modals/edit-meeting-modal";
-import FilterMeetingsModal, { Filters } from "./modals/filtro-busqueda-modal";
+import FilterMeetingsModal from "./modals/filtro-busqueda-modal";
 import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
 import ViewReportModal from "./modals/view-report-modal";
 import { GetMeetingsResp } from "./type/get-meeting-response.type";
@@ -33,26 +32,14 @@ import { MeetingRow } from "./type/meeting-row.type";
 import { MeetingStatus } from "./type/meetings-status.type";
 import { Row } from "./type/rows.type";
 import { StudentOption } from "./type/student-option.type";
+import { Filters } from "./type/filters.type";
+import ConfirmDialog from './modals/confirm-dialog-modal';
+
 
 /* =========================
    Tipos
    ========================= */
 
-const capitalize = (s: string) =>
-  s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
-
-function labelForMeetingStatus(s: MeetingStatus) {
-  switch (s) {
-    case "CONFIRMED":
-      return "Completada"; 
-    case "PENDING":
-      return "Pendiente";
-    case "REPORTMISSING":
-      return "Falta reporte";
-    default:
-      return "—";
-  }
-}
 
 /* =========================
    Utils
@@ -138,25 +125,10 @@ function toMeetingRow(r: Row): MeetingRow {
 /* =========================
    Etiquetas ES para estados de materia
    ========================= */
-const SUBJECT_STATE_LABELS: Record<string, string> = {
-  APPROVED: "APROBADO",
-  REGULAR: "REGULARIZADO",
-  FREE: "LIBRE",
-  IN_PROGRESS: "EN CURSO",
-  PENDING: "NO CURSADA",
-  FAILED: "RECURSANDO",
-  RETAKING: "RECURSANDO",
-};
 
-const labelForSubjectState = (key: string) => SUBJECT_STATE_LABELS[key] ?? key;
-
-/* =========================
-   Componente
-   ========================= */
 const Reuniones: React.FC = () => {
   const [reportStudentId, setReportStudentId] = useState<number | null>(null);
 
-  const toast = useToast();
   const initialRef = useRef<HTMLInputElement | null>(null);
   const { collapsed } = useSidebar();
   const [myTutorId, setMyTutorId] = useState<number | null>(null);
@@ -201,7 +173,6 @@ const Reuniones: React.FC = () => {
   const [studentsOptions, setStudentsOptions] = useState<StudentOption[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
-  // Modal de Reporte (crear)
   const {
     isOpen: isReportOpen,
     onOpen: onReportOpen,
@@ -209,7 +180,6 @@ const Reuniones: React.FC = () => {
   } = useDisclosure();
   const [reportMeetingId, setReportMeetingId] = useState<number | null>(null);
 
-  // Modal de Materias
   const {
     isOpen: isSubjectsOpen,
     onOpen: onSubjectsOpen,
@@ -230,7 +200,12 @@ const Reuniones: React.FC = () => {
   >(null);
   const [savingSubjects, setSavingSubjects] = useState(false);
 
-  // Claves del enum que vienen del backend
+  // Confirm delete dialog state
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState<Row | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const cancelDeleteRef = useRef<HTMLButtonElement | null>(null);
+
   const SUBJECT_STATE_CANON = [
     "APPROVED",
     "REGULARIZED",
@@ -250,7 +225,6 @@ const Reuniones: React.FC = () => {
     RETAKING: "RECURSANDO",
   };
 
-  // Orden preferido (se filtra por los que existan en el enum real)
   const normalizeSubjectState = (
     raw: string | undefined | null
   ): SubjectStateKey => {
@@ -262,18 +236,16 @@ const Reuniones: React.FC = () => {
         return "NOTATTENDED";
       case "REGULAR":
         return "REGULARIZED";
-      // si ya viene en forma canónica, se deja igual
       default:
         return (SUBJECT_STATE_CANON as readonly string[]).includes(k)
           ? (k as SubjectStateKey)
-          : "NOTATTENDED"; // fallback seguro
+          : "NOTATTENDED";
     }
   };
 
   const labelForSubjectState = (raw: string | undefined | null) =>
     SUBJECT_STATE_LABEL_ES[normalizeSubjectState(raw)];
 
-  // Deep-links por query param
   useEffect(() => {
     const crf = Number(searchParams.get("createReportFor"));
     if (Number.isInteger(crf) && crf > 0) {
@@ -285,10 +257,8 @@ const Reuniones: React.FC = () => {
       onOpen();
       setTimeout(() => initialRef.current?.focus(), 0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Alumno preseleccionado desde la URL
   const defaultStudentIdFromQuery = Number(searchParams.get("studentId"));
   const defaultStudentId =
     Number.isInteger(defaultStudentIdFromQuery) && defaultStudentIdFromQuery > 0
@@ -299,13 +269,32 @@ const Reuniones: React.FC = () => {
     if (defaultStudentId && !filters.studentId) {
       setFilters((p) => ({ ...p, studentId: defaultStudentId }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultStudentId]);
 
   const headers = useMemo(
     () => ["Alumno", "Fecha", "Hora", "Aula", "Status", "Acciones"],
     []
   );
+
+  const requestDelete = (row: Row) => {
+    setRowToDelete(row);
+    setIsDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!rowToDelete) return;
+    try {
+      setDeleting(true);
+      await UserService.deleteMeeting(rowToDelete.id);
+      setIsDeleteOpen(false);
+      setRowToDelete(null);
+      loadMeetings(page);
+    } catch (e: any) {
+      // opcional: manejar toast de error
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const renderRow = (r: Row) => (
     <Tr key={r.id}>
@@ -331,7 +320,7 @@ const Reuniones: React.FC = () => {
             aria-label="Eliminar reunión"
             icon={<DeleteIcon boxSize={5} />}
             backgroundColor="white"
-            onClick={() => handleDelete(r)}
+            onClick={() => requestDelete(r)}
             _hover={{
               borderRadius: 15,
               backgroundColor: "red.500",
@@ -433,7 +422,6 @@ const Reuniones: React.FC = () => {
 
   useEffect(() => {
     loadMeetings(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, JSON.stringify(filters)]);
 
   const openCreate = async () => {
@@ -442,17 +430,6 @@ const Reuniones: React.FC = () => {
     router.replace(`/reuniones?${params.toString()}`, { scroll: false });
     onOpen();
     setTimeout(() => initialRef.current?.focus(), 0);
-  };
-
-  const handleDelete = async (row: Row) => {
-    const ok = window.confirm(
-      `¿Eliminar la reunión con ${row.alumno} del ${row.fecha} ${row.hora}?`
-    );
-    if (!ok) return;
-    try {
-      await UserService.deleteMeeting(row.id);
-      loadMeetings(page);
-    } catch (e: any) {}
   };
 
   const handleEdit = (row: Row) => {
@@ -493,20 +470,13 @@ const Reuniones: React.FC = () => {
       setLoadingStudents(false);
     }
   }
-
-  // Cargar alumnos del tutor (me)
   useEffect(() => {
     loadStudentsForTutor(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Fallback: si luego descubrimos myTutorId, reintentar por ID
   useEffect(() => {
     if (myTutorId) loadStudentsForTutor(myTutorId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myTutorId]);
 
-  // ⬇️ handler que abre el SubjectModal y trae materias
   const handleOpenSubjects = async ({
     studentId,
     careerId,
@@ -529,7 +499,6 @@ const Reuniones: React.FC = () => {
     } catch (e: any) {}
   };
 
-  // ⬇️ guardar cambios del SubjectModal (persistencia + estado local)
   const handleSaveSubjects = async () => {
     if (!currentSubjectsStudentId) {
       onSubjectsClose();
@@ -558,7 +527,7 @@ const Reuniones: React.FC = () => {
             ? {
                 ...s,
                 subjectState: editedSubjects[s.subjectId],
-                updateAt: new Date(), // local
+                updateAt: new Date(),
               }
             : s
         )
@@ -571,7 +540,6 @@ const Reuniones: React.FC = () => {
     }
   };
 
-  // ⬇️ renderer para filas del SubjectModal
   const renderSubjectNow = (subject: SubjectCareerWithState) => (
     <Tr key={subject.subjectId}>
       <Td>{subject.subjectName}</Td>
@@ -586,7 +554,7 @@ const Reuniones: React.FC = () => {
             onChange={(e) =>
               setEditedSubjects((prev) => ({
                 ...prev,
-                [subject.subjectId]: e.target.value, // ← ya es clave canónica
+                [subject.subjectId]: e.target.value,
               }))
             }
           >
@@ -769,6 +737,31 @@ const Reuniones: React.FC = () => {
         state={subjectsState}
         role={3}
         showButtonCancelSave={!savingSubjects}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleteOpen}
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setRowToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        isLoading={deleting}
+        leastDestructiveRef={cancelDeleteRef}
+        title="Eliminar reunión"
+        body={
+          <>
+            ¿Eliminar la reunión con{" "}
+            <b>{rowToDelete?.alumno ?? "—"}</b> del{" "}
+            <b>
+              {rowToDelete?.fecha ?? "—"} {rowToDelete?.hora ?? ""}
+            </b>
+            ? Esta acción no se puede deshacer.
+          </>
+        }
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        confirmColorScheme="red"
       />
     </>
   );

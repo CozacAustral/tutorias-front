@@ -2,12 +2,6 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   Button,
   FormControl,
   FormLabel,
@@ -27,56 +21,18 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 import { UserService } from "../../../services/admin-service";
+import { AnyStudent } from "./type/any-student.type";
+import { UiCareer } from "./type/ui-career.type";
+import { CreateReportDto } from "../dto/create-report.dto";
+import ConfirmDialog from './confirm-dialog-modal';
 
-type Props = {
+
+export type CreateReportModalProps = {
   isOpen: boolean;
   onClose: () => void;
   meetingId: number | null;
   studentId: number | null;
   onCreated?: () => void;
-};
-
-type CreateReportDto = {
-  topicos: string;
-  comments?: string;
-  careerId?: number;
-};
-
-type AnyStudent = {
-  id: number;
-  careers?:
-    | Array<{
-        id?: number;
-        name?: string;
-        yearOfAdmission?: number;
-        active?: boolean;
-        careerId?: number;
-        career?: { id?: number; name?: string };
-      }>
-    | undefined;
-  assignedCareers?:
-    | Array<{
-        careerId?: number;
-        yearOfAdmission?: number;
-        active?: boolean;
-        career?: { id?: number; name?: string };
-      }>
-    | undefined;
-  studentCareers?:
-    | Array<{
-        careerId?: number;
-        yearOfAdmission?: number;
-        active?: boolean;
-        career?: { id?: number; name?: string };
-      }>
-    | undefined;
-};
-
-type UiCareer = {
-  id: number;
-  name: string;
-  yearOfAdmission: number;
-  active: boolean;
 };
 
 function extractActiveCareers(student: AnyStudent | null | undefined): UiCareer[] {
@@ -99,7 +55,7 @@ function extractActiveCareers(student: AnyStudent | null | undefined): UiCareer[
     .filter((x) => !!x.id && x.active);
 }
 
-const CreateReportModal: React.FC<Props> = ({
+const CreateReportModal: React.FC<CreateReportModalProps> = ({
   isOpen,
   onClose,
   meetingId,
@@ -118,39 +74,42 @@ const CreateReportModal: React.FC<Props> = ({
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const cancelRef = useRef<HTMLButtonElement | null>(null);
 
-useEffect(() => {
-  if (!isOpen || !meetingId) return;
+  useEffect(() => {
+    if (!isOpen || !meetingId) return;
 
-  setTopicos("");
-  setComments("");
-  setActiveCareers([]);
-  setSelectedCareerId("");
-  setLoadingInfo(true);
+    setTopicos("");
+    setComments("");
+    setActiveCareers([]);
+    setSelectedCareerId("");
+    setLoadingInfo(true);
 
-  const fetchCareers = async () => {
-    try {
-      if (studentId) {
-        const actives = await UserService.getStudentCareers(studentId);
-        setActiveCareers(actives ?? []);
-        if ((actives ?? []).length >= 1) setSelectedCareerId(actives[0].id);
-      } else {
-        // fallback (si abrís el modal sin studentId)
-        const res = await UserService.getReportInfo(meetingId);
-        if (res?.careerName) {
-          const only = { id: -1, name: res.careerName, yearOfAdmission: Number(res.yearOfAdmission ?? 0), active: true };
-          setActiveCareers([only]);
-          setSelectedCareerId(only.id);
+    const fetchCareers = async () => {
+      try {
+        if (studentId) {
+          const actives = await UserService.getStudentCareers(studentId);
+          setActiveCareers(actives ?? []);
+          if ((actives ?? []).length >= 1) setSelectedCareerId(actives[0].id);
+        } else {
+          const res = await UserService.getReportInfo(meetingId);
+          if (res?.careerName) {
+            const only = {
+              id: -1,
+              name: res.careerName,
+              yearOfAdmission: Number(res.yearOfAdmission ?? 0),
+              active: true,
+            };
+            setActiveCareers([only]);
+            setSelectedCareerId(only.id);
+          }
         }
+      } catch (e: any) {
+      } finally {
+        setLoadingInfo(false);
       }
-    } catch (e: any) {
-    } finally {
-      setLoadingInfo(false);
-    }
-  };
+    };
 
-  void fetchCareers();
-}, [isOpen, meetingId, studentId]); // deja estas deps
- // eslint-disable-line react-hooks/exhaustive-deps
+    void fetchCareers();
+  }, [isOpen, meetingId, studentId]);
 
   const openConfirm = () => {
     if (!meetingId) return;
@@ -158,7 +117,6 @@ useEffect(() => {
     if (!topicos.trim()) {
       return;
     }
-    // ahora siempre pedimos una selección si hay al menos una carrera cargada
     if (activeCareers.length >= 1 && !selectedCareerId) {
       return;
     }
@@ -170,7 +128,6 @@ useEffect(() => {
     setSubmitting(true);
 
     const sel = Number(selectedCareerId);
-    // si el id es inválido (p.ej. -1 del fallback), no enviamos careerId
     const chosenId = sel > 0 ? sel : undefined;
 
     const dto: CreateReportDto = {
@@ -190,7 +147,8 @@ useEffect(() => {
     }
   };
 
-  const selected = activeCareers.find((c) => c.id === Number(selectedCareerId)) || null;
+  const selected =
+    activeCareers.find((c) => c.id === Number(selectedCareerId)) || null;
 
   return (
     <>
@@ -211,9 +169,15 @@ useEffect(() => {
                   <FormControl isRequired={activeCareers.length >= 1}>
                     <FormLabel>Carrera</FormLabel>
                     <Select
-                      placeholder={activeCareers.length ? "Seleccioná una carrera" : "Sin carreras activas"}
+                      placeholder={
+                        activeCareers.length
+                          ? "Seleccioná una carrera"
+                          : "Sin carreras activas"
+                      }
                       value={selectedCareerId}
-                      onChange={(e) => setSelectedCareerId(Number(e.target.value))}
+                      onChange={(e) =>
+                        setSelectedCareerId(Number(e.target.value))
+                      }
                       isDisabled={submitting || !activeCareers.length}
                     >
                       {activeCareers.map((c) => (
@@ -227,7 +191,11 @@ useEffect(() => {
                   <FormControl isDisabled>
                     <FormLabel>Año de ingreso</FormLabel>
                     <Input
-                      value={selected?.yearOfAdmission ? String(selected.yearOfAdmission) : "—"}
+                      value={
+                        selected?.yearOfAdmission
+                          ? String(selected.yearOfAdmission)
+                          : "—"
+                      }
                       readOnly
                     />
                   </FormControl>
@@ -244,7 +212,9 @@ useEffect(() => {
                 rows={5}
                 isDisabled={submitting}
               />
-              {loadingInfo && <SkeletonText mt="3" noOfLines={2} spacing="2" />}
+              {loadingInfo && (
+                <SkeletonText mt="3" noOfLines={2} spacing="2" />
+              )}
             </FormControl>
 
             <FormControl mt={4}>
@@ -260,42 +230,42 @@ useEffect(() => {
           </ModalBody>
 
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose} isDisabled={submitting}>
+            <Button
+              variant="ghost"
+              mr={3}
+              onClick={onClose}
+              isDisabled={submitting}
+            >
               Cancelar
             </Button>
-            <Button colorScheme="blue" onClick={openConfirm} isLoading={submitting}>
+            <Button
+              colorScheme="blue"
+              onClick={openConfirm}
+              isLoading={submitting}
+            >
               Guardar reporte
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      <AlertDialog
+      <ConfirmDialog
         isOpen={isConfirmOpen}
-        leastDestructiveRef={cancelRef}
         onClose={() => setIsConfirmOpen(false)}
-        isCentered
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Confirmar creación de reporte
-            </AlertDialogHeader>
-            <AlertDialogBody>
-              Esta acción es <b>permanente</b>. Una vez creado, el reporte no podrá editarse.
-              ¿Deseás confirmar el envío?
-            </AlertDialogBody>
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={() => setIsConfirmOpen(false)}>
-                Cancelar
-              </Button>
-              <Button colorScheme="blue" onClick={handleCreate} ml={3} isLoading={submitting}>
-                Confirmar y enviar
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+        onConfirm={handleCreate}
+        isLoading={submitting}
+        leastDestructiveRef={cancelRef}
+        title="Confirmar creación de reporte"
+        body={
+          <>
+            Esta acción es <b>permanente</b>. Una vez creado, el reporte no podrá
+            editarse. ¿Deseás confirmar el envío?
+          </>
+        }
+        confirmText="Confirmar y enviar"
+        cancelText="Cancelar"
+        confirmColorScheme="blue"
+      />
     </>
   );
 };
