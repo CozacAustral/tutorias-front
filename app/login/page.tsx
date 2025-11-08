@@ -33,18 +33,16 @@ const Login = () => {
   const router = useRouter();
   const handleClick = () => setShowPassword(!showPassword);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
-
     try {
       const data = await login(email, password);
       Cookies.set("authTokens", data.accessToken, { expires: 7 });
       setError("");
-      router.push("/profile");
-    } catch (error) {
+      router.replace("/profile"); // no apagamos isLoading: el componente se desmonta
+    } catch {
       setError("Error en la autenticación");
-    } finally {
       setIsLoading(false);
     }
   };
