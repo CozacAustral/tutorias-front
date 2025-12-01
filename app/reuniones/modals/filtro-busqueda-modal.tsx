@@ -192,7 +192,7 @@ export default function FilterMeetingsModal({
                   <option value="all">Todos</option>
                   <option value="PENDING">Pendiente</option>
                   <option value="REPORTMISSING">Falta reporte</option>
-                  <option value="CONFIRMED">Confirmada</option>
+                  <option value="COMPLETED">Confirmada</option>
                 </select>
               </FormControl>
 

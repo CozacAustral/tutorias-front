@@ -9,7 +9,7 @@ import { CreateStudent } from "../app/carrera/interfaces/create-student.interfac
 import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
 import { CreateMeetingBody } from "../app/reuniones/type/create-meeting-body.type";
-import { GetMeetingsResp } from '../app/reuniones/type/get-meeting-response.type';
+import { GetMeetingsResp } from "../app/reuniones/type/get-meeting-response.type";
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
 import { CreateUser } from "./interfaces/createUser";
@@ -41,7 +41,7 @@ export const UserService = {
 
   async getReportInfo(meetingId: number): Promise<ReportInfo> {
     const res = await axiosInstance.get(
-      `/tutors/meetings/${meetingId}/report-info`
+      `/reports/meetings/${meetingId}/report-info`
     );
     return res.data as ReportInfo;
   },
@@ -51,44 +51,30 @@ export const UserService = {
     dto: { topicos: string; comments?: string; careerId?: number }
   ) {
     const res = await axiosInstance.post(
-      `/tutors/meetings/${meetingId}/report`,
+      `/reports/meetings/${meetingId}/report`,
       dto
     );
     return res.data;
   },
 
   async getReport(meetingId: number) {
-    const res = await axiosInstance.get(`/tutors/meetings/${meetingId}/report`);
-    return res.data as {
-      id: number;
-      meetingId: number;
-      studentId: number;
-      careerId: number;
-      yearOfAdmission: number;
-      topicos: string | null;
-      comments: string | null;
-      createdAt: string;
-      updatedAt: string;
-      career?: { id: number; name: string };
-      meeting?: { id: number; date: string; time: string; location: string };
-    };
-  },
-
-  async deleteReport(meetingId: number) {
-    const res = await axiosInstance.delete(
-      `/tutors/meetings/${meetingId}/report`
+    const res = await axiosInstance.get(
+      `/reports/meetings/${meetingId}/report`
     );
     return res.data;
   },
 
-  async updateMeeting(id: number, body: any) {
-    const res = await axiosInstance.patch(`/tutors/meetings/${id}`, body);
-    return res.data;
+  async deleteReport(meetingId: number) {
+    throw new Error("El backend no soporta eliminar reportes");
   },
 
+  async updateMeeting(id: number, body: any) {
+    const res = await axiosInstance.patch(`/meetings/${id}`, body);
+    return res.data;
+  },
   // 🔹 Eliminar reunión
   async deleteMeeting(id: number) {
-    const res = await axiosInstance.delete(`/tutors/meetings/${id}`);
+    const res = await axiosInstance.delete(`/meetings/${id}`);
     return res.data;
   },
 
@@ -102,18 +88,17 @@ export const UserService = {
       timeTo?: string;
       studentId?: number;
       studentQuery?: string;
-       status?: "all" | "PENDING" | "REPORTMISSING" | "CONFIRMED";
+      status?: "all" | "PENDING" | "REPORTMISSING" | "COMPLETED";
       order?: "asc" | "desc";
     }
   ): Promise<GetMeetingsResp> {
-    const res = await axiosInstance.get(`/tutors/me/meetings`, {
-      params: { page, limit, ...filters },
+    const res = await axiosInstance.get(`/meetings/me/meetings`, {
+      params: { currentPage: page, resultsPerPage: limit, ...filters },
     });
-    return res.data as GetMeetingsResp;
+    return res.data;
   },
-
   async schedule(body: CreateMeetingBody) {
-    const res = await axiosInstance.post(`/tutors/schedule-meeting`, body);
+    const res = await axiosInstance.post(`/meetings/schedule-meeting`, body);
     return res.data;
   },
 

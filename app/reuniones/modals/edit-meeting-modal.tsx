@@ -1,15 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody,
-  ModalCloseButton, ModalFooter, Button, FormControl, FormLabel,
-  Input, VStack, HStack, Text,
+  Button,
+  FormControl,
+  FormLabel,
+  HStack,
+  Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Text,
+  VStack,
 } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 import { UserService } from "../../../services/admin-service";
 import { Props } from "../type/edit-props.type";
 
-export default function EditMeetingModal({ isOpen, onClose, meeting, onUpdated }: Props) {
+export default function EditMeetingModal({
+  isOpen,
+  onClose,
+  meeting,
+  onUpdated,
+}: Props) {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
@@ -24,7 +40,10 @@ export default function EditMeetingModal({ isOpen, onClose, meeting, onUpdated }
     if (!meeting) return;
     const [d, h] = (meeting.fechaHora || "").split(" ");
     const [dd, mm, yyyy] = (d || "").split("/");
-    const iso = yyyy && mm && dd ? `${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}` : "";
+    const iso =
+      yyyy && mm && dd
+        ? `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`
+        : "";
     setDate(iso);
     setTime((h || "").slice(0, 5));
     setLocation(meeting.aula || "");
@@ -34,27 +53,16 @@ export default function EditMeetingModal({ isOpen, onClose, meeting, onUpdated }
     if (!isOpen) reset();
   }, [isOpen]);
 
-  function toIsoUtcNoon(dateStr: string) {
-  // dateStr: "YYYY-MM-DD"
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-  return dt.toISOString();
-}
-
-
 const onSave = async () => {
   if (!meeting) return;
-
-  const timeNorm =
-    /^\d{1,2}:\d{2}(:\d{2})?$/.test(time) ? (time.length === 5 ? `${time}:00` : time) : `${time}:00`;
-
+  
   try {
     await UserService.updateMeeting(meeting.id, {
-      date: toIsoUtcNoon(date),  
-      time: timeNorm,
+      date: date,
+      time: time,
       location,
     });
+
     onUpdated?.();
     onClose();
     reset();
@@ -65,7 +73,10 @@ const onSave = async () => {
   return (
     <Modal
       isOpen={isOpen}
-      onClose={() => { onClose(); reset(); }}
+      onClose={() => {
+        onClose();
+        reset();
+      }}
       size="lg"
       isCentered
     >
@@ -83,7 +94,11 @@ const onSave = async () => {
             <HStack spacing={4}>
               <FormControl>
                 <FormLabel>Fecha</FormLabel>
-                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
               </FormControl>
               <FormControl>
                 <FormLabel>Hora</FormLabel>
@@ -108,8 +123,18 @@ const onSave = async () => {
         </ModalBody>
         <ModalFooter>
           <HStack>
-            <Button variant="ghost" onClick={() => { onClose(); reset(); }}>Cancelar</Button>
-            <Button colorScheme="blue" onClick={onSave}>Guardar</Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                onClose();
+                reset();
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button colorScheme="blue" onClick={onSave}>
+              Guardar
+            </Button>
           </HStack>
         </ModalFooter>
       </ModalContent>

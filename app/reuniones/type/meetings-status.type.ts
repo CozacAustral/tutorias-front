@@ -1,1 +1,1 @@
-export type MeetingStatus = 'PENDING' | 'CONFIRMED' | 'REPORTMISSING';
+export type MeetingStatus = 'PENDING' | 'COMPLETED' | 'REPORTMISSING';

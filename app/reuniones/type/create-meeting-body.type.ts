@@ -1,6 +1,6 @@
 export type CreateMeetingBody = {
   studentId: number;
-  date: string;   
+  date: string;
   time: string;
   location: string;
 };

@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect, useMemo } from "react";
 import {
   Button,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Input,
   Modal,
@@ -14,19 +14,12 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
-  FormErrorMessage,
 } from "@chakra-ui/react";
-import { CreateMeetingBody } from "../type/create-meeting-body.type";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { UserService } from "../../../services/admin-service";
+import { CreateMeetingBody } from "../type/create-meeting-body.type";
 import { Props } from "../type/props.type";
 import { StudentOption } from "../type/student-option.type";
-
-function toIsoUtcNoon(dateStr: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-  return dt.toISOString();
-}
 
 export default function ScheduleMeetingModal({
   isOpen,
@@ -45,11 +38,9 @@ export default function ScheduleMeetingModal({
   const [localStudents, setLocalStudents] = useState<StudentOption[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
-  // Solo letras (incluye tildes/ñ), números, espacios y separadores comunes . - _ /
-  // Requiere al menos un carácter alfanumérico para evitar entradas como "///"
+
   const locationRegex = useMemo(
-    () =>
-      /^(?=.*[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9])[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9\s._\/-]+$/,
+    () => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,_\-\/()#:]+$/,
     []
   );
   const isLocationValid =
@@ -72,32 +63,31 @@ export default function ScheduleMeetingModal({
     const loadMyStudents = async () => {
       try {
         setLoadingStudents(true);
+
         const res = await UserService.getMyStudents(1, 500);
-        const arr = res?.data?.data ?? res?.data ?? [];
-        const opts: StudentOption[] = arr.map((s: any) => ({
+        const arr = res?.data?.data ?? [];
+
+        const opts = arr.map((s: any) => ({
           id: s.id,
           label:
             `${s?.user?.name ?? ""} ${s?.user?.lastName ?? ""}`.trim() ||
             s?.user?.email ||
             `#${s.id}`,
         }));
+
         setLocalStudents(opts);
 
-        if (defaultStudentId && opts.some((o) => o.id === defaultStudentId)) {
+        if (
+          defaultStudentId &&
+          opts.some((o: StudentOption) => o.id === defaultStudentId)
+        ) {
           setStudentId(defaultStudentId);
         } else {
           setStudentId(0);
         }
-      } catch (e: any) {
-        const fallback: StudentOption[] =
-          (students as any[])?.map((s: any) => ({
-            id: s.id,
-            label:
-              `${s?.user?.name ?? ""} ${s?.user?.lastName ?? ""}`.trim() ||
-              s?.user?.email ||
-              `#${s.id}`,
-          })) ?? [];
-        setLocalStudents(fallback);
+      } catch (e) {
+        setLocalStudents([]);
+
       } finally {
         setLoadingStudents(false);
       }
@@ -114,17 +104,10 @@ export default function ScheduleMeetingModal({
       return;
     }
 
-    const timeNorm =
-      /^\d{1,2}:\d{2}(:\d{2})?$/.test(timeValue)
-        ? timeValue.length === 5
-          ? `${timeValue}:00`
-          : timeValue
-        : `${timeValue}:00`;
-
     const body: CreateMeetingBody = {
       studentId,
-      date: toIsoUtcNoon(dateValue),
-      time: timeNorm,
+      date: dateValue,
+      time: timeValue,
       location: locationValue.trim(),
     };
 
@@ -160,7 +143,9 @@ export default function ScheduleMeetingModal({
             <FormLabel>Alumno</FormLabel>
             <Select
               ref={initialRef as any}
-              placeholder={loadingStudents ? "Cargando..." : "Seleccionar alumno"}
+              placeholder={
+                loadingStudents ? "Cargando..." : "Seleccionar alumno"
+              }
               value={studentId || ""}
               onChange={(e) => setStudentId(Number(e.target.value))}
               isDisabled={loadingStudents}
@@ -186,13 +171,15 @@ export default function ScheduleMeetingModal({
             <FormLabel>Hora</FormLabel>
             <Input
               type="time"
-              step="60"
               value={timeValue}
-              onChange={(e) => setTimeValue(e.target.value.slice(0, 5))}
+              onChange={(e) => setTimeValue(e.target.value)}
             />
           </FormControl>
 
-          <FormControl mt={4} isInvalid={locationValue.trim().length > 0 && !isLocationValid}>
+          <FormControl
+            mt={4}
+            isInvalid={locationValue.trim().length > 0 && !isLocationValid}
+          >
             <FormLabel>Aula</FormLabel>
             <Input
               placeholder="A1 / B2 / etc."
@@ -201,7 +188,8 @@ export default function ScheduleMeetingModal({
               maxLength={40}
             />
             <FormErrorMessage>
-              Solo letras, números, espacios y . _ - /. Debe contener al menos un carácter alfanumérico.
+              Solo letras, números, espacios y . _ - /. Debe contener al menos
+              un carácter alfanumérico.
             </FormErrorMessage>
           </FormControl>
         </ModalBody>

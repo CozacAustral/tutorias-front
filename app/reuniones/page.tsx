@@ -22,24 +22,22 @@ import { Student } from "../alumnos/interfaces/student.interface";
 import { SubjectCareerWithState } from "../alumnos/interfaces/subject-career-student.interface";
 import SubjectModal from "../alumnos/modals/subject-student.modal";
 import { useSidebar } from "../contexts/SidebarContext";
+import ConfirmDialog from "./modals/confirm-dialog-modal";
 import CreateReportModal from "./modals/create-report-modal";
 import EditMeetingModal from "./modals/edit-meeting-modal";
 import FilterMeetingsModal from "./modals/filtro-busqueda-modal";
 import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
 import ViewReportModal from "./modals/view-report-modal";
+import { Filters } from "./type/filters.type";
 import { GetMeetingsResp } from "./type/get-meeting-response.type";
 import { MeetingRow } from "./type/meeting-row.type";
 import { MeetingStatus } from "./type/meetings-status.type";
 import { Row } from "./type/rows.type";
 import { StudentOption } from "./type/student-option.type";
-import { Filters } from "./type/filters.type";
-import ConfirmDialog from './modals/confirm-dialog-modal';
-
 
 /* =========================
    Tipos
    ========================= */
-
 
 /* =========================
    Utils
@@ -83,7 +81,7 @@ function formatHora(dateISO: string, time?: string) {
 }
 function statusBadge(s: MeetingStatus) {
   const label =
-    s === "CONFIRMED"
+    s === "COMPLETED"
       ? "Completada"
       : s === "PENDING"
         ? "Pendiente"
@@ -92,7 +90,7 @@ function statusBadge(s: MeetingStatus) {
           : "—";
 
   switch (s) {
-    case "CONFIRMED":
+    case "COMPLETED":
       return (
         <Badge colorScheme="green" textTransform="none">
           {label}
@@ -118,7 +116,7 @@ function toMeetingRow(r: Row): MeetingRow {
   return {
     ...r,
     fechaHora: r.fechaHora ?? `${r.fecha} ${r.hora}`,
-    status: r.status === "CONFIRMED",
+    status: r.status === "COMPLETED",
   } as MeetingRow;
 }
 
@@ -305,28 +303,32 @@ const Reuniones: React.FC = () => {
       <Td>{statusBadge(r.status)}</Td>
       <Td>
         <HStack spacing={2}>
-          <IconButton
-            aria-label="Editar reunión"
-            icon={<EditIcon boxSize={5} />}
-            backgroundColor="white"
-            onClick={() => handleEdit(r)}
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "white",
-            }}
-          />
-          <IconButton
-            aria-label="Eliminar reunión"
-            icon={<DeleteIcon boxSize={5} />}
-            backgroundColor="white"
-            onClick={() => requestDelete(r)}
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "red.500",
-              color: "white",
-            }}
-          />
+          {r.status !== "COMPLETED" && (
+            <IconButton
+              aria-label="Editar reunión"
+              icon={<EditIcon boxSize={5} />}
+              backgroundColor="white"
+              onClick={() => handleEdit(r)}
+              _hover={{
+                borderRadius: 15,
+                backgroundColor: "#318AE4",
+                color: "white",
+              }}
+            />
+          )}
+          {r.status !== "COMPLETED" && (
+            <IconButton
+              aria-label="Eliminar reunión"
+              icon={<DeleteIcon boxSize={5} />}
+              backgroundColor="white"
+              onClick={() => requestDelete(r)}
+              _hover={{
+                borderRadius: 15,
+                backgroundColor: "red.500",
+                color: "white",
+              }}
+            />
+          )}
 
           {r.status !== "PENDING" &&
             (r.status === "REPORTMISSING" ? (
@@ -398,7 +400,7 @@ const Reuniones: React.FC = () => {
             hora,
             fechaHora: `${fecha} ${hora}`,
             aula: m.location,
-            status: m.status,
+            status: m.computedStatus ?? m.status,
             studentId: student?.id ?? m?.tutorship?.studentId ?? undefined,
             tutorId: m?.tutorship?.tutorId ?? undefined,
           };
@@ -751,8 +753,7 @@ const Reuniones: React.FC = () => {
         title="Eliminar reunión"
         body={
           <>
-            ¿Eliminar la reunión con{" "}
-            <b>{rowToDelete?.alumno ?? "—"}</b> del{" "}
+            ¿Eliminar la reunión con <b>{rowToDelete?.alumno ?? "—"}</b> del{" "}
             <b>
               {rowToDelete?.fecha ?? "—"} {rowToDelete?.hora ?? ""}
             </b>
