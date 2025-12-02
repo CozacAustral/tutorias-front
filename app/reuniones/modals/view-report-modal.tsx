@@ -145,9 +145,6 @@ const ViewReportModal: React.FC<Props> = ({
             <Button variant="ghost" mr={3} onClick={onClose}>
               Cerrar
             </Button>
-            <Button colorScheme="red" onClick={() => setConfirmOpen(true)}>
-              Eliminar reporte
-            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

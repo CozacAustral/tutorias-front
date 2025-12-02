@@ -53,22 +53,21 @@ export default function EditMeetingModal({
     if (!isOpen) reset();
   }, [isOpen]);
 
-const onSave = async () => {
-  if (!meeting) return;
-  
-  try {
-    await UserService.updateMeeting(meeting.id, {
-      date: date,
-      time: time,
-      location,
-    });
+  const onSave = async () => {
+    if (!meeting) return;
 
-    onUpdated?.();
-    onClose();
-    reset();
-  } catch (e: any) {
-  }
-};
+    try {
+      await UserService.updateMeeting(meeting.id, {
+        date: date ? `${date}T12:00:00` : undefined,
+        time,
+        location,
+      });
+
+      onUpdated?.();
+      onClose();
+      reset();
+    } catch (e: any) {}
+  };
 
   return (
     <Modal
