@@ -64,15 +64,11 @@ export const UserService = {
     return res.data;
   },
 
-  async deleteReport(meetingId: number) {
-    throw new Error("El backend no soporta eliminar reportes");
-  },
-
   async updateMeeting(id: number, body: any) {
     const res = await axiosInstance.patch(`/meetings/${id}`, body);
     return res.data;
   },
-  // 🔹 Eliminar reunión
+
   async deleteMeeting(id: number) {
     const res = await axiosInstance.delete(`/meetings/${id}`);
     return res.data;

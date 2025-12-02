@@ -65,16 +65,7 @@ const ViewReportModal: React.FC<Props> = ({
       .finally(() => setLoading(false));
   }, [isOpen, meetingId]);
 
-  const handleDelete = async () => {
-    if (!meetingId) return;
-    try {
-      await UserService.deleteReport(meetingId);
-      setConfirmOpen(false);
-      onClose();
-      onDeleted?.();
-    } catch (e: any) {
-    }
-  };
+
 
   return (
     <>
@@ -166,9 +157,6 @@ const ViewReportModal: React.FC<Props> = ({
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={() => setConfirmOpen(false)}>
                 Cancelar
-              </Button>
-              <Button colorScheme="red" onClick={handleDelete} ml={3}>
-                Eliminar
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
