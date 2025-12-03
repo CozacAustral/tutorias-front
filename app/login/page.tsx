@@ -40,9 +40,10 @@ const Login = () => {
       const data = await login(email, password);
       Cookies.set("authTokens", data.accessToken, { expires: 7 });
       setError("");
-      router.replace("/profile"); 
+      router.replace("/profile");
     } catch {
       setError("Error en la autenticación");
+    } finally {
       setIsLoading(false);
     }
   };

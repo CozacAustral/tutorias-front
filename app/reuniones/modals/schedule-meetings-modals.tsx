@@ -38,7 +38,6 @@ export default function ScheduleMeetingModal({
   const [localStudents, setLocalStudents] = useState<StudentOption[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
-
   const locationRegex = useMemo(
     () => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,_\-\/()#:]+$/,
     []
@@ -87,7 +86,6 @@ export default function ScheduleMeetingModal({
         }
       } catch (e) {
         setLocalStudents([]);
-
       } finally {
         setLoadingStudents(false);
       }
@@ -117,7 +115,9 @@ export default function ScheduleMeetingModal({
       onCreated?.(resp);
       onClose();
       resetForm();
-    } catch (e: any) {
+    } catch (e) {
+      console.error(e);
+      throw e;
     } finally {
       setLoading(false);
     }

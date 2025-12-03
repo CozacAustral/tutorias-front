@@ -1,4 +1,3 @@
-// src/pages/reuniones/components/confirm-dialog.tsx
 "use client";
 
 import {
@@ -21,8 +20,8 @@ export type ConfirmDialogProps = {
   confirmText?: string;
   cancelText?: string;
   isLoading?: boolean;
-  leastDestructiveRef?: React.RefObject<HTMLButtonElement | null>;
-  confirmColorScheme?: string; 
+  leastDestructiveRef?: React.RefObject<HTMLButtonElement>;
+  confirmColorScheme?: string;
 };
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -37,11 +36,16 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   leastDestructiveRef,
   confirmColorScheme = "blue",
 }) => {
+
+  const internalCancelRef = React.useRef<HTMLButtonElement>(null);
+
+  const safeRef = leastDestructiveRef ?? internalCancelRef;
+
   return (
     <AlertDialog
       isOpen={isOpen}
       onClose={onClose}
-      leastDestructiveRef={leastDestructiveRef as any}
+      leastDestructiveRef={safeRef}
       isCentered
     >
       <AlertDialogOverlay>
@@ -53,7 +57,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <AlertDialogBody>{body}</AlertDialogBody>
 
           <AlertDialogFooter>
-            <Button ref={leastDestructiveRef as any} onClick={onClose}>
+            <Button ref={safeRef} onClick={onClose}>
               {cancelText}
             </Button>
             <Button
@@ -65,6 +69,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               {confirmText}
             </Button>
           </AlertDialogFooter>
+
         </AlertDialogContent>
       </AlertDialogOverlay>
     </AlertDialog>

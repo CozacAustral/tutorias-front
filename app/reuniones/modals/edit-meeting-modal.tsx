@@ -66,7 +66,8 @@ export default function EditMeetingModal({
       onUpdated?.();
       onClose();
       reset();
-    } catch (e: any) {}
+    } catch (e: any)
+    {}
   };
 
   return (

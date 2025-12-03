@@ -1,5 +1,5 @@
 export type UiCareer = {
-  id: number;
+  id: number | string;
   name: string;
   yearOfAdmission: number;
   active: boolean;

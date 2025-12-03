@@ -1,4 +1,3 @@
-// src/pages/reuniones/modals/create-report-modal.tsx
 "use client";
 
 import {
@@ -19,13 +18,17 @@ import {
   SkeletonText,
   Textarea,
 } from "@chakra-ui/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { UserService } from "../../../services/admin-service";
-import { AnyStudent } from "./type/any-student.type";
-import { UiCareer } from "./type/ui-career.type";
 import { CreateReportDto } from "../dto/create-report.dto";
-import ConfirmDialog from './confirm-dialog-modal';
-
+import ConfirmDialog from "./confirm-dialog-modal";
+import { UiCareer } from "./type/ui-career.type";
 
 export type CreateReportModalProps = {
   isOpen: boolean;
@@ -34,26 +37,6 @@ export type CreateReportModalProps = {
   studentId: number | null;
   onCreated?: () => void;
 };
-
-function extractActiveCareers(student: AnyStudent | null | undefined): UiCareer[] {
-  if (!student) return [];
-  const sources =
-    student.careers ?? student.assignedCareers ?? student.studentCareers ?? [];
-  return (sources as any[])
-    .map((c) => {
-      const id = c.careerId ?? c.id ?? c?.career?.id;
-      const name = c?.career?.name ?? c.name ?? "Carrera";
-      const yoa = c.yearOfAdmission ?? 0;
-      const active = c.active !== false;
-      return {
-        id: Number(id),
-        name: String(name),
-        yearOfAdmission: Number(yoa),
-        active,
-      } as UiCareer;
-    })
-    .filter((x) => !!x.id && x.active);
-}
 
 const CreateReportModal: React.FC<CreateReportModalProps> = ({
   isOpen,
@@ -66,73 +49,89 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
   const [submitting, setSubmitting] = useState(false);
 
   const [activeCareers, setActiveCareers] = useState<UiCareer[]>([]);
-  const [selectedCareerId, setSelectedCareerId] = useState<number | "">("");
+  const [selectedCareerId, setSelectedCareerId] = useState<string | number>("");
 
   const [topicos, setTopicos] = useState("");
   const [comments, setComments] = useState("");
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const cancelRef = useRef<HTMLButtonElement | null>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (!isOpen || !meetingId) return;
-
+  /* --------------------------------------
+     FETCH CAREERS (memoizado)
+  -------------------------------------- */
+  const fetchCareers = useCallback(async () => {
+    if (!meetingId) return;
+    setLoadingInfo(true);
     setTopicos("");
     setComments("");
     setActiveCareers([]);
     setSelectedCareerId("");
-    setLoadingInfo(true);
 
-    const fetchCareers = async () => {
-      try {
-        if (studentId) {
-          const actives = await UserService.getStudentCareers(studentId);
-          setActiveCareers(actives ?? []);
-          if ((actives ?? []).length >= 1) setSelectedCareerId(actives[0].id);
-        } else {
-          const res = await UserService.getReportInfo(meetingId);
-          if (res?.careerName) {
-            const only = {
-              id: -1,
-              name: res.careerName,
-              yearOfAdmission: Number(res.yearOfAdmission ?? 0),
-              active: true,
-            };
-            setActiveCareers([only]);
-            setSelectedCareerId(only.id);
-          }
+    try {
+      if (studentId) {
+        const actives = await UserService.getStudentCareers(studentId);
+        setActiveCareers(actives ?? []);
+        if ((actives ?? []).length >= 1) setSelectedCareerId(actives[0].id);
+      } else {
+        const res = await UserService.getReportInfo(meetingId);
+        if (res?.careerName) {
+          const only: UiCareer = {
+            id: `virtual-${meetingId}`,
+            name: res.careerName,
+            yearOfAdmission: Number(res.yearOfAdmission ?? 0),
+            active: true,
+          };
+          setActiveCareers([only]);
+          setSelectedCareerId(only.id);
         }
-      } catch (e: any) {
-      } finally {
-        setLoadingInfo(false);
       }
-    };
+    } finally {
+      setLoadingInfo(false);
+    }
+  }, [meetingId, studentId]);
 
-    void fetchCareers();
-  }, [isOpen, meetingId, studentId]);
+  useEffect(() => {
+    if (isOpen && meetingId) {
+      fetchCareers();
+    }
+  }, [isOpen, meetingId, fetchCareers]);
 
-  const openConfirm = () => {
+  /* --------------------------------------
+     Memo del career seleccionado
+  -------------------------------------- */
+  const selectedCareer = useMemo(
+    () =>
+      activeCareers.find((c) => String(c.id) === String(selectedCareerId)) ??
+      null,
+    [activeCareers, selectedCareerId]
+  );
+
+  /* --------------------------------------
+     openConfirm MEMOIZADO
+  -------------------------------------- */
+  const openConfirm = useCallback(() => {
     if (!meetingId) return;
-
-    if (!topicos.trim()) {
-      return;
-    }
-    if (activeCareers.length >= 1 && !selectedCareerId) {
-      return;
-    }
+    if (!topicos.trim()) return;
+    if (activeCareers.length >= 1 && !selectedCareerId) return;
     setIsConfirmOpen(true);
-  };
+  }, [meetingId, topicos, activeCareers.length, selectedCareerId]);
 
-  const handleCreate = async () => {
+  /* --------------------------------------
+     handleCreate MEMOIZADO
+  -------------------------------------- */
+  const handleCreate = useCallback(async () => {
     if (!meetingId) return;
     setSubmitting(true);
 
-    const sel = Number(selectedCareerId);
-    const chosenId = sel > 0 ? sel : undefined;
+    let chosenId: number | undefined;
+    if (typeof selectedCareerId === "number" && selectedCareerId > 0) {
+      chosenId = selectedCareerId;
+    }
 
     const dto: CreateReportDto = {
       topicos: topicos.trim(),
-      comments: comments.trim() ? comments.trim() : undefined,
+      comments: comments.trim() || undefined,
       careerId: chosenId,
     };
 
@@ -141,14 +140,10 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
       setIsConfirmOpen(false);
       onClose();
       onCreated?.();
-    } catch (e: any) {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const selected =
-    activeCareers.find((c) => c.id === Number(selectedCareerId)) || null;
+  }, [meetingId, selectedCareerId, topicos, comments, onClose, onCreated]);
 
   return (
     <>
@@ -157,6 +152,7 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
         <ModalContent>
           <ModalHeader>Nuevo reporte</ModalHeader>
           <ModalCloseButton isDisabled={submitting} />
+
           <ModalBody pb={4}>
             {loadingInfo ? (
               <HStack spacing={4}>
@@ -164,43 +160,43 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
                 <Skeleton height="38px" flex={1} />
               </HStack>
             ) : (
-              <>
-                <HStack spacing={4}>
-                  <FormControl isRequired={activeCareers.length >= 1}>
-                    <FormLabel>Carrera</FormLabel>
-                    <Select
-                      placeholder={
-                        activeCareers.length
-                          ? "Seleccioná una carrera"
-                          : "Sin carreras activas"
-                      }
-                      value={selectedCareerId}
-                      onChange={(e) =>
-                        setSelectedCareerId(Number(e.target.value))
-                      }
-                      isDisabled={submitting || !activeCareers.length}
-                    >
-                      {activeCareers.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </Select>
-                  </FormControl>
+              <HStack spacing={4}>
+                <FormControl isRequired={activeCareers.length >= 1}>
+                  <FormLabel>Carrera</FormLabel>
+                  <Select
+                    placeholder={
+                      activeCareers.length
+                        ? "Seleccioná una carrera"
+                        : "Sin carreras activas"
+                    }
+                    value={selectedCareerId}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const parsed = Number(raw);
+                      setSelectedCareerId(isNaN(parsed) ? raw : parsed);
+                    }}
+                    isDisabled={submitting || !activeCareers.length}
+                  >
+                    {activeCareers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
 
-                  <FormControl isDisabled>
-                    <FormLabel>Año de ingreso</FormLabel>
-                    <Input
-                      value={
-                        selected?.yearOfAdmission
-                          ? String(selected.yearOfAdmission)
-                          : "—"
-                      }
-                      readOnly
-                    />
-                  </FormControl>
-                </HStack>
-              </>
+                <FormControl isDisabled>
+                  <FormLabel>Año de ingreso</FormLabel>
+                  <Input
+                    value={
+                      selectedCareer?.yearOfAdmission
+                        ? String(selectedCareer.yearOfAdmission)
+                        : "—"
+                    }
+                    readOnly
+                  />
+                </FormControl>
+              </HStack>
             )}
 
             <FormControl mt={4} isRequired>
@@ -208,13 +204,11 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
               <Textarea
                 value={topicos}
                 onChange={(e) => setTopicos(e.target.value)}
-                placeholder="Descripción de los tópicos vistos en la reunión"
                 rows={5}
+                placeholder="Descripción de los tópicos tratados"
                 isDisabled={submitting}
               />
-              {loadingInfo && (
-                <SkeletonText mt="3" noOfLines={2} spacing="2" />
-              )}
+              {loadingInfo && <SkeletonText mt="3" noOfLines={2} spacing="2" />}
             </FormControl>
 
             <FormControl mt={4}>
@@ -222,8 +216,8 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
               <Textarea
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
-                placeholder="Observaciones adicionales (opcional)"
                 rows={4}
+                placeholder="Observaciones adicionales (opcional)"
                 isDisabled={submitting}
               />
             </FormControl>
@@ -258,8 +252,8 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
         title="Confirmar creación de reporte"
         body={
           <>
-            Esta acción es <b>permanente</b>. Una vez creado, el reporte no podrá
-            editarse. ¿Deseás confirmar el envío?
+            Esta acción es <b>permanente</b>. Una vez creado, el reporte no
+            podrá editarse. ¿Deseás continuar?
           </>
         }
         confirmText="Confirmar y enviar"

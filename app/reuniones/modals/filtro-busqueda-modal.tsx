@@ -105,7 +105,8 @@ export default function FilterMeetingsModal({
 
       cacheRef.current.set(q, opts);
       return opts;
-    } catch {
+    } catch (e) {
+      console.error(e);
       return [];
     }
   };

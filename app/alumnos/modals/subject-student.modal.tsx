@@ -24,11 +24,8 @@ interface SubjectStudentModal<t = any> {
   titleCareer: string | undefined;
   subjects: SubjectCareerWithState[];
   renderSubjectNow: (career: any, index: number) => React.ReactNode;
-  /** ignorado para el encabezado; se mantiene por compatibilidad */
   state?: boolean | null;
-  /** ignorado; siempre editable */
   role?: number | null;
-  /** por defecto TRUE (muestra footer). Pasá false si no querés botones. */
   showButtonCancelSave?: boolean;
 }
 
@@ -120,7 +117,6 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                       maxWidth="100%"
                       padding={2}
                       height="100%"
-                      /** Siempre editable: filtros/acciones ON */
                       filter
                       actions
                     />
