@@ -54,7 +54,6 @@ export default function FilterMeetingsModal({
     });
   }, [current, isOpen]);
 
-  // ---------- Helpers ----------
   const toOption = (s: StudentOption): Option => ({
     value: s.id,
     label: s.label,
@@ -96,7 +95,7 @@ export default function FilterMeetingsModal({
             label: full || email || `Alumno #${s?.id ?? "-"}`,
           } as Option;
         })
-        .filter((o: Option) => o.value && o.label) // tipado explícito
+        .filter((o: Option) => o.value && o.label)
         .reduce((acc: Option[], cur: Option) => {
           if (!acc.some((x) => x.value === cur.value)) acc.push(cur);
           return acc;
