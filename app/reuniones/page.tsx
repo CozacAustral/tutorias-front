@@ -319,7 +319,7 @@ const Reuniones: React.FC = () => {
           const alumno = fullName(student?.user ?? null);
 
           const fecha = formatFecha(m.date);
-          const hora = formatHora(m.date, m.time);
+          const hora = formatHora(m.date);
 
           const row: Row = {
             id: m.id,

@@ -17,11 +17,11 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { UserService } from "../../../services/admin-service";
-import { CreateMeetingBody } from "../type/create-meeting-body.type";
 import { Props } from "../type/props.type";
 import { StudentOption } from "../type/student-option.type";
 
 export default function ScheduleMeetingModal({
+
   isOpen,
   onClose,
   students,
@@ -95,20 +95,17 @@ export default function ScheduleMeetingModal({
   }, [isOpen, defaultStudentId, students]);
 
   const handleCreate = async () => {
-    if (!studentId || !dateValue || !timeValue || !locationValue.trim()) {
-      return;
-    }
-    if (!isLocationValid) {
-      return;
-    }
+    if (!studentId || !dateValue || !timeValue || !locationValue.trim()) return;
+    if (!isLocationValid) return;
 
-    const body: CreateMeetingBody = {
+    const fullDate = `${dateValue}T${timeValue}:00`;
+
+    const body = {
       studentId,
-      date: dateValue,
-      time: timeValue,
+      date: fullDate,
       location: locationValue.trim(),
     };
-
+console.log("📤 BODY ENVIADO DESDE ESTE MODAL:", body);
     try {
       setLoading(true);
       const resp = await UserService.schedule(body);
@@ -117,7 +114,6 @@ export default function ScheduleMeetingModal({
       resetForm();
     } catch (e) {
       console.error(e);
-      throw e;
     } finally {
       setLoading(false);
     }

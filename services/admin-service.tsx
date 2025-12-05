@@ -28,7 +28,7 @@ const urlDepartments = "departments";
 export const UserService = {
   async getStudentCareers(studentId: number) {
     const r = await axiosInstance.get(`/tutors/${studentId}/careers`);
-    return r.data?.data ?? r.data; // ajustá al envoltorio real de tu API
+    return r.data?.data ?? r.data;
   },
 
   async getMyStudents(page = 1, limit = 7, search?: string) {
@@ -94,6 +94,7 @@ export const UserService = {
     });
     return res.data;
   },
+  
   async schedule(body: CreateMeetingBody) {
     const res = await axiosInstance.post(`/meetings/schedule-meeting`, body);
     return res.data;
