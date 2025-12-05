@@ -97,7 +97,6 @@ const Administradores: React.FC = () => {
     setEditingUserId(null);
   };
 
-  // CREATE
   const handleCreateClick = () => {
     resetForm();
     onCreateOpen();
@@ -120,7 +119,6 @@ const Administradores: React.FC = () => {
     resetForm();
   };
 
-  // EDIT
   const handleEditClick = async (admin: User) => {
     try {
       const fetchedUser = await UserService.fetchUserById(admin.id);

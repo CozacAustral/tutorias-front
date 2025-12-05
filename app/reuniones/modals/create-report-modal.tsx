@@ -57,9 +57,6 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  /* --------------------------------------
-     FETCH CAREERS (memoizado)
-  -------------------------------------- */
   const fetchCareers = useCallback(async () => {
     if (!meetingId) return;
     setLoadingInfo(true);
@@ -97,9 +94,6 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
     }
   }, [isOpen, meetingId, fetchCareers]);
 
-  /* --------------------------------------
-     Memo del career seleccionado
-  -------------------------------------- */
   const selectedCareer = useMemo(
     () =>
       activeCareers.find((c) => String(c.id) === String(selectedCareerId)) ??
@@ -107,9 +101,6 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
     [activeCareers, selectedCareerId]
   );
 
-  /* --------------------------------------
-     openConfirm MEMOIZADO
-  -------------------------------------- */
   const openConfirm = useCallback(() => {
     if (!meetingId) return;
     if (!topicos.trim()) return;
@@ -117,9 +108,6 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
     setIsConfirmOpen(true);
   }, [meetingId, topicos, activeCareers.length, selectedCareerId]);
 
-  /* --------------------------------------
-     handleCreate MEMOIZADO
-  -------------------------------------- */
   const handleCreate = useCallback(async () => {
     if (!meetingId) return;
     setSubmitting(true);
@@ -212,7 +200,7 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
             </FormControl>
 
             <FormControl mt={4}>
-              <FormLabel>Comentarios</FormLabel>
+              <FormLabel>acuerdos con el alumno</FormLabel>
               <Textarea
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}

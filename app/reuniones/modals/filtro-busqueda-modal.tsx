@@ -141,7 +141,6 @@ export default function FilterMeetingsModal({
               </FormControl>
             </HStack>
 
-            {/* 🔹 Alumno (select con búsqueda async) */}
             <FormControl>
               <FormLabel>Alumno</FormLabel>
               <AsyncSelect

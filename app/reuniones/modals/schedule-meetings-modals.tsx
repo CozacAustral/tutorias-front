@@ -105,7 +105,6 @@ export default function ScheduleMeetingModal({
       date: fullDate,
       location: locationValue.trim(),
     };
-console.log("📤 BODY ENVIADO DESDE ESTE MODAL:", body);
     try {
       setLoading(true);
       const resp = await UserService.schedule(body);
