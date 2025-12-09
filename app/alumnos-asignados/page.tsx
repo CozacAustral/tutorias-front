@@ -157,7 +157,7 @@ const AlumnosAsignados: React.FC = () => {
 
       <GenericTable<Student>
         caption={`Alumnos asignados a ${tutorName || "—"}`}
-        data={students} // Student[]
+        data={students} 
         TableHeader={TableHeader}
         renderRow={(student: Student, index: number) => (
           <Tr key={student.id}>

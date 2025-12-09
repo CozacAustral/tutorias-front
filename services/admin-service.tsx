@@ -8,6 +8,9 @@ import { UpdateStudentDto } from "../app/alumnos/interfaces/update-student";
 import { CreateStudent } from "../app/carrera/interfaces/create-student.interface";
 import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
+import { CreateMeetingBody } from "../app/reuniones/type/create-meeting-body.type";
+import { GetMeetingsResp } from "../app/reuniones/type/get-meeting-response.type";
+import { ReportInfo } from '../app/reuniones/type/report-info.type';
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
 import { CreateUser } from "./interfaces/createUser";
@@ -23,6 +26,80 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async getStudentCareers(studentId: number) {
+    const r = await axiosInstance.get(`/tutors/${studentId}/careers`);
+    return r.data?.data ?? r.data;
+  },
+
+  async getMyStudents(page = 1, limit = 7, search?: string) {
+    const params = new URLSearchParams({
+      currentPage: String(page),
+      resultsPerPage: String(limit),
+    });
+    if (search) params.set("search", search);
+    return axiosInstance.get(`/tutors/me/students?${params.toString()}`);
+  },
+
+  async getReportInfo(meetingId: number): Promise<ReportInfo> {
+    const res = await axiosInstance.get(
+      `/reports/meetings/${meetingId}/report-info`
+    );
+    return res.data as ReportInfo;
+  },
+
+  async createReport(
+    meetingId: number,
+    dto: { topicos: string; comments?: string; careerId?: number }
+  ) {
+    const res = await axiosInstance.post(
+      `/reports/meetings/${meetingId}/report`,
+      dto
+    );
+    return res.data;
+  },
+
+  async getReport(meetingId: number) {
+    const res = await axiosInstance.get(
+      `/reports/meetings/${meetingId}/report`
+    );
+    return res.data;
+  },
+
+  async updateMeeting(id: number, body: any) {
+    const res = await axiosInstance.patch(`/meetings/${id}`, body);
+    return res.data;
+  },
+
+  async deleteMeeting(id: number) {
+    const res = await axiosInstance.delete(`/meetings/${id}`);
+    return res.data;
+  },
+
+  async getMyMeetings(
+    page = 1,
+    limit = 10,
+    filters?: {
+      from?: string;
+      to?: string;
+      timeFrom?: string;
+      timeTo?: string;
+      studentId?: number;
+      studentQuery?: string;
+      status?: "all" | "PENDING" | "REPORTMISSING" | "COMPLETED";
+      order?: "asc" | "desc";
+    }
+  ): Promise<GetMeetingsResp> {
+    const res = await axiosInstance.get(`/meetings/me/meetings`, {
+      params: { currentPage: page, resultsPerPage: limit, ...filters },
+    });
+    return res.data;
+  },
+  
+  async schedule(body: CreateMeetingBody) {
+    const res = await axiosInstance.post(`/meetings/schedule-meeting`, body);
+    return res.data;
+  },
+
   async fetchTutorById(tutorId: number): Promise<ResponseTutor> {
     try {
       const response = await axiosInstance.get<ResponseTutor>(
