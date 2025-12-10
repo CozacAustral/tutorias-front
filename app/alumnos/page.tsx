@@ -155,41 +155,37 @@ const Estudiantes: React.FC = () => {
     "Carrera/s",
   ];
 
-  useEffect(() => {
-    const loadStudents = async () => {
-      try {
-        const { students, totalCount } = await UserService.fetchAllStudents({
-          search: searchTerm,
-          currentPage,
-          resultsPerPage: 10,
-          orderBy: orderBy,
-        });
-        setStudents(students);
-        setTotalStudents(totalCount);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-        setError("No se pudieron cargar los estudiantes.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const token = Cookies.get("authTokens");
-    if (!token) {
-      console.log("No token found");
-      return;
-    }
-
+useEffect(() => {
+  const loadStudents = async () => {
     try {
-      const decodedToken = jwt.decode(token);
-      console.log("Decode TOKEN: ", decodedToken);
-      setRole(decodedToken?.role);
-    } catch (error) {
-      console.error("Error decoding token: ", error);
-    }
+      const data = await UserService.fetchStudentsByRole({
+        search: searchTerm,
+        currentPage,
+        resultsPerPage: 10,
+        orderBy,
+      });
 
-    loadStudents();
-  }, [currentPage, searchTerm, orderBy]);
+      // Detectar tipo de respuesta automáticamente
+      if (data.students) {
+        // ADMIN
+        setStudents(data.students);
+        setTotalStudents(data.totalCount);
+      } else {
+        // TUTOR
+        setStudents(data.data);
+        setTotalStudents(data.total);
+      }
+
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      setError("No se pudieron cargar los estudiantes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadStudents();
+}, [currentPage, searchTerm, orderBy]);
 
   useEffect(() => {
     const loadCareers = async () => {

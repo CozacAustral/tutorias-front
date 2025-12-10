@@ -26,6 +26,29 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+
+  async fetchStudentsByRole(params: {
+  search?: string;
+  currentPage?: number;
+  resultsPerPage?: number;
+  orderBy?: [string, "ASC" | "DESC"];
+}) {
+  const res = await axiosInstance.get(`/students/students/get-students-by-role`, {
+    params
+  });
+  return res.data;
+},
+
+  async fetchMyStudents(params: {
+  search?: string;
+  currentPage?: number;
+  resultsPerPage?: number;
+  orderBy?: [string, 'ASC' | 'DESC'];
+}) {
+  const res = await axiosInstance.get(`/students/me`, { params });
+  return res.data;
+},
+
   async getStudentCareers(studentId: number) {
     const r = await axiosInstance.get(`/tutors/${studentId}/careers`);
     return r.data?.data ?? r.data;
@@ -94,7 +117,7 @@ export const UserService = {
     });
     return res.data;
   },
-  
+
   async schedule(body: CreateMeetingBody) {
     const res = await axiosInstance.post(`/meetings/schedule-meeting`, body);
     return res.data;
