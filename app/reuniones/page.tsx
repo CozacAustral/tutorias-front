@@ -13,7 +13,13 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FiFilePlus, FiFileText } from "react-icons/fi";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
@@ -34,7 +40,6 @@ import { MeetingStatus } from "./type/meetings-status.type";
 import { Row } from "./type/rows.type";
 import { StudentOption } from "./type/student-option.type";
 
-
 function studentLabel(s: Pick<Student, "id" | "user"> | any) {
   const name = s?.user?.name ?? "";
   const last = s?.user?.lastName ?? "";
@@ -42,15 +47,18 @@ function studentLabel(s: Pick<Student, "id" | "user"> | any) {
   const full = [name, last].filter(Boolean).join(" ");
   return full || email || `Alumno #${s?.id ?? "-"}`;
 }
+
 function fullName(
   u?: { name?: string; lastName?: string; email?: string } | null
 ) {
   if (!u) return "-";
   return [u.name, u.lastName].filter(Boolean).join(" ") || u.email || "-";
 }
+
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
+
 function formatFecha(dateISO: string) {
   try {
     const d = new Date(dateISO);
@@ -63,6 +71,7 @@ function formatFecha(dateISO: string) {
     return dateISO;
   }
 }
+
 function formatHora(dateISO: string, time?: string) {
   try {
     if (time && /^\d{1,2}:\d{2}/.test(time)) return time;
@@ -72,15 +81,16 @@ function formatHora(dateISO: string, time?: string) {
     return time ?? "";
   }
 }
+
 function statusBadge(s: MeetingStatus) {
   const label =
     s === "COMPLETED"
       ? "Completada"
       : s === "PENDING"
-      ? "Pendiente"
-      : s === "REPORTMISSING"
-      ? "Falta reporte"
-      : "—";
+        ? "Pendiente"
+        : s === "REPORTMISSING"
+          ? "Falta reporte"
+          : "—";
 
   switch (s) {
     case "COMPLETED":
@@ -105,6 +115,7 @@ function statusBadge(s: MeetingStatus) {
       return <Badge textTransform="none">—</Badge>;
   }
 }
+
 function toMeetingRow(r: Row): MeetingRow {
   return {
     ...r,
@@ -131,18 +142,27 @@ const Reuniones: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } =
-    useDisclosure();
-  const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } =
-    useDisclosure();
+  const {
+    isOpen: isEditOpen,
+    onOpen: onEditOpen,
+    onClose: onEditClose,
+  } = useDisclosure();
+  const {
+    isOpen: isViewOpen,
+    onOpen: onViewOpen,
+    onClose: onViewClose,
+  } = useDisclosure();
 
   const [viewMeetingId, setViewMeetingId] = useState<number | null>(null);
   const [viewStudentId, setViewStudentId] = useState<number | null>(null);
 
   const [meetingToEdit, setMeetingToEdit] = useState<MeetingRow | null>(null);
 
-  const { isOpen: isFilterOpen, onOpen: onFilterOpen, onClose: onFilterClose } =
-    useDisclosure();
+  const {
+    isOpen: isFilterOpen,
+    onOpen: onFilterOpen,
+    onClose: onFilterClose,
+  } = useDisclosure();
 
   const [filters, setFilters] = useState<Filters>({
     status: "all",
@@ -170,10 +190,12 @@ const Reuniones: React.FC = () => {
   const [editedSubjects, setEditedSubjects] = useState<Record<number, string>>(
     {}
   );
-  const [currentSubjectsStudentId, setCurrentSubjectsStudentId] =
-    useState<number | null>(null);
-  const [currentSubjectsCareerId, setCurrentSubjectsCareerId] =
-    useState<number | null>(null);
+  const [currentSubjectsStudentId, setCurrentSubjectsStudentId] = useState<
+    number | null
+  >(null);
+  const [currentSubjectsCareerId, setCurrentSubjectsCareerId] = useState<
+    number | null
+  >(null);
   const [savingSubjects, setSavingSubjects] = useState(false);
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -181,9 +203,43 @@ const Reuniones: React.FC = () => {
   const [deleting, setDeleting] = useState(false);
   const cancelDeleteRef = useRef<HTMLButtonElement | null>(null);
 
+  // 🔐 rol del usuario desde /users/me
+  const [role, setRole] = useState<any>(null);
+  const [roleLoading, setRoleLoading] = useState(true);
+
+  const isTutor = useMemo(() => {
+    if (role === null || role === undefined) return false;
+    if (typeof role === "string") {
+      const r = role.toUpperCase();
+      return r === "TUTOR" || r === "2";
+    }
+    if (typeof role === "number") {
+      return role === 2;
+    }
+    return false;
+  }, [role]);
+
+  useEffect(() => {
+    const loadRole = async () => {
+      try {
+        const me = await UserService.fetchMe();
+        setRole(me.role);
+      } catch {
+        setRole(null);
+      } finally {
+        setRoleLoading(false);
+      }
+    };
+
+    loadRole();
+  }, []);
+
   const headers = useMemo(
-    () => ["Alumno", "Fecha", "Hora", "Aula", "Status", "Acciones"],
-    []
+    () =>
+      isTutor
+        ? ["Alumno", "Fecha", "Hora", "Aula", "Status", "Acciones"]
+        : ["Alumno", "Fecha", "Hora", "Aula", "Status"],
+    [isTutor]
   );
 
   const requestDelete = useCallback((row: Row) => {
@@ -199,8 +255,8 @@ const Reuniones: React.FC = () => {
       setIsDeleteOpen(false);
       setRowToDelete(null);
       loadMeetings(page);
-    } catch {}
-    finally {
+    } catch {
+    } finally {
       setDeleting(false);
     }
   }, [rowToDelete, page]);
@@ -221,78 +277,84 @@ const Reuniones: React.FC = () => {
         <Td>{r.hora}</Td>
         <Td>{r.aula}</Td>
         <Td>{statusBadge(r.status)}</Td>
-        <Td>
-          <HStack spacing={2}>
-            {r.status !== "COMPLETED" && (
-              <IconButton
-                aria-label="Editar reunión"
-                icon={<EditIcon boxSize={5} />}
-                backgroundColor="white"
-                onClick={() => handleEdit(r)}
-                _hover={{
-                  borderRadius: 15,
-                  backgroundColor: "#318AE4",
-                  color: "white",
-                }}
-              />
-            )}
-            {r.status !== "COMPLETED" && (
-              <IconButton
-                aria-label="Eliminar reunión"
-                icon={<DeleteIcon boxSize={5} />}
-                backgroundColor="white"
-                onClick={() => requestDelete(r)}
-                _hover={{
-                  borderRadius: 15,
-                  backgroundColor: "red.500",
-                  color: "white",
-                }}
-              />
-            )}
+        {isTutor && (
+          <Td>
+            <HStack spacing={2}>
+              {r.status !== "COMPLETED" && (
+                <IconButton
+                  aria-label="Editar reunión"
+                  icon={<EditIcon boxSize={5} />}
+                  backgroundColor="white"
+                  onClick={() => handleEdit(r)}
+                  _hover={{
+                    borderRadius: 15,
+                    backgroundColor: "#318AE4",
+                    color: "white",
+                  }}
+                />
+              )}
+              {r.status !== "COMPLETED" && (
+                <IconButton
+                  aria-label="Eliminar reunión"
+                  icon={<DeleteIcon boxSize={5} />}
+                  backgroundColor="white"
+                  onClick={() => requestDelete(r)}
+                  _hover={{
+                    borderRadius: 15,
+                    backgroundColor: "red.500",
+                    color: "white",
+                  }}
+                />
+              )}
 
-            {r.status !== "PENDING" &&
-              (r.status === "REPORTMISSING" ? (
-                <IconButton
-                  aria-label="Crear reporte"
-                  icon={<FiFilePlus />}
-                  backgroundColor="white"
-                  _hover={{
-                    borderRadius: 15,
-                    backgroundColor: "#318AE4",
-                    color: "white",
-                  }}
-                  onClick={() => {
-                    setReportMeetingId(r.id);
-                    setReportStudentId(r.studentId ?? null);
-                    const params = new URLSearchParams(searchParams.toString());
-                    params.set("createReportFor", String(r.id));
-                    onReportOpen();
-                  }}
-                />
-              ) : (
-                <IconButton
-                  aria-label="Ver reporte"
-                  icon={<FiFileText />}
-                  backgroundColor="white"
-                  _hover={{
-                    borderRadius: 15,
-                    backgroundColor: "#318AE4",
-                    color: "white",
-                  }}
-                  onClick={() => {
-                    setViewMeetingId(r.id);
-                    setViewStudentId(r.studentId ?? null);
-                    const params = new URLSearchParams(searchParams.toString());
-                    params.set("viewReportFor", String(r.id));
-                    router.replace(`/reuniones?${params.toString()}`, {
-                      scroll: false,
-                    });
-                    onViewOpen();
-                  }}
-                />
-              ))}
-          </HStack>
-        </Td>
+              {r.status !== "PENDING" &&
+                (r.status === "REPORTMISSING" ? (
+                  <IconButton
+                    aria-label="Crear reporte"
+                    icon={<FiFilePlus />}
+                    backgroundColor="white"
+                    _hover={{
+                      borderRadius: 15,
+                      backgroundColor: "#318AE4",
+                      color: "white",
+                    }}
+                    onClick={() => {
+                      setReportMeetingId(r.id);
+                      setReportStudentId(r.studentId ?? null);
+                      const params = new URLSearchParams(
+                        searchParams.toString()
+                      );
+                      params.set("createReportFor", String(r.id));
+                      onReportOpen();
+                    }}
+                  />
+                ) : (
+                  <IconButton
+                    aria-label="Ver reporte"
+                    icon={<FiFileText />}
+                    backgroundColor="white"
+                    _hover={{
+                      borderRadius: 15,
+                      backgroundColor: "#318AE4",
+                      color: "white",
+                    }}
+                    onClick={() => {
+                      setViewMeetingId(r.id);
+                      setViewStudentId(r.studentId ?? null);
+                      const params = new URLSearchParams(
+                        searchParams.toString()
+                      );
+                      params.set("viewReportFor", String(r.id));
+                      router.replace(`/reuniones?${params.toString()}`, {
+                        scroll: false,
+                      });
+                      onViewOpen();
+                    }}
+                  />
+                ))}
+            </HStack>
+          </Td>
+        )}
       </Tr>
     ),
     [
@@ -302,13 +364,14 @@ const Reuniones: React.FC = () => {
       router,
       onReportOpen,
       onViewOpen,
+      isTutor,
     ]
   );
 
   async function loadMeetings(p = page) {
     setLoading(true);
     try {
-      const meetingsRes = await UserService.getMyMeetings(p, limit, {
+      const meetingsRes = await UserService.getMeetings(p, limit, {
         ...filters,
       });
       let foundTutorId: number | null = null;
@@ -365,6 +428,11 @@ const Reuniones: React.FC = () => {
 
   const loadStudentsForTutor = useCallback(
     async (tutorId?: number | null) => {
+      if (!isTutor) {
+        setStudentsOptions([]);
+        return;
+      }
+
       setLoadingStudents(true);
       try {
         const meRes = await UserService.getMyStudents(1, 500);
@@ -395,16 +463,18 @@ const Reuniones: React.FC = () => {
         setLoadingStudents(false);
       }
     },
-    []
+    [isTutor]
   );
 
   useEffect(() => {
+    if (!isTutor) return;
     loadStudentsForTutor(null);
-  }, [loadStudentsForTutor]);
+  }, [isTutor, loadStudentsForTutor]);
 
   useEffect(() => {
-    if (myTutorId) loadStudentsForTutor(myTutorId);
-  }, [myTutorId, loadStudentsForTutor]);
+    if (!isTutor || !myTutorId) return;
+    loadStudentsForTutor(myTutorId);
+  }, [isTutor, myTutorId, loadStudentsForTutor]);
 
   const handleOpenSubjects = useCallback(
     async ({
@@ -468,15 +538,11 @@ const Reuniones: React.FC = () => {
 
       setEditedSubjects({});
       onSubjectsClose();
-    } catch {}
-    finally {
+    } catch {
+    } finally {
       setSavingSubjects(false);
     }
-  }, [
-    editedSubjects,
-    currentSubjectsStudentId,
-    onSubjectsClose,
-  ]);
+  }, [editedSubjects, currentSubjectsStudentId, onSubjectsClose]);
 
   const renderSubjectNow = useCallback(
     (subject: SubjectCareerWithState) => {
@@ -489,8 +555,7 @@ const Reuniones: React.FC = () => {
             {editedSubjects[subject.subjectId] !== undefined ? (
               <Select
                 value={
-                  editedSubjects[subject.subjectId] ??
-                  normalized.toUpperCase()
+                  editedSubjects[subject.subjectId] ?? normalized.toUpperCase()
                 }
                 onChange={(e) =>
                   setEditedSubjects((prev) => ({
@@ -566,34 +631,42 @@ const Reuniones: React.FC = () => {
               >
                 Filtros
               </Button>
-              <Button onClick={openCreate} isLoading={loading}>
-                + Agendar
-              </Button>
+              {isTutor && (
+                <Button onClick={openCreate} isLoading={loading}>
+                  + Agendar
+                </Button>
+              )}
             </HStack>
           }
           minH="500px"
         />
       </Box>
 
-      <ScheduleMeetingModal
-        isOpen={isOpen}
-        onClose={() => {
-          onClose();
-          const params = new URLSearchParams(searchParams.toString());
-          params.delete("openCreate");
-          params.delete("studentId");
-          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
-        }}
-        students={[]}
-        onCreated={() => {
-          setPage(1);
-          loadMeetings(1);
-          const params = new URLSearchParams(searchParams.toString());
-          params.delete("openCreate");
-          params.delete("studentId");
-          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
-        }}
-      />
+      {isTutor && (
+        <ScheduleMeetingModal
+          isOpen={isOpen}
+          onClose={() => {
+            onClose();
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete("openCreate");
+            params.delete("studentId");
+            router.replace(`/reuniones?${params.toString()}`, {
+              scroll: false,
+            });
+          }}
+          students={[]}
+          onCreated={() => {
+            setPage(1);
+            loadMeetings(1);
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete("openCreate");
+            params.delete("studentId");
+            router.replace(`/reuniones?${params.toString()}`, {
+              scroll: false,
+            });
+          }}
+        />
+      )}
 
       <EditMeetingModal
         isOpen={isEditOpen}

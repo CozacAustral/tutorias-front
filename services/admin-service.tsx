@@ -10,7 +10,7 @@ import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
 import { CreateMeetingBody } from "../app/reuniones/type/create-meeting-body.type";
 import { GetMeetingsResp } from "../app/reuniones/type/get-meeting-response.type";
-import { ReportInfo } from '../app/reuniones/type/report-info.type';
+import { ReportInfo } from "../app/reuniones/type/report-info.type";
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
 import { CreateUser } from "./interfaces/createUser";
@@ -26,28 +26,62 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async getMeetings(
+    page = 1,
+    limit = 10,
+    filters?: {
+      from?: string;
+      to?: string;
+      timeFrom?: string;
+      timeTo?: string;
+      studentId?: number;
+      studentQuery?: string;
+      status?: "all" | "PENDING" | "REPORTMISSING" | "COMPLETED";
+      order?: "asc" | "desc";
+    }
+  ): Promise<GetMeetingsResp> {
+    const res = await axiosInstance.get(`/meetings/smart-meetings`, {
+      params: { currentPage: page, resultsPerPage: limit, ...filters },
+    });
+    return res.data;
+  },
+
+  async fetchMe(): Promise<{
+    name: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    department?: string;
+    role: any;
+  }> {
+    const res = await axiosInstance.get("/users/me");
+    return res.data;
+  },
 
   async fetchStudentsByRole(params: {
-  search?: string;
-  currentPage?: number;
-  resultsPerPage?: number;
-  orderBy?: [string, "ASC" | "DESC"];
-}) {
-  const res = await axiosInstance.get(`/students/students/get-students-by-role`, {
-    params
-  });
-  return res.data;
-},
+    search?: string;
+    currentPage?: number;
+    resultsPerPage?: number;
+    orderBy?: [string, "ASC" | "DESC"];
+  }) {
+    const res = await axiosInstance.get(
+      `/students/students/get-students-by-role`,
+      {
+        params,
+      }
+    );
+    return res.data;
+  },
 
   async fetchMyStudents(params: {
-  search?: string;
-  currentPage?: number;
-  resultsPerPage?: number;
-  orderBy?: [string, 'ASC' | 'DESC'];
-}) {
-  const res = await axiosInstance.get(`/students/me`, { params });
-  return res.data;
-},
+    search?: string;
+    currentPage?: number;
+    resultsPerPage?: number;
+    orderBy?: [string, "ASC" | "DESC"];
+  }) {
+    const res = await axiosInstance.get(`/students/me`, { params });
+    return res.data;
+  },
 
   async getStudentCareers(studentId: number) {
     const r = await axiosInstance.get(`/tutors/${studentId}/careers`);
