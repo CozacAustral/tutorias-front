@@ -1,3 +1,5 @@
+"use client";
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
   Button,
   FormControl,
@@ -14,174 +16,122 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  useToast,
+  Textarea,
   VStack,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FaGraduationCap } from "react-icons/fa";
 import { UserService } from "../../../services/admin-service";
-import { Student } from "../interfaces/student.interface";
+import { StudentCareer } from "../interfaces/student-career.interface";
+import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
+import CareerModalEdit from "./rendercareer-modal.modal";
 
-interface viewStudentModalProps {
+interface StudentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  student: Student | null;
+  onConfirm?: () => Promise<void> | void;
+  formData: any;
+  onInputChange?: (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => void;
+  onViewSubjects?: (career: StudentCareer) => void;
+  onEditSubjects?: (career: StudentCareer) => void;
+  onDeleteCareer?: (career: StudentCareer) => void;
+  onToggleActive?: (career: StudentCareer) => void;
+  isViewMode?: boolean;
+  role?: number;
+  renderSubjectRow?: (
+    subject: SubjectCareerWithState,
+    index: number
+  ) => React.ReactNode;
+  renderSubjectNow?: (
+    subject: SubjectCareerWithState,
+    index: number
+  ) => React.ReactNode;
 }
 
-const ViewStudentModal: React.FC<viewStudentModalProps> = ({
+const StudentModal: React.FC<StudentModalProps> = ({
+    renderSubjectNow,
   isOpen,
   onClose,
-  student,
+  onConfirm,
+  formData,
+  onInputChange,
+  onViewSubjects,
+  onEditSubjects,
+  onDeleteCareer,
+  onToggleActive,
+  isViewMode = false,
+  role = 0,
 }) => {
-  const [studentData, setStudentData] = useState<Student | null>(null);
-  const toast = useToast();
-  const router = useRouter();
+  const [showObservations, setShowObservations] = useState(false);
 
-  useEffect(() => {
-    const loadStudentData = async () => {
-      if (!student || !student.id) return;
-      try {
-        const data = await UserService.fetchStudentById(student.id);
-        setStudentData(data);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: `No se pudo obtener el estudiante con ID ${student.id}.`,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-        console.error("Error al obtener el estudiante:", error);
+  const {
+    isOpen: isCareersModalOpen,
+    onOpen: openCareersModal,
+    onClose: closeCareersModal,
+  } = useDisclosure();
+
+  const toggleBlur = () => setShowObservations((prev) => !prev);
+
+  const handleViewSubjects = async (
+    career: StudentCareer
+  ): Promise<SubjectCareerWithState[]> => {
+    try {
+      // ✅ Aseguramos que el ID del alumno sea correcto
+      const studentId = formData?.id || formData?.studentId;
+
+      if (!studentId || !career.careerId) {
+        console.error("Faltan IDs:", { studentId, careerId: career.careerId });
+        return [];
       }
-    };
 
-    if (isOpen) {
-      loadStudentData();
-    } else {
-      setStudentData(null);
+      const res = await UserService.fetchStudentSubject(
+        studentId,
+        career.careerId
+      );
+      return res ?? [];
+    } catch (error) {
+      console.error("Error al cargar materias:", error);
+
+      return [];
     }
-  }, [isOpen, student, toast]);
+  };
+
+  const careerDisplay = () => {
+    const careers: StudentCareer[] = formData?.careers || [];
+    if (careers.length === 0) return "Sin carrera asignada";
+    if (isViewMode && careers.length > 1)
+      return (
+        careers
+          .map((c: StudentCareer) => c.name)
+          .join(", ")
+          .slice(0, 25) + "..."
+      );
+    return careers.map((c: StudentCareer) => c.name).join(", ");
+  };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl">
-      <ModalOverlay />
-      <ModalContent maxW="52vw">
-        <ModalHeader fontSize="2xl" fontWeight="bold">
-          Ver Alumno
-        </ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <VStack spacing={4} align="stretch">
-            <HStack spacing={4} w="100%">
-              <FormControl>
-                <FormLabel>Nombre</FormLabel>
-                <Input
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  w="100%"
-                  h="50px"
-                  value={studentData?.user.name || ""}
-                  isReadOnly
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Apellido/s</FormLabel>
-                <Input
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  w="100%"
-                  h="50px"
-                  value={studentData?.user.lastName || ""}
-                  isReadOnly
-                />
-              </FormControl>
-            </HStack>
-            <HStack spacing={4} w="100%">
-              <FormControl>
-                <FormLabel>Email</FormLabel>
-                <Input
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  w="100%"
-                  h="50px"
-                  value={studentData?.user.email || ""}
-                  isReadOnly
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Telefono</FormLabel>
-                <Input
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  w="100%"
-                  h="50px"
-                  value={studentData?.telephone || ""}
-                  isReadOnly
-                />
-              </FormControl>
-            </HStack>
-            <HStack spacing={4} w="100%">
-              <FormControl>
-                <FormLabel>DNI</FormLabel>
-                <Input
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  w="100%"
-                  h="50px"
-                  value={studentData?.dni || ""}
-                  isReadOnly
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Direccion</FormLabel>
-                <Input
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  w="100%"
-                  h="50px"
-                  value={studentData?.address || ""}
-                  isReadOnly
-                />
-              </FormControl>
-            </HStack>
-            <HStack spacing={4} w="100%">
-              <FormControl>
-                <FormLabel>Pais</FormLabel>
-                <Input
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  w="100%"
-                  h="50px"
-                  value={studentData?.countryId || ""}
-                  isReadOnly
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Carrera</FormLabel>
-                <InputGroup>
+    <>
+      {/* Modal principal */}
+      <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl">
+        <ModalOverlay />
+        <ModalContent maxW="52vw">
+          <ModalHeader fontSize="2xl" fontWeight="bold">
+            {isViewMode ? "Ver Alumno" : "Editar Alumno"}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4} align="stretch">
+              {/* Nombre / Apellido */}
+              <HStack spacing={4} w="100%">
+                <FormControl>
+                  <FormLabel>Nombre</FormLabel>
                   <Input
+                    name="name"
                     type="text"
                     borderColor="light_gray"
                     bg="light_gray"
@@ -189,53 +139,219 @@ const ViewStudentModal: React.FC<viewStudentModalProps> = ({
                     borderRadius="15px"
                     w="100%"
                     h="50px"
-                    isReadOnly
+                    value={formData.name || ""}
+                    onChange={isViewMode ? undefined : onInputChange}
+                    isReadOnly={isViewMode}
                   />
-                  <InputRightElement
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    mt="4px"
-                  >
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Apellido/s</FormLabel>
+                  <Input
+                    name="lastName"
+                    type="text"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    w="100%"
+                    h="50px"
+                    value={formData.lastName || ""}
+                    onChange={isViewMode ? undefined : onInputChange}
+                    isReadOnly={isViewMode}
+                  />
+                </FormControl>
+              </HStack>
+
+              {/* Email / Teléfono */}
+              <HStack spacing={4} w="100%">
+                <FormControl>
+                  <FormLabel>Email</FormLabel>
+                  <Input
+                    name="email"
+                    type="email"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    w="100%"
+                    h="50px"
+                    value={formData.email || ""}
+                    onChange={isViewMode ? undefined : onInputChange}
+                    isReadOnly={isViewMode}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Teléfono</FormLabel>
+                  <Input
+                    name="telephone"
+                    type="tel"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    w="100%"
+                    h="50px"
+                    value={formData.telephone || ""}
+                    onChange={isViewMode ? undefined : onInputChange}
+                    isReadOnly={isViewMode}
+                  />
+                </FormControl>
+              </HStack>
+
+              {/* DNI / Dirección */}
+              <HStack spacing={4} w="100%">
+                <FormControl>
+                  <FormLabel>DNI</FormLabel>
+                  <Input
+                    name="dni"
+                    type="text"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    w="100%"
+                    h="50px"
+                    value={formData.dni || ""}
+                    onChange={isViewMode ? undefined : onInputChange}
+                    isReadOnly={isViewMode}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Dirección</FormLabel>
+                  <Input
+                    name="address"
+                    type="text"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    w="100%"
+                    h="50px"
+                    value={formData.address || ""}
+                    onChange={isViewMode ? undefined : onInputChange}
+                    isReadOnly={isViewMode}
+                  />
+                </FormControl>
+              </HStack>
+
+              {/* País / Carrera */}
+              <HStack spacing={4} w="100%">
+                <FormControl>
+                  <FormLabel>País</FormLabel>
+                  <Input
+                    name="countryId"
+                    type="text"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    w="100%"
+                    h="50px"
+                    value={formData.countryId || ""}
+                    onChange={isViewMode ? undefined : onInputChange}
+                    isReadOnly={isViewMode}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Carrera/s</FormLabel>
+                  <InputGroup>
+                    <Input
+                      name="career"
+                      type="text"
+                      borderColor="light_gray"
+                      bg="light_gray"
+                      borderWidth="4px"
+                      borderRadius="15px"
+                      w="100%"
+                      h="50px"
+                      value={careerDisplay()}
+                      isReadOnly
+                    />
+                    <InputRightElement
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      mt="4px"
+                    >
+                      <IconButton
+                        icon={<FaGraduationCap size={22} />}
+                        aria-label="Ver carreras"
+                        onClick={openCareersModal}
+                        bg="transparent"
+                        size="sm"
+                        borderRadius="full"
+                        _hover={{ bg: "primary", color: "white" }}
+                      />
+                    </InputRightElement>
+                  </InputGroup>
+                </FormControl>
+              </HStack>
+
+              {/* Observaciones */}
+              <FormControl>
+                <FormLabel>Observaciones</FormLabel>
+                <InputGroup>
+                  <Textarea
+                    name="observations"
+                    borderColor="light_gray"
+                    bg="light_gray"
+                    borderWidth="4px"
+                    borderRadius="15px"
+                    w="100%"
+                    h="100px"
+                    value={formData.observations || ""}
+                    onChange={isViewMode ? undefined : onInputChange}
+                    isReadOnly={isViewMode}
+                    style={{
+                      filter: showObservations ? "none" : "blur(4px)",
+                      transition: "filter 0.2s ease",
+                    }}
+                  />
+                  <InputRightElement h="100%" alignItems="flex-start" pt={2}>
                     <IconButton
-                      icon={<FaGraduationCap size={27} />}
-                      aria-label="ir a carrera"
-                      onClick={() => router.push("/Carrera")}
-                      bg="transparent"
-                      size="sm"
-                      borderRadius="full"
-                      _hover={{ bg: "primary", color: "white" }}
+                      icon={showObservations ? <ViewOffIcon /> : <ViewIcon />}
+                      aria-label="Toggle Observaciones"
+                      onClick={toggleBlur}
+                      variant="ghost"
                     />
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
-            </HStack>
-            <HStack>
-              <FormControl>
-                <FormLabel>Obsevaciones</FormLabel>
-                <Input
-                  type="text"
-                  borderColor="light_gray"
-                  bg="light_gray"
-                  borderWidth="4px"
-                  borderRadius="15px"
-                  w="100%"
-                  h="50px"
-                  value={studentData?.observations || ""}
-                  isReadOnly
-                />
-              </FormControl>
-            </HStack>
-          </VStack>
-        </ModalBody>
-        <ModalFooter>
-          <Button bg="primary" color="white" onClick={onClose}>
-            Volver
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter>
+            {isViewMode ? (
+              <Button bg="primary" color="white" onClick={onClose}>
+                Volver
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={onClose} mr={4}>
+                  Cancelar
+                </Button>
+                <Button bg="primary" color="white" onClick={onConfirm}>
+                  Guardar
+                </Button>
+              </>
+            )}
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <CareerModalEdit
+        isOpen={isCareersModalOpen}
+        onClose={closeCareersModal}
+        careers={formData.careers || []}
+        onViewSubjects={handleViewSubjects} // ✅ cambia acá
+        onEditSubjects={onEditSubjects}
+        onDeleteCareer={onDeleteCareer}
+        onToggleActive={onToggleActive}
+        isViewMode={isViewMode}
+        role={role}
+      renderSubjectNow={renderSubjectNow}
+      />
+    </>
   );
 };
 
-export default ViewStudentModal;
+export default StudentModal;

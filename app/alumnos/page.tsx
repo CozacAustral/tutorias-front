@@ -8,11 +8,9 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
 import DeleteModal from "../../common/components/modals/detele.modal";
-import EditModal from "../../common/components/modals/edit.modal";
 import ImportModal from "../../common/components/modals/import.modal";
 import { UserService } from "../../services/admin-service";
 import { CreateStudent } from "../carrera/interfaces/create-student.interface";
@@ -28,7 +26,7 @@ import CareerModal from "./modals/create-career-student.modal";
 import CreateStudentModal from "./modals/create-student.modal";
 import PaginateStudent from "./modals/paginate-student.modal";
 import SubjectModal from "./modals/subject-student.modal";
-import ViewStudentModal from "./modals/view-student.modal";
+import StudentModal from "./modals/view-student.modal";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -155,37 +153,33 @@ const Estudiantes: React.FC = () => {
     "Carrera/s",
   ];
 
-useEffect(() => {
-  const loadStudents = async () => {
-    try {
-      const data = await UserService.fetchStudentsByRole({
-        search: searchTerm,
-        currentPage,
-        resultsPerPage: 10,
-        orderBy,
-      });
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        const data = await UserService.fetchStudentsByRole({
+          search: searchTerm,
+          currentPage,
+          resultsPerPage: 10,
+          orderBy,
+        });
 
-      // Detectar tipo de respuesta automáticamente
-      if (data.students) {
-        // ADMIN
-        setStudents(data.students);
-        setTotalStudents(data.totalCount);
-      } else {
-        // TUTOR
-        setStudents(data.data);
-        setTotalStudents(data.total);
+        if (data.students) {
+          setStudents(data.students);
+          setTotalStudents(data.totalCount);
+        } else {
+          setStudents(data.data);
+          setTotalStudents(data.total);
+        }
+      } catch (error) {
+        console.error("Error fetching students:", error);
+        setError("No se pudieron cargar los estudiantes.");
+      } finally {
+        setLoading(false);
       }
+    };
 
-    } catch (error) {
-      console.error("Error fetching students:", error);
-      setError("No se pudieron cargar los estudiantes.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  loadStudents();
-}, [currentPage, searchTerm, orderBy]);
+    loadStudents();
+  }, [currentPage, searchTerm, orderBy]);
 
   useEffect(() => {
     const loadCareers = async () => {
@@ -236,25 +230,25 @@ useEffect(() => {
     setCurrentPage(1);
   };
 
-  const handleEditClick = async (student: Student) => {
-    console.log("CUANDO SE PRESIONA EDIT DESDE ADMIN: ", student);
+  const loadStudentById = async (id: number) => {
     try {
-      const studentSelected = await UserService.fetchStudent(student.id);
-      setSelectedStudent(studentSelected);
+      const studentFetched = await UserService.fetchStudent(id);
+      setSelectedStudent(studentFetched);
       setFormData({
-        name: studentSelected.user.name || "",
-        lastName: studentSelected.user.lastName || "",
-        dni: studentSelected.dni || "",
-        telephone: studentSelected.telephone || "",
-        birthdate: studentSelected.birthdate || new Date(),
-        address: studentSelected.address || "",
-        year: studentSelected.yearEntry || new Date(),
-        observations: studentSelected.observations || "",
-        countryId: studentSelected.countryId,
-        email: studentSelected.user.email || "",
-        careers: studentSelected.careers,
+        id: studentFetched.id,
+        name: studentFetched.user.name || "",
+        lastName: studentFetched.user.lastName || "",
+        dni: studentFetched.dni || "",
+        telephone: studentFetched.telephone || "",
+        birthdate: studentFetched.birthdate || new Date(),
+        address: studentFetched.address || "",
+        year: studentFetched.yearEntry || new Date(),
+        observations: studentFetched.observations || "",
+        countryId: studentFetched.countryId,
+        email: studentFetched.user.email || "",
+        careers: studentFetched.careers,
       });
-      openEditModal();
+      return studentFetched;
     } catch (error) {
       toast({
         title: "Error",
@@ -262,10 +256,11 @@ useEffect(() => {
         status: "error",
       });
     }
-    console.log(
-      "Datos CARRER CUANDO SE PRESIONA EDIT DESDE ADMIN: ",
-      formData.careers
-    );
+  };
+
+  const handleEditClick = async (student: Student) => {
+    const data = await loadStudentById(student.id);
+    if (data) openEditModal();
   };
 
   const handleChangeCreateStudent = (
@@ -295,7 +290,7 @@ useEffect(() => {
       ...prevData,
       [name]:
         name === "birthdate" || name === "yearEntry"
-          ? new Date(value).toISOString().split("T")[0] // yyyy-MM-dd
+          ? new Date(value).toISOString().split("T")[0]
           : name === "careerId" || name === "countryId"
             ? parseInt(value)
             : value,
@@ -345,43 +340,9 @@ useEffect(() => {
     openCreateModal();
   };
 
-  const handleCreateCareerClick = () => {
-    if (selectedStudent?.id) {
-      setCareerData({
-        careerId: 0,
-        studentId: selectedStudent.id,
-        yearOfAdmission: new Date().getFullYear(),
-      });
-      openCreateCareerModal();
-    }
-  };
-
-  const handleViewClick = (student: Student) => {
-    console.log("Student cuando se presiona el view", student);
-
-    if (student && student.user) {
-      const formattedStudent: UpdateStudentDto = {
-        name: student.user.name || "",
-        lastName: student.user.lastName || "",
-        email: student.user.email || "",
-        telephone: student.telephone || "",
-        observations: student.observations || "",
-        careers: student.careers || [],
-        dni: student.dni || "",
-        birthdate: student.birthdate || "",
-        address: student.address || "",
-        year: student.yearEntry || "",
-        countryId: student.countryId || 1,
-      };
-
-      setSelectedStudent(student);
-      setFormData(formattedStudent);
-      openViewModal();
-    } else {
-      console.error("Student data is incomplete:", student);
-    }
-
-    console.log("CARRERAS DEL ESTUDIANTE: ", formData.careers);
+  const handleViewClick = async (student: Student) => {
+    const data = await loadStudentById(student.id);
+    if (data) openViewModal();
   };
 
   const handleStudentUpdate = async () => {
@@ -437,37 +398,42 @@ useEffect(() => {
     }
   };
 
-  const handleAllSubject = async (career: StudentCareer) => {
-    setSelectedCareerState(career.active);
+const handleAllSubject = async (career: StudentCareer) => {
+  setSelectedCareerState(career.active);
 
-    if (!selectedStudent?.id || !career?.careerId) {
-      toast({
-        title: "Error",
-        description: "Faltan datos del estudiante o de la carrera",
-        status: "error",
-      });
-      return;
-    }
+  if (!selectedStudent?.id || !career?.careerId) {
+    toast({
+      title: "Error",
+      description: "Faltan datos del estudiante o de la carrera",
+      status: "error",
+    });
+    return;
+  }
 
-    try {
-      const careerSelected = await UserService.fetchCareers(career.careerId);
-      setSelectedCareer(careerSelected);
+  try {
+    const careerSelected = await UserService.fetchCareers(career.careerId);
+    setSelectedCareer(careerSelected);
 
-      const allSubjects = await UserService.fetchStudentSubject(
-        selectedStudent?.id,
-        careerSelected.id
-      );
-      setSubjects(allSubjects);
+    const allSubjects = await UserService.fetchStudentSubject(
+      selectedStudent.id,
+      careerSelected.id
+    );
+    setSubjects(allSubjects);
 
+    setTimeout(() => {
       openSujectModal();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo obtener las materias de la carrera",
-        status: "error",
-      });
-    }
-  };
+    }, 0);
+
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: "No se pudo obtener las materias de la carrera",
+      status: "error",
+    });
+  }
+};
+
+
 
   const handleEditSubject = async () => {
     setOpenSubjectState(false);
@@ -714,7 +680,6 @@ useEffect(() => {
                 backgroundColor: "#318AE4",
                 color: "White",
               }}
-              // onClick={() => handleViewClick(student)}
             />
             <IconButton
               icon={<EditIcon boxSize={5} />}
@@ -737,7 +702,6 @@ useEffect(() => {
                 backgroundColor: "#318AE4",
                 color: "White",
               }}
-              // onClick={() => handleDeleteClick(student)}
             />
           </>
         )}
@@ -745,66 +709,67 @@ useEffect(() => {
     </Tr>
   );
 
-  const renderSubjectRow = (subject: SubjectCareerWithState) => (
-    <Tr key={subject.subjectId}>
-      <Td>{subject.subjectName}</Td>
-      <Td>{subject.year}</Td>
-      <Td>
-        {editedSubjects[subject.subjectId] !== undefined ? (
-          <Select
-            value={editedSubjects[subject.subjectId] ?? subject.subjectState}
-            onChange={(e) =>
-              setEditedSubjects((prev) => ({
-                ...prev,
-                [subject.subjectId]: e.target.value,
-              }))
-            }
-          >
-            {Object.entries(SubjectState).map(([key, value]) => (
-              <option key={key} value={key}>
-                {value}
-              </option>
-            ))}
-          </Select>
-        ) : (
-          SubjectState[
-            (editedSubjects[subject.subjectId] ||
-              subject.subjectState) as keyof typeof SubjectState
-          ]
-        )}
-      </Td>
-      <Td>
-        {subject.updateAt
-          ? new Date(subject.updateAt).toLocaleDateString()
-          : "-"}
-      </Td>
-      <Td>
-        {role === 2 ? null : (
-          <IconButton
-            icon={<EditIcon boxSize={5} />}
-            aria-label="Edit"
-            mr={5}
-            backgroundColor={
-              editedSubjects[subject.subjectId] ? "#318AE4" : "white"
-            }
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => {
-              setEditSubjectId(subject.subjectId);
-              setEditedSubjects((prev) => ({
-                ...prev,
-                [subject.subjectId]: subject.subjectState,
-              }));
-              handleEditSubjectClick(subject.subjectId);
-            }}
-          />
-        )}
-      </Td>
-    </Tr>
-  );
+const renderSubjectRow = (subject: SubjectCareerWithState, index: number) => (
+  <Tr key={subject.subjectId ?? index}>
+    <Td>{subject.subjectName}</Td>
+    <Td>{subject.year}</Td>
+    <Td>
+      {editedSubjects[subject.subjectId] !== undefined ? (
+        <Select
+          value={editedSubjects[subject.subjectId] ?? subject.subjectState}
+          onChange={(e) =>
+            setEditedSubjects((prev) => ({
+              ...prev,
+              [subject.subjectId]: e.target.value,
+            }))
+          }
+        >
+          {Object.entries(SubjectState).map(([key, value]) => (
+            <option key={key} value={key}>
+              {value}
+            </option>
+          ))}
+        </Select>
+      ) : (
+        SubjectState[
+          (editedSubjects[subject.subjectId] ||
+            subject.subjectState) as keyof typeof SubjectState
+        ]
+      )}
+    </Td>
+    <Td>
+      {subject.updateAt
+        ? new Date(subject.updateAt).toLocaleDateString()
+        : "-"}
+    </Td>
+    <Td>
+      {role === 2 ? null : (
+        <IconButton
+          icon={<EditIcon boxSize={5} />}
+          aria-label="Edit"
+          mr={5}
+          backgroundColor={
+            editedSubjects[subject.subjectId] ? "#318AE4" : "white"
+          }
+          _hover={{
+            borderRadius: 15,
+            backgroundColor: "#318AE4",
+            color: "White",
+          }}
+          onClick={() => {
+            setEditSubjectId(subject.subjectId);
+            setEditedSubjects((prev) => ({
+              ...prev,
+              [subject.subjectId]: subject.subjectState,
+            }));
+            handleEditSubjectClick(subject.subjectId);
+          }}
+        />
+      )}
+    </Td>
+  </Tr>
+);
+
 
   return (
     <>
@@ -830,55 +795,37 @@ useEffect(() => {
 
       {error && role !== 2 && <p>{error}</p>}
 
-      <EditModal
+      <StudentModal
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onConfirm={handleStudentUpdate}
-        formData={formData}
+        formData={{ ...formData, id: selectedStudent?.id }}
         onInputChange={handleChange}
-        title="Ver Alumno"
-        entityName="Alumno"
-        renderCareerNow={renderCareerRow}
-        createOpen={handleCreateCareerClick}
-        showButtonCancelSave={true}
-        fieldLabels={{
-          lastName: "Apellido/s",
-          name: "Nombre",
-          mail: "Correo",
-          telephone: "Nro. De telefono",
-          observations: "Observaciones",
-          careersId: "Carrera/s",
-        }}
-        role={role}
+        isViewMode={false}
       />
 
-      {role === 2 ? (
-        <SubjectModal
-          isOpen={isSubjectModalOpen}
-          onClose={handleCloseModalSubject}
-          onConfirm={handleEditSubject}
-          subjects={subjects}
-          renderSubjectNow={renderSubjectRow}
-          titleCareer={selectedCareer?.name}
-          entityName="Materias"
-          state={selectedCareerState}
-          role={role}
-          showButtonCancelSave={false}
-        />
-      ) : (
-        <SubjectModal
-          isOpen={isSubjectModalOpen}
-          onClose={handleCloseModalSubject}
-          onConfirm={handleEditSubject}
-          subjects={subjects}
-          renderSubjectNow={renderSubjectRow}
-          titleCareer={selectedCareer?.name}
-          entityName="Materias"
-          state={selectedCareerState}
-          role={role}
-          showButtonCancelSave={true}
-        />
-      )}
+      <StudentModal
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        onConfirm={handleStudentUpdate}
+        formData={{ ...formData, id: selectedStudent?.id }}
+        onInputChange={handleChange}
+        isViewMode={true}
+        renderSubjectRow={renderSubjectRow}
+      />
+
+<SubjectModal
+  isOpen={isSubjectModalOpen}
+  onClose={handleCloseModalSubject}
+  onConfirm={handleEditSubject}
+  subjects={subjects}
+  renderSubjectNow={(subject,index) => renderSubjectRow(subject, index)} // ✅ igual que en Meetings
+  titleCareer={selectedCareer?.name}
+  entityName="Materias"
+  state={selectedCareerState}
+  role={role}
+  showButtonCancelSave={role !== 2}
+/>
 
       <CareerModal
         isOpen={isCreateCareerModalOpen}
@@ -894,35 +841,6 @@ useEffect(() => {
           isOpen={isImportModalOpen}
           onClose={closeImportModal}
           onImport={handleImport}
-        />
-      )}
-
-      {role === 2 ? (
-        <EditModal
-          isOpen={isViewModalOpen}
-          onClose={closeViewModal}
-          onConfirm={handleStudentUpdate}
-          formData={formData}
-          onInputChange={handleChange}
-          caption="Ver Alumno"
-          renderCareerNow={renderCareerRow}
-          createOpen={handleCreateCareerClick}
-          forTutor={true}
-          isViewModal={true}
-          fieldLabels={{
-            lastName: "Apellido/s",
-            name: "Nombre",
-            mail: "Correo",
-            telephone: "Nro. De telefono",
-            observations: "Observaciones",
-          }}
-          showButtonCancelSave={false}
-        />
-      ) : (
-        <ViewStudentModal
-          isOpen={isViewModalOpen}
-          onClose={closeViewModal}
-          student={selectedStudent}
         />
       )}
 

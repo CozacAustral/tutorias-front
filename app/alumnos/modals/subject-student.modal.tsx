@@ -23,7 +23,10 @@ interface SubjectStudentModal<t = any> {
   entityName: string;
   titleCareer: string | undefined;
   subjects: SubjectCareerWithState[];
-  renderSubjectNow: (career: any, index: number) => React.ReactNode;
+  renderSubjectNow?: (
+    subject: SubjectCareerWithState,
+    index: number
+  ) => React.ReactNode;
   state?: boolean | null;
   role?: number | null;
   showButtonCancelSave?: boolean;
@@ -93,6 +96,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                     flexDirection="column"
                   >
                     <GenericTable
+                      filter={false}
                       data={subjects}
                       TableHeader={[
                         "Materia",
@@ -101,7 +105,19 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                         "Ultima fecha de actualización",
                       ]}
                       caption={entityName}
-                      renderRow={renderSubjectNow}
+                      renderRow={
+                        renderSubjectNow ??
+                        ((subject: SubjectCareerWithState, index: number) => (
+                          <tr key={subject.subjectId ?? index}>
+                            <td>{subject.subjectName}</td>
+                            <td>{subject.year}</td>
+                            <td>{subject.subjectState}</td>
+                            <td>
+                              {new Date(subject.updateAt).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))
+                      } // ✅ fallback visible
                       compact
                       itemsPerPage={itemsPerPage}
                       showAddMenu={false}
@@ -117,7 +133,6 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                       maxWidth="100%"
                       padding={2}
                       height="100%"
-                      filter
                       actions
                     />
                   </Box>
