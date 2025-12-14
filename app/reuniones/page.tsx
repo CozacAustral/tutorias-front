@@ -139,7 +139,9 @@ const Reuniones: React.FC = () => {
 
   const [rows, setRows] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
+
   const [loading, setLoading] = useState(false);
+  const [me, setMe] = useState<any>(null);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
@@ -203,35 +205,59 @@ const Reuniones: React.FC = () => {
   const [deleting, setDeleting] = useState(false);
   const cancelDeleteRef = useRef<HTMLButtonElement | null>(null);
 
-  // 🔐 rol del usuario desde /users/me
   const [role, setRole] = useState<any>(null);
   const [roleLoading, setRoleLoading] = useState(true);
 
-  const isTutor = useMemo(() => {
-    if (role === null || role === undefined) return false;
-    if (typeof role === "string") {
-      const r = role.toUpperCase();
-      return r === "TUTOR" || r === "2";
+  const isAdmin = useMemo(() => {
+    if (!me?.role) return false;
+
+    if (typeof me.role === "string") {
+      return me.role.toUpperCase() === "ADMIN";
     }
-    if (typeof role === "number") {
-      return role === 2;
+
+    if (typeof me.role === "number") {
+      return me.role === 1;
     }
+
+    if (typeof me.role === "object") {
+      return me.role.name === "ADMIN";
+    }
+
     return false;
-  }, [role]);
+  }, [me]);
+
+  const isTutor = useMemo(() => {
+    if (!me?.role) return false;
+
+    if (typeof me.role === "string") {
+      return me.role.toUpperCase() === "TUTOR";
+    }
+
+    if (typeof me.role === "number") {
+      return me.role === 2;
+    }
+
+    if (typeof me.role === "object") {
+      return me.role.name === "TUTOR";
+    }
+
+    return false;
+  }, [me]);
 
   useEffect(() => {
-    const loadRole = async () => {
-      try {
-        const me = await UserService.fetchMe();
-        setRole(me.role);
-      } catch {
-        setRole(null);
-      } finally {
-        setRoleLoading(false);
+    const init = async () => {
+      const user = await UserService.fetchMe();
+
+      if (!user) {
+        router.replace("/login");
+        return;
       }
+
+      setMe(user);
+      setLoading(false);
     };
 
-    loadRole();
+    init();
   }, []);
 
   const headers = useMemo(
@@ -476,6 +502,33 @@ const Reuniones: React.FC = () => {
     loadStudentsForTutor(myTutorId);
   }, [isTutor, myTutorId, loadStudentsForTutor]);
 
+  const loadStudentsForFilter = async (
+    search: string
+  ): Promise<{ id: number; label: string }[]> => {
+    if (!me) return [];
+
+    if (isAdmin) {
+      const res = await UserService.fetchAllStudents({
+        search,
+        currentPage: 1,
+        resultsPerPage: 20,
+      });
+
+      return res.students.map((s) => ({
+        id: s.id,
+        label: `${s.user?.name ?? ""} ${s.user?.lastName ?? ""}`.trim(),
+      }));
+    }
+
+    const res = await UserService.getMyStudents(1, 20, search);
+    const list = res.data?.data ?? [];
+
+    return list.map((s: any) => ({
+      id: s.id,
+      label: `${s.user.name} ${s.user.lastName}`,
+    }));
+  };
+
   const handleOpenSubjects = useCallback(
     async ({
       studentId,
@@ -682,6 +735,7 @@ const Reuniones: React.FC = () => {
         isOpen={isFilterOpen}
         onClose={onFilterClose}
         students={studentsOptions}
+        loadStudents={loadStudentsForFilter}
         current={filters}
         onApply={(f) => {
           setFilters(f);
