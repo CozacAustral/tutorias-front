@@ -22,23 +22,36 @@ import { StudentCareer } from "../interfaces/student-career.interface";
 import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
 import SubjectModal from "./subject-student.modal";
 
+type SubjectOpenMode = "view" | "edit";
+
 interface CareerModalEditProps {
   isOpen: boolean;
   onClose: () => void;
   careers: StudentCareer[];
-  onViewSubjects?: (career: StudentCareer) => Promise<SubjectCareerWithState[]> | void;
+
+  onViewSubjects?: (
+    career: StudentCareer
+  ) => Promise<SubjectCareerWithState[]> | void;
+
   onDeleteCareer?: (career: StudentCareer) => void;
   onToggleActive?: (career: StudentCareer) => void;
-  onEditSubjects?: (career: StudentCareer) => void;
+
+  // 👇 renderer EDITABLE (el que tiene Select + lápiz)
   renderSubjectNow?: (
     subject: SubjectCareerWithState,
     index: number
   ) => React.ReactNode;
-  onConfirmEditSubject?: (
-    editedSubjects: Record<number, string>
-  ) => Promise<void>;
+
+  // 👇 renderer SOLO LECTURA (sin Select ni acciones)
+  renderSubjectNowView?: (
+    subject: SubjectCareerWithState,
+    index: number
+  ) => React.ReactNode;
+
   isViewMode?: boolean;
   role?: number;
+
+  onConfirmEditSubject?: () => Promise<void> | void;
 }
 
 const CareerModalEdit: React.FC<CareerModalEditProps> = ({
@@ -49,6 +62,7 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
   onDeleteCareer,
   onToggleActive,
   renderSubjectNow,
+  renderSubjectNowView,
   onConfirmEditSubject,
   isViewMode = false,
   role = 0,
@@ -64,11 +78,12 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
     null
   );
   const [subjects, setSubjects] = useState<SubjectCareerWithState[]>([]);
-  const [editedSubjects, setEditedSubjects] = useState<Record<number, string>>(
-    {}
-  );
+  const [openMode, setOpenMode] = useState<SubjectOpenMode>("view");
 
-  const handleViewSubjects = async (career: StudentCareer) => {
+  const loadSubjectsAndOpen = async (
+    career: StudentCareer,
+    mode: SubjectOpenMode
+  ) => {
     if (!onViewSubjects) {
       toast({
         title: "Función no disponible",
@@ -79,10 +94,11 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
     }
 
     try {
+      setOpenMode(mode);
+
       const result = await onViewSubjects(career);
-      if (Array.isArray(result)) {
-        setSubjects(result);
-      }
+      if (Array.isArray(result)) setSubjects(result);
+
       setSelectedCareer(career);
       openSubjectModal();
     } catch {
@@ -94,42 +110,35 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
     }
   };
 
-  const handleEditSubjects = async (career: StudentCareer) => {
-    // Igual que ver materias pero en modo edición
-    await handleViewSubjects(career);
-  };
-
   const handleDeleteCareer = (career: StudentCareer) => {
-    if (!onDeleteCareer) {
-      toast({
-        title: "Función no disponible",
-        description: "No se ha definido la acción de eliminar carrera.",
-        status: "warning",
-      });
-      return;
-    }
+    if (!onDeleteCareer) return;
     onDeleteCareer(career);
   };
 
   const handleToggleActive = (career: StudentCareer) => {
-    if (!onToggleActive) {
-      toast({
-        title: "Función no disponible",
-        description: "No se ha definido la acción de cambiar estado.",
-        status: "warning",
-      });
-      return;
-    }
+    if (!onToggleActive) return;
     onToggleActive(career);
   };
 
   const handleConfirmEditSubjects = async () => {
-    if (onConfirmEditSubject) {
-      await onConfirmEditSubject(editedSubjects);
-      setEditedSubjects({});
-      closeSubjectModal();
+    if (!onConfirmEditSubject) {
+      toast({
+        title: "No se puede guardar",
+        description: "No se definió la acción para guardar cambios de materias.",
+        status: "warning",
+      });
+      return;
     }
+
+    await onConfirmEditSubject();
+    closeSubjectModal();
   };
+
+  // ✅ solo se puede editar si:
+  // - el StudentModal NO está en viewMode
+  // - no es tutor
+  // - y abriste con el lápiz (openMode === "edit")
+  const canEditSubjects = !isViewMode && role !== 2 && openMode === "edit";
 
   const renderCareerRow = (career: StudentCareer, index: number) => (
     <Tr key={index}>
@@ -138,23 +147,27 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
       <Td>{career.yearEntry || "-"}</Td>
       <Td>{career.yearOfThePlan || "-"}</Td>
       <Td>
+        {/* 👁️ Ver materias (SIEMPRE solo lectura) */}
         <IconButton
           icon={<ViewIcon boxSize={5} />}
           aria-label="Ver materias"
           mr={2}
           backgroundColor="white"
           _hover={{ backgroundColor: "#318AE4", color: "white" }}
-          onClick={() => handleViewSubjects(career)}
+          onClick={() => loadSubjectsAndOpen(career, "view")}
         />
+
+        {/* En edición del alumno, muestro botones extra */}
         {!isViewMode && role !== 2 && (
           <>
+            {/* ✏️ Editar materias (abre editable) */}
             <IconButton
               icon={<EditIcon boxSize={5} />}
               aria-label="Editar materias"
               mr={2}
               backgroundColor="white"
               _hover={{ backgroundColor: "#318AE4", color: "white" }}
-              onClick={() => handleEditSubjects(career)}
+              onClick={() => loadSubjectsAndOpen(career, "edit")}
             />
             <IconButton
               icon={<DeleteIcon boxSize={5} />}
@@ -172,7 +185,6 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
 
   return (
     <>
-      {/* Modal de carreras */}
       <Modal isOpen={isOpen} onClose={onClose} size="4xl" isCentered>
         <ModalOverlay />
         <ModalContent maxW="80vw" maxH="90vh" overflow="hidden">
@@ -210,16 +222,15 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
         </ModalContent>
       </Modal>
 
-      {/* Modal de materias */}
       <SubjectModal
         isOpen={isSubjectModalOpen}
         onClose={closeSubjectModal}
-        onConfirm={handleConfirmEditSubjects}
+        onConfirm={canEditSubjects ? handleConfirmEditSubjects : undefined}
         entityName="Materias"
         titleCareer={selectedCareer?.name}
         subjects={subjects}
-        renderSubjectNow={renderSubjectNow}
-        showButtonCancelSave={!isViewMode}
+        renderSubjectNow={canEditSubjects ? renderSubjectNow : renderSubjectNowView}
+        showButtonCancelSave={canEditSubjects}
       />
     </>
   );

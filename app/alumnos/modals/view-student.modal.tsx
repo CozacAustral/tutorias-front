@@ -51,10 +51,15 @@ interface StudentModalProps {
     subject: SubjectCareerWithState,
     index: number
   ) => React.ReactNode;
+  onConfirmEditSubject?: () => Promise<void> | void;
+  renderSubjectNowView?: (
+    subject: SubjectCareerWithState,
+    index: number
+  ) => React.ReactNode;
 }
 
 const StudentModal: React.FC<StudentModalProps> = ({
-    renderSubjectNow,
+  renderSubjectNow,
   isOpen,
   onClose,
   onConfirm,
@@ -66,6 +71,8 @@ const StudentModal: React.FC<StudentModalProps> = ({
   onToggleActive,
   isViewMode = false,
   role = 0,
+  onConfirmEditSubject,
+  renderSubjectNowView,
 }) => {
   const [showObservations, setShowObservations] = useState(false);
 
@@ -81,7 +88,6 @@ const StudentModal: React.FC<StudentModalProps> = ({
     career: StudentCareer
   ): Promise<SubjectCareerWithState[]> => {
     try {
-      // ✅ Aseguramos que el ID del alumno sea correcto
       const studentId = formData?.id || formData?.studentId;
 
       if (!studentId || !career.careerId) {
@@ -96,7 +102,6 @@ const StudentModal: React.FC<StudentModalProps> = ({
       return res ?? [];
     } catch (error) {
       console.error("Error al cargar materias:", error);
-
       return [];
     }
   };
@@ -114,9 +119,30 @@ const StudentModal: React.FC<StudentModalProps> = ({
     return careers.map((c: StudentCareer) => c.name).join(", ");
   };
 
+  // ✅ estilos comunes + estilos readOnly (view mode)
+  const baseFieldProps = {
+    borderWidth: "4px",
+    borderRadius: "15px",
+    w: "100%",
+    h: "50px",
+  } as const;
+
+  const viewFieldProps = isViewMode
+    ? ({
+        bg: "gray.100",
+        borderColor: "gray.200",
+        color: "gray.600",
+        _hover: { borderColor: "gray.200" },
+        _focus: { boxShadow: "none", borderColor: "gray.200" },
+        cursor: "not-allowed",
+      } as const)
+    : ({
+        borderColor: "light_gray",
+        bg: "light_gray",
+      } as const);
+
   return (
     <>
-      {/* Modal principal */}
       <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl">
         <ModalOverlay />
         <ModalContent maxW="52vw">
@@ -126,19 +152,14 @@ const StudentModal: React.FC<StudentModalProps> = ({
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4} align="stretch">
-              {/* Nombre / Apellido */}
               <HStack spacing={4} w="100%">
                 <FormControl>
                   <FormLabel>Nombre</FormLabel>
                   <Input
                     name="name"
                     type="text"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    w="100%"
-                    h="50px"
+                    {...baseFieldProps}
+                    {...viewFieldProps}
                     value={formData.name || ""}
                     onChange={isViewMode ? undefined : onInputChange}
                     isReadOnly={isViewMode}
@@ -149,12 +170,8 @@ const StudentModal: React.FC<StudentModalProps> = ({
                   <Input
                     name="lastName"
                     type="text"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    w="100%"
-                    h="50px"
+                    {...baseFieldProps}
+                    {...viewFieldProps}
                     value={formData.lastName || ""}
                     onChange={isViewMode ? undefined : onInputChange}
                     isReadOnly={isViewMode}
@@ -162,19 +179,14 @@ const StudentModal: React.FC<StudentModalProps> = ({
                 </FormControl>
               </HStack>
 
-              {/* Email / Teléfono */}
               <HStack spacing={4} w="100%">
                 <FormControl>
                   <FormLabel>Email</FormLabel>
                   <Input
                     name="email"
                     type="email"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    w="100%"
-                    h="50px"
+                    {...baseFieldProps}
+                    {...viewFieldProps}
                     value={formData.email || ""}
                     onChange={isViewMode ? undefined : onInputChange}
                     isReadOnly={isViewMode}
@@ -185,12 +197,8 @@ const StudentModal: React.FC<StudentModalProps> = ({
                   <Input
                     name="telephone"
                     type="tel"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    w="100%"
-                    h="50px"
+                    {...baseFieldProps}
+                    {...viewFieldProps}
                     value={formData.telephone || ""}
                     onChange={isViewMode ? undefined : onInputChange}
                     isReadOnly={isViewMode}
@@ -198,19 +206,14 @@ const StudentModal: React.FC<StudentModalProps> = ({
                 </FormControl>
               </HStack>
 
-              {/* DNI / Dirección */}
               <HStack spacing={4} w="100%">
                 <FormControl>
                   <FormLabel>DNI</FormLabel>
                   <Input
                     name="dni"
                     type="text"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    w="100%"
-                    h="50px"
+                    {...baseFieldProps}
+                    {...viewFieldProps}
                     value={formData.dni || ""}
                     onChange={isViewMode ? undefined : onInputChange}
                     isReadOnly={isViewMode}
@@ -221,12 +224,8 @@ const StudentModal: React.FC<StudentModalProps> = ({
                   <Input
                     name="address"
                     type="text"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    w="100%"
-                    h="50px"
+                    {...baseFieldProps}
+                    {...viewFieldProps}
                     value={formData.address || ""}
                     onChange={isViewMode ? undefined : onInputChange}
                     isReadOnly={isViewMode}
@@ -234,36 +233,28 @@ const StudentModal: React.FC<StudentModalProps> = ({
                 </FormControl>
               </HStack>
 
-              {/* País / Carrera */}
               <HStack spacing={4} w="100%">
                 <FormControl>
                   <FormLabel>País</FormLabel>
                   <Input
                     name="countryId"
                     type="text"
-                    borderColor="light_gray"
-                    bg="light_gray"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    w="100%"
-                    h="50px"
+                    {...baseFieldProps}
+                    {...viewFieldProps}
                     value={formData.countryId || ""}
                     onChange={isViewMode ? undefined : onInputChange}
                     isReadOnly={isViewMode}
                   />
                 </FormControl>
+
                 <FormControl>
                   <FormLabel>Carrera/s</FormLabel>
                   <InputGroup>
                     <Input
                       name="career"
                       type="text"
-                      borderColor="light_gray"
-                      bg="light_gray"
-                      borderWidth="4px"
-                      borderRadius="15px"
-                      w="100%"
-                      h="50px"
+                      {...baseFieldProps}
+                      {...viewFieldProps}
                       value={careerDisplay()}
                       isReadOnly
                     />
@@ -287,18 +278,31 @@ const StudentModal: React.FC<StudentModalProps> = ({
                 </FormControl>
               </HStack>
 
-              {/* Observaciones */}
               <FormControl>
                 <FormLabel>Observaciones</FormLabel>
                 <InputGroup>
                   <Textarea
                     name="observations"
-                    borderColor="light_gray"
-                    bg="light_gray"
                     borderWidth="4px"
                     borderRadius="15px"
                     w="100%"
                     h="100px"
+                    {...(isViewMode
+                      ? {
+                          bg: "gray.100",
+                          borderColor: "gray.200",
+                          color: "gray.600",
+                          cursor: "not-allowed",
+                          _hover: { borderColor: "gray.200" },
+                          _focus: {
+                            boxShadow: "none",
+                            borderColor: "gray.200",
+                          },
+                        }
+                      : {
+                          borderColor: "light_gray",
+                          bg: "light_gray",
+                        })}
                     value={formData.observations || ""}
                     onChange={isViewMode ? undefined : onInputChange}
                     isReadOnly={isViewMode}
@@ -338,17 +342,19 @@ const StudentModal: React.FC<StudentModalProps> = ({
           </ModalFooter>
         </ModalContent>
       </Modal>
+
       <CareerModalEdit
         isOpen={isCareersModalOpen}
         onClose={closeCareersModal}
         careers={formData.careers || []}
-        onViewSubjects={handleViewSubjects} // ✅ cambia acá
-        onEditSubjects={onEditSubjects}
+        onViewSubjects={handleViewSubjects}
+        renderSubjectNowView={renderSubjectNowView}
         onDeleteCareer={onDeleteCareer}
         onToggleActive={onToggleActive}
         isViewMode={isViewMode}
         role={role}
-      renderSubjectNow={renderSubjectNow}
+        renderSubjectNow={renderSubjectNow}
+        onConfirmEditSubject={onConfirmEditSubject}
       />
     </>
   );

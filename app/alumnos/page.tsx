@@ -398,42 +398,39 @@ const Estudiantes: React.FC = () => {
     }
   };
 
-const handleAllSubject = async (career: StudentCareer) => {
-  setSelectedCareerState(career.active);
+  const handleAllSubject = async (career: StudentCareer) => {
+    setSelectedCareerState(career.active);
 
-  if (!selectedStudent?.id || !career?.careerId) {
-    toast({
-      title: "Error",
-      description: "Faltan datos del estudiante o de la carrera",
-      status: "error",
-    });
-    return;
-  }
+    if (!selectedStudent?.id || !career?.careerId) {
+      toast({
+        title: "Error",
+        description: "Faltan datos del estudiante o de la carrera",
+        status: "error",
+      });
+      return;
+    }
 
-  try {
-    const careerSelected = await UserService.fetchCareers(career.careerId);
-    setSelectedCareer(careerSelected);
+    try {
+      const careerSelected = await UserService.fetchCareers(career.careerId);
+      setSelectedCareer(careerSelected);
 
-    const allSubjects = await UserService.fetchStudentSubject(
-      selectedStudent.id,
-      careerSelected.id
-    );
-    setSubjects(allSubjects);
+      const allSubjects = await UserService.fetchStudentSubject(
+        selectedStudent.id,
+        careerSelected.id
+      );
+      setSubjects(allSubjects);
 
-    setTimeout(() => {
-      openSujectModal();
-    }, 0);
-
-  } catch (error) {
-    toast({
-      title: "Error",
-      description: "No se pudo obtener las materias de la carrera",
-      status: "error",
-    });
-  }
-};
-
-
+      setTimeout(() => {
+        openSujectModal();
+      }, 0);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo obtener las materias de la carrera",
+        status: "error",
+      });
+    }
+  };
 
   const handleEditSubject = async () => {
     setOpenSubjectState(false);
@@ -709,67 +706,82 @@ const handleAllSubject = async (career: StudentCareer) => {
     </Tr>
   );
 
-const renderSubjectRow = (subject: SubjectCareerWithState, index: number) => (
-  <Tr key={subject.subjectId ?? index}>
-    <Td>{subject.subjectName}</Td>
-    <Td>{subject.year}</Td>
-    <Td>
-      {editedSubjects[subject.subjectId] !== undefined ? (
-        <Select
-          value={editedSubjects[subject.subjectId] ?? subject.subjectState}
-          onChange={(e) =>
-            setEditedSubjects((prev) => ({
-              ...prev,
-              [subject.subjectId]: e.target.value,
-            }))
-          }
-        >
-          {Object.entries(SubjectState).map(([key, value]) => (
-            <option key={key} value={key}>
-              {value}
-            </option>
-          ))}
-        </Select>
-      ) : (
-        SubjectState[
-          (editedSubjects[subject.subjectId] ||
-            subject.subjectState) as keyof typeof SubjectState
-        ]
-      )}
-    </Td>
-    <Td>
-      {subject.updateAt
-        ? new Date(subject.updateAt).toLocaleDateString()
-        : "-"}
-    </Td>
-    <Td>
-      {role === 2 ? null : (
-        <IconButton
-          icon={<EditIcon boxSize={5} />}
-          aria-label="Edit"
-          mr={5}
-          backgroundColor={
-            editedSubjects[subject.subjectId] ? "#318AE4" : "white"
-          }
-          _hover={{
-            borderRadius: 15,
-            backgroundColor: "#318AE4",
-            color: "White",
-          }}
-          onClick={() => {
-            setEditSubjectId(subject.subjectId);
-            setEditedSubjects((prev) => ({
-              ...prev,
-              [subject.subjectId]: subject.subjectState,
-            }));
-            handleEditSubjectClick(subject.subjectId);
-          }}
-        />
-      )}
-    </Td>
-  </Tr>
-);
+  const renderSubjectRowView = (
+    subject: SubjectCareerWithState,
+    index: number
+  ) => (
+    <Tr key={subject.subjectId ?? index}>
+      <Td>{subject.subjectName}</Td>
+      <Td>{subject.year}</Td>
+      <Td>{SubjectState[subject.subjectState as keyof typeof SubjectState]}</Td>
+      <Td>
+        {subject.updateAt
+          ? new Date(subject.updateAt).toLocaleDateString()
+          : "-"}
+      </Td>
+    </Tr>
+  );
 
+  const renderSubjectRow = (subject: SubjectCareerWithState, index: number) => (
+    <Tr key={subject.subjectId ?? index}>
+      <Td>{subject.subjectName}</Td>
+      <Td>{subject.year}</Td>
+      <Td>
+        {editedSubjects[subject.subjectId] !== undefined ? (
+          <Select
+            value={editedSubjects[subject.subjectId] ?? subject.subjectState}
+            onChange={(e) =>
+              setEditedSubjects((prev) => ({
+                ...prev,
+                [subject.subjectId]: e.target.value,
+              }))
+            }
+          >
+            {Object.entries(SubjectState).map(([key, value]) => (
+              <option key={key} value={key}>
+                {value}
+              </option>
+            ))}
+          </Select>
+        ) : (
+          SubjectState[
+            (editedSubjects[subject.subjectId] ||
+              subject.subjectState) as keyof typeof SubjectState
+          ]
+        )}
+      </Td>
+      <Td>
+        {subject.updateAt
+          ? new Date(subject.updateAt).toLocaleDateString()
+          : "-"}
+      </Td>
+      <Td>
+        {role === 2 ? null : (
+          <IconButton
+            icon={<EditIcon boxSize={5} />}
+            aria-label="Edit"
+            mr={5}
+            backgroundColor={
+              editedSubjects[subject.subjectId] ? "#318AE4" : "white"
+            }
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => {
+              setEditSubjectId(subject.subjectId);
+              setEditedSubjects((prev) => ({
+                ...prev,
+                [subject.subjectId]: subject.subjectState,
+              }));
+              handleEditSubjectClick(subject.subjectId);
+            }}
+          />
+        )}
+      </Td>
+    </Tr>
+  );
 
   return (
     <>
@@ -802,30 +814,33 @@ const renderSubjectRow = (subject: SubjectCareerWithState, index: number) => (
         formData={{ ...formData, id: selectedStudent?.id }}
         onInputChange={handleChange}
         isViewMode={false}
+        role={role}
+        renderSubjectNow={(s, i) => renderSubjectRow(s, i)}
+        renderSubjectNowView={(s, i) => renderSubjectRowView(s, i)}
+        onConfirmEditSubject={handleEditSubject}
       />
 
       <StudentModal
         isOpen={isViewModalOpen}
         onClose={closeViewModal}
-        onConfirm={handleStudentUpdate}
         formData={{ ...formData, id: selectedStudent?.id }}
-        onInputChange={handleChange}
         isViewMode={true}
-        renderSubjectRow={renderSubjectRow}
+        role={role}
+        renderSubjectNowView={(s, i) => renderSubjectRowView(s, i)}
       />
 
-<SubjectModal
-  isOpen={isSubjectModalOpen}
-  onClose={handleCloseModalSubject}
-  onConfirm={handleEditSubject}
-  subjects={subjects}
-  renderSubjectNow={(subject,index) => renderSubjectRow(subject, index)} // ✅ igual que en Meetings
-  titleCareer={selectedCareer?.name}
-  entityName="Materias"
-  state={selectedCareerState}
-  role={role}
-  showButtonCancelSave={role !== 2}
-/>
+      <SubjectModal
+        isOpen={isSubjectModalOpen}
+        onClose={handleCloseModalSubject}
+        onConfirm={handleEditSubject}
+        subjects={subjects}
+        renderSubjectNow={(subject, index) => renderSubjectRow(subject, index)}
+        titleCareer={selectedCareer?.name}
+        entityName="Materias"
+        state={selectedCareerState}
+        role={role}
+        showButtonCancelSave={role !== 2}
+      />
 
       <CareerModal
         isOpen={isCreateCareerModalOpen}

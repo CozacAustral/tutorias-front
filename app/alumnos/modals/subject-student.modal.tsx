@@ -19,7 +19,7 @@ import { SubjectCareerWithState } from "../interfaces/subject-career-student.int
 interface SubjectStudentModal<t = any> {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  onConfirm?: () => Promise<void> | void;
   entityName: string;
   titleCareer: string | undefined;
   subjects: SubjectCareerWithState[];
@@ -69,7 +69,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
             marginBottom={1}
           >
             <Text as="span" fontWeight="bold">
-              Editar:{" "}
+              {showButtonCancelSave ? "Editar: " : "Ver: "}
             </Text>
             {titleCareer}
           </Text>
@@ -98,12 +98,22 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                     <GenericTable
                       filter={false}
                       data={subjects}
-                      TableHeader={[
-                        "Materia",
-                        "Año",
-                        "Estado",
-                        "Ultima fecha de actualización",
-                      ]}
+                      TableHeader={
+                        showButtonCancelSave
+                          ? [
+                              "Materia",
+                              "Año",
+                              "Estado",
+                              "Ultima fecha de actualización",
+                              "Acciones",
+                            ]
+                          : [
+                              "Materia",
+                              "Año",
+                              "Estado",
+                              "Ultima fecha de actualización",
+                            ]
+                      }
                       caption={entityName}
                       renderRow={
                         renderSubjectNow ??
@@ -133,7 +143,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                       maxWidth="100%"
                       padding={2}
                       height="100%"
-                      actions
+                      actions={showButtonCancelSave}
                     />
                   </Box>
                 </HStack>
@@ -147,7 +157,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
             <Button variant="ghost" onClick={onClose} mr={3}>
               Cancelar
             </Button>
-            <Button bg="primary" color="white" onClick={onConfirm}>
+            <Button bg="primary" color="white" onClick={() => onConfirm?.()}>
               Guardar
             </Button>
           </ModalFooter>
