@@ -34,7 +34,7 @@ import { useSidebar } from "../../app/contexts/SidebarContext";
 import { GenericTableProps } from "../interfaces/generic-table-props.interface";
 
 const GenericTable = <T,>({
-  leftOffset, 
+  leftOffset, // fuerza el gap desde afuera (opcional)
   hasSidebar,
   currentPage,
   totalItems,

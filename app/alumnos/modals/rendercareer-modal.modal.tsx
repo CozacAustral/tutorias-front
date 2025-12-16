@@ -195,6 +195,7 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
           <ModalBody overflowY="auto" p={0}>
             <Box width="100%" overflow="hidden">
               <GenericTable<StudentCareer>
+
                 data={careers || []}
                 TableHeader={[
                   "Carrera",
@@ -205,7 +206,7 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
                 ]}
                 caption="Listado de Carreras"
                 renderRow={renderCareerRow}
-                compact
+                compact={false}
                 filter={false}
                 itemsPerPage={3}
                 showAddMenu={false}
