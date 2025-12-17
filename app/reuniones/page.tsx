@@ -205,9 +205,6 @@ const Reuniones: React.FC = () => {
   const [deleting, setDeleting] = useState(false);
   const cancelDeleteRef = useRef<HTMLButtonElement | null>(null);
 
-  const [role, setRole] = useState<any>(null);
-  const [roleLoading, setRoleLoading] = useState(true);
-
   const isAdmin = useMemo(() => {
     if (!me?.role) return false;
 
@@ -259,6 +256,34 @@ const Reuniones: React.FC = () => {
 
     init();
   }, []);
+  const SUBJECT_STATE_LABELS: Record<string, string> = {
+    APPROVED: "Aprobada",
+    REGULARIZED: "Regularizada",
+    FREE: "Libre",
+    INPROGRESS: "En curso",
+    NOTATTENDED: "No cursada",
+    RETAKING: "Recursando",
+  };
+
+  function normalizeSubjectStateKey(v: any) {
+    return String(v ?? "")
+      .trim()
+      .toUpperCase()
+      .replace(/[\s_]/g, "");
+  }
+
+  function subjectStateLabel(v: any) {
+    const k = normalizeSubjectStateKey(v);
+    return SUBJECT_STATE_LABELS[k] ?? String(v ?? "—");
+  }
+
+  function subjectStateValueForSelect(v: any) {
+    const k = normalizeSubjectStateKey(v);
+    if (k in SUBJECT_STATE_LABELS) return k;
+    return String(v ?? "")
+      .trim()
+      .toUpperCase();
+  }
 
   const headers = useMemo(
     () =>
@@ -599,17 +624,20 @@ const Reuniones: React.FC = () => {
 
   const renderSubjectNow = useCallback(
     (subject: SubjectCareerWithState) => {
-      const normalized = String(subject.subjectState);
+      const selectValue =
+        editedSubjects[subject.subjectId] !== undefined
+          ? editedSubjects[subject.subjectId]
+          : subjectStateValueForSelect(subject.subjectState);
+
       return (
         <Tr key={subject.subjectId}>
           <Td>{subject.subjectName}</Td>
           <Td>{subject.year}</Td>
+
           <Td>
             {editedSubjects[subject.subjectId] !== undefined ? (
               <Select
-                value={
-                  editedSubjects[subject.subjectId] ?? normalized.toUpperCase()
-                }
+                value={selectValue}
                 onChange={(e) =>
                   setEditedSubjects((prev) => ({
                     ...prev,
@@ -617,28 +645,32 @@ const Reuniones: React.FC = () => {
                   }))
                 }
               >
-                <option value="APPROVED">APROBADO</option>
-                <option value="REGULARIZED">REGULARIZADO</option>
-                <option value="FREE">LIBRE</option>
-                <option value="INPROGRESS">EN CURSO</option>
-                <option value="NOTATTENDED">NO CURSADA</option>
-                <option value="RETAKING">RECURSANDO</option>
+                <option value="APPROVED">Aprobada</option>
+                <option value="REGULARIZED">Regularizada</option>
+                <option value="FREE">Libre</option>
+                <option value="INPROGRESS">En curso</option>
+                <option value="NOTATTENDED">No cursada</option>
+                <option value="RETAKING">Recursando</option>
               </Select>
             ) : (
-              subject.subjectState
+              subjectStateLabel(subject.subjectState)
             )}
           </Td>
+
           <Td>
             {subject.updateAt
-              ? new Date(subject.updateAt).toLocaleDateString()
+              ? new Date(subject.updateAt).toLocaleDateString("es-AR")
               : "-"}
           </Td>
+
           <Td>
             <IconButton
               icon={<EditIcon boxSize={5} />}
               aria-label="Editar"
               backgroundColor={
-                editedSubjects[subject.subjectId] ? "#318AE4" : "white"
+                editedSubjects[subject.subjectId] !== undefined
+                  ? "#318AE4"
+                  : "white"
               }
               _hover={{
                 borderRadius: 15,
@@ -648,7 +680,9 @@ const Reuniones: React.FC = () => {
               onClick={() =>
                 setEditedSubjects((prev) => ({
                   ...prev,
-                  [subject.subjectId]: String(subject.subjectState),
+                  [subject.subjectId]: subjectStateValueForSelect(
+                    subject.subjectState
+                  ),
                 }))
               }
             />
