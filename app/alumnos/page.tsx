@@ -154,6 +154,24 @@ const Estudiantes: React.FC = () => {
   ];
 
   useEffect(() => {
+    const loadRole = async () => {
+      try {
+        const me = await UserService.fetchMe();
+        // adaptá según tu respuesta real:
+        // si viene me.roleId -> setRole(me.roleId)
+        // si viene me.role.id -> setRole(me.role.id)
+        setRole(
+          Number((me as any).roleId ?? (me as any).role?.id ?? (me as any).role)
+        );
+      } catch (e) {
+        setRole(0);
+      }
+    };
+
+    loadRole();
+  }, []);
+
+  useEffect(() => {
     const loadStudents = async () => {
       try {
         const data = await UserService.fetchStudentsByRole({
@@ -232,22 +250,28 @@ const Estudiantes: React.FC = () => {
 
   const loadStudentById = async (id: number) => {
     try {
-      const studentFetched = await UserService.fetchStudent(id);
+      const studentFetched = await UserService.getOneStudentByRole(id);
+
       setSelectedStudent(studentFetched);
+
       setFormData({
         id: studentFetched.id,
-        name: studentFetched.user.name || "",
-        lastName: studentFetched.user.lastName || "",
+        name: studentFetched.user?.name || "",
+        lastName: studentFetched.user?.lastName || "",
         dni: studentFetched.dni || "",
         telephone: studentFetched.telephone || "",
         birthdate: studentFetched.birthdate || new Date(),
         address: studentFetched.address || "",
         year: studentFetched.yearEntry || new Date(),
-        observations: studentFetched.observations || "",
+
+        observations: studentFetched.observations ?? "",
+
         countryId: studentFetched.countryId,
-        email: studentFetched.user.email || "",
-        careers: studentFetched.careers,
+        email: studentFetched.user?.email || "",
+
+        careers: studentFetched.careers || [],
       });
+
       return studentFetched;
     } catch (error) {
       toast({
@@ -258,8 +282,9 @@ const Estudiantes: React.FC = () => {
     }
   };
 
-  const handleEditClick = async (student: Student) => {
-    const data = await loadStudentById(student.id);
+  const handleEditClick = async (student: any) => {
+    const realId = student.studentId ?? student.id;
+    const data = await loadStudentById(realId);
     if (data) openEditModal();
   };
 
@@ -340,8 +365,9 @@ const Estudiantes: React.FC = () => {
     openCreateModal();
   };
 
-  const handleViewClick = async (student: Student) => {
-    const data = await loadStudentById(student.id);
+  const handleViewClick = async (student: any) => {
+    const realId = student.studentId ?? student.id;
+    const data = await loadStudentById(realId);
     if (data) openViewModal();
   };
 
@@ -818,6 +844,7 @@ const Estudiantes: React.FC = () => {
         renderSubjectNow={(s, i) => renderSubjectRow(s, i)}
         renderSubjectNowView={(s, i) => renderSubjectRowView(s, i)}
         onConfirmEditSubject={handleEditSubject}
+        countries={countries}
       />
 
       <StudentModal
@@ -827,6 +854,7 @@ const Estudiantes: React.FC = () => {
         isViewMode={true}
         role={role}
         renderSubjectNowView={(s, i) => renderSubjectRowView(s, i)}
+        countries={countries}
       />
 
       <SubjectModal

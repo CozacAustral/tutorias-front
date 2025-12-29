@@ -23,11 +23,13 @@ import {
 import React, { useState } from "react";
 import { FaGraduationCap } from "react-icons/fa";
 import { UserService } from "../../../services/admin-service";
+import { Country } from "../interfaces/country.interface";
 import { StudentCareer } from "../interfaces/student-career.interface";
 import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
 import CareerModalEdit from "./rendercareer-modal.modal";
 
 interface StudentModalProps {
+  countries?: Country[];
   isOpen: boolean;
   onClose: () => void;
   onConfirm?: () => Promise<void> | void;
@@ -59,6 +61,7 @@ interface StudentModalProps {
 }
 
 const StudentModal: React.FC<StudentModalProps> = ({
+  countries,
   renderSubjectNow,
   isOpen,
   onClose,
@@ -83,6 +86,8 @@ const StudentModal: React.FC<StudentModalProps> = ({
   } = useDisclosure();
 
   const toggleBlur = () => setShowObservations((prev) => !prev);
+  const countryName =
+    countries?.find((c) => c.id === Number(formData.countryId))?.name ?? "";
 
   const handleViewSubjects = async (
     career: StudentCareer
@@ -119,7 +124,6 @@ const StudentModal: React.FC<StudentModalProps> = ({
     return careers.map((c: StudentCareer) => c.name).join(", ");
   };
 
-  // ✅ estilos comunes + estilos readOnly (view mode)
   const baseFieldProps = {
     borderWidth: "4px",
     borderRadius: "15px",
@@ -140,6 +144,10 @@ const StudentModal: React.FC<StudentModalProps> = ({
         borderColor: "light_gray",
         bg: "light_gray",
       } as const);
+
+  const hasObservations =
+    typeof formData?.observations === "string" &&
+    formData.observations.trim().length > 0;
 
   return (
     <>
@@ -241,9 +249,8 @@ const StudentModal: React.FC<StudentModalProps> = ({
                     type="text"
                     {...baseFieldProps}
                     {...viewFieldProps}
-                    value={formData.countryId || ""}
-                    onChange={isViewMode ? undefined : onInputChange}
-                    isReadOnly={isViewMode}
+                    value={countryName}
+                    isReadOnly
                   />
                 </FormControl>
 
@@ -277,50 +284,51 @@ const StudentModal: React.FC<StudentModalProps> = ({
                   </InputGroup>
                 </FormControl>
               </HStack>
-
-              <FormControl>
-                <FormLabel>Observaciones</FormLabel>
-                <InputGroup>
-                  <Textarea
-                    name="observations"
-                    borderWidth="4px"
-                    borderRadius="15px"
-                    w="100%"
-                    h="100px"
-                    {...(isViewMode
-                      ? {
-                          bg: "gray.100",
-                          borderColor: "gray.200",
-                          color: "gray.600",
-                          cursor: "not-allowed",
-                          _hover: { borderColor: "gray.200" },
-                          _focus: {
-                            boxShadow: "none",
+              {hasObservations && (
+                <FormControl>
+                  <FormLabel>Observaciones</FormLabel>
+                  <InputGroup>
+                    <Textarea
+                      name="observations"
+                      borderWidth="4px"
+                      borderRadius="15px"
+                      w="100%"
+                      h="100px"
+                      {...(isViewMode
+                        ? {
+                            bg: "gray.100",
                             borderColor: "gray.200",
-                          },
-                        }
-                      : {
-                          borderColor: "light_gray",
-                          bg: "light_gray",
-                        })}
-                    value={formData.observations || ""}
-                    onChange={isViewMode ? undefined : onInputChange}
-                    isReadOnly={isViewMode}
-                    style={{
-                      filter: showObservations ? "none" : "blur(4px)",
-                      transition: "filter 0.2s ease",
-                    }}
-                  />
-                  <InputRightElement h="100%" alignItems="flex-start" pt={2}>
-                    <IconButton
-                      icon={showObservations ? <ViewOffIcon /> : <ViewIcon />}
-                      aria-label="Toggle Observaciones"
-                      onClick={toggleBlur}
-                      variant="ghost"
+                            color: "gray.600",
+                            cursor: "not-allowed",
+                            _hover: { borderColor: "gray.200" },
+                            _focus: {
+                              boxShadow: "none",
+                              borderColor: "gray.200",
+                            },
+                          }
+                        : {
+                            borderColor: "light_gray",
+                            bg: "light_gray",
+                          })}
+                      value={formData.observations}
+                      onChange={isViewMode ? undefined : onInputChange}
+                      isReadOnly={isViewMode}
+                      style={{
+                        filter: showObservations ? "none" : "blur(4px)",
+                        transition: "filter 0.2s ease",
+                      }}
                     />
-                  </InputRightElement>
-                </InputGroup>
-              </FormControl>
+                    <InputRightElement h="100%" alignItems="flex-start" pt={2}>
+                      <IconButton
+                        icon={showObservations ? <ViewOffIcon /> : <ViewIcon />}
+                        aria-label="Toggle Observaciones"
+                        onClick={toggleBlur}
+                        variant="ghost"
+                      />
+                    </InputRightElement>
+                  </InputGroup>
+                </FormControl>
+              )}
             </VStack>
           </ModalBody>
 

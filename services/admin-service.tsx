@@ -58,6 +58,13 @@ export const UserService = {
     return res.data;
   },
 
+  async getOneStudentByRole(studentId: number) {
+    const res = await axiosInstance.get(
+      `/students/get-students-by-role/${studentId}`
+    );
+    return res.data;
+  },
+
   async fetchStudentsByRole(params: {
     search?: string;
     currentPage?: number;
