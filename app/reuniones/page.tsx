@@ -13,7 +13,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiFilePlus, FiFileText } from "react-icons/fi";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
@@ -635,14 +635,14 @@ const Reuniones: React.FC = () => {
         meetingId={reportMeetingId}
         studentId={reportStudentId}
         onCreated={() => {
-          onReportClose();
-          setReportMeetingId(null);
-          setReportStudentId(null);
-          setFilters((p) => ({ ...p, studentId: undefined }));
-          const params = new URLSearchParams(searchParams.toString());
-          params.delete("createReportFor");
-          params.delete("studentId");
-          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
+          // onReportClose();
+          // setReportMeetingId(null);
+          // setReportStudentId(null);
+          // setFilters((p) => ({ ...p, studentId: undefined }));
+          // const params = new URLSearchParams(searchParams.toString());
+          // params.delete("createReportFor");
+          // params.delete("studentId");
+          // router.replace(`/reuniones?${params.toString()}`, { scroll: false });
           loadMeetings(page);
         }}
       />

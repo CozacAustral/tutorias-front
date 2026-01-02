@@ -23,8 +23,9 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from "react";
+import { toastError, toastSuccess } from '../../../common/feedback/toast-standalone';
 import { UserService } from "../../../services/admin-service";
 import { CreateReportDto } from "../dto/create-report.dto";
 import ConfirmDialog from "./confirm-dialog-modal";
@@ -56,6 +57,9 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
+
+  const [reportSaved, setReportSaved] = useState(false);
+  const [sendingReport, setSendingReport] = useState(false);
 
   const fetchCareers = useCallback(async () => {
     if (!meetingId) return;
@@ -126,12 +130,47 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
     try {
       await UserService.createReport(meetingId, dto);
       setIsConfirmOpen(false);
-      onClose();
+      setReportSaved(true);
+
+      toastSuccess({
+        title: "Reporte creado",
+        description: "El reporte ha sido creado correctamente.",
+      });
+
       onCreated?.();
+
     } finally {
       setSubmitting(false);
     }
   }, [meetingId, selectedCareerId, topicos, comments, onClose, onCreated]);
+
+  const handleSendReport = useCallback(async () => {
+    if (!meetingId) return;
+
+    try {
+      setSendingReport(true);
+      await UserService.sendReportToStudent(meetingId);
+
+      toastSuccess({
+        title: "Reporte enviado al alumno",
+        description: "El reporte ha sido enviado correctamente al correo del alumno.",
+      });
+    } catch(err) {
+      toastError({
+        title: "Error al enviar el reporte",
+        description: "No se pudo enviar el reporte al alumno. Por favor, intentá nuevamente más tarde.",
+      });
+    } finally {
+      setSendingReport(false);
+    }
+  }, [meetingId]);
+
+  useEffect(() => {
+    if(isOpen){
+      setReportSaved(false);
+      setSendingReport(false);
+    }
+  }, [isOpen, meetingId]);
 
   return (
     <>
@@ -220,13 +259,26 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
             >
               Cancelar
             </Button>
-            <Button
+
+            {reportSaved ? (
+              <Button
+              colorScheme="blue"
+              onClick={handleSendReport}
+              isLoading={sendingReport}
+              isDisabled={submitting}
+            >
+              Enviar reporte
+            </Button>
+            ) : (
+              <Button
               colorScheme="blue"
               onClick={openConfirm}
               isLoading={submitting}
+              isDisabled={reportSaved}
             >
               Guardar reporte
             </Button>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -244,7 +296,7 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
             podrá editarse. ¿Deseás continuar?
           </>
         }
-        confirmText="Confirmar y enviar"
+        confirmText="Confirmar y crear"
         cancelText="Cancelar"
         confirmColorScheme="blue"
       />

@@ -14,9 +14,7 @@ import { ReportInfo } from '../app/reuniones/type/report-info.type';
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
 import { CreateUser } from "./interfaces/createUser";
-import { QueryParamsDto } from "./interfaces/query-params-dto";
 import { ResponseCreateCareer } from "./interfaces/response-create-career.interface";
-import { ResponsePaginateStudent } from "./interfaces/response-paginate";
 
 const urlUsers = "users";
 const urlTutors = "tutors";
@@ -65,6 +63,13 @@ export const UserService = {
     return res.data;
   },
 
+  async sendReportToStudent(meetingId: number) {
+    const res = await axiosInstance.post(
+      `/reports/meetings/${meetingId}/report/send-to-student`
+    );
+    return res.data;
+  },
+
   async updateMeeting(id: number, body: any) {
     const res = await axiosInstance.patch(`/meetings/${id}`, body);
     return res.data;
@@ -94,7 +99,7 @@ export const UserService = {
     });
     return res.data;
   },
-  
+
   async schedule(body: CreateMeetingBody) {
     const res = await axiosInstance.post(`/meetings/schedule-meeting`, body);
     return res.data;
@@ -419,23 +424,17 @@ export const UserService = {
     return response.data;
   },
 
-  async fetchAllStudents(
-    params?: QueryParamsDto
-  ): Promise<ResponsePaginateStudent> {
-    try {
-      const response = await axiosInstance.get<{
-        students: Student[];
-        totalCount: number;
-      }>(urlStudents, {
-        params: params,
-      });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        `Error al obtener los estudiantes: ${error.message || error}`
-      );
-    }
-  },
+  async fetchAllStudents(params: {
+  search?: string;
+  currentPage?: number;
+  resultsPerPage?: number;
+  orderBy?: [string, "ASC" | "DESC"];
+}) {
+  const res = await axiosInstance.get(`/students/students/get-students-by-role`, {
+    params
+  });
+  return res.data;
+},
 
   async fetchStudent(studentId: number): Promise<Student> {
     try {
