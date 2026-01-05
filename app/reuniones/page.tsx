@@ -23,9 +23,11 @@ import React, {
 import { FiFilePlus, FiFileText } from "react-icons/fi";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
+import { Country } from "../alumnos/interfaces/country.interface";
 import { Student } from "../alumnos/interfaces/student.interface";
 import { SubjectCareerWithState } from "../alumnos/interfaces/subject-career-student.interface";
 import SubjectModal from "../alumnos/modals/subject-student.modal";
+import StudentModal from "../alumnos/modals/view-student.modal";
 import { useSidebar } from "../contexts/SidebarContext";
 import ConfirmDialog from "./modals/confirm-dialog-modal";
 import CreateReportModal from "./modals/create-report-modal";
@@ -204,6 +206,13 @@ const Reuniones: React.FC = () => {
   const [rowToDelete, setRowToDelete] = useState<Row | null>(null);
   const [deleting, setDeleting] = useState(false);
   const cancelDeleteRef = useRef<HTMLButtonElement | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const {
+    isOpen: isStudentOpen,
+    onOpen: onStudentOpen,
+    onClose: onStudentClose,
+  } = useDisclosure();
+  const [countries, setCountries] = useState<Country[]>([]);
 
   const isAdmin = useMemo(() => {
     if (!me?.role) return false;
@@ -256,6 +265,18 @@ const Reuniones: React.FC = () => {
 
     init();
   }, []);
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const res = await UserService.fetchAllCountries();
+        setCountries(res);
+      } catch {
+        setCountries([]);
+      }
+    };
+
+    loadCountries();
+  }, []);
   const SUBJECT_STATE_LABELS: Record<string, string> = {
     APPROVED: "Aprobada",
     REGULARIZED: "Regularizada",
@@ -263,6 +284,26 @@ const Reuniones: React.FC = () => {
     INPROGRESS: "En curso",
     NOTATTENDED: "No cursada",
     RETAKING: "Recursando",
+  };
+  const loadStudentById = async (id: number) => {
+    try {
+      const studentFetched = await UserService.getOneStudentByRole(id);
+      setSelectedStudent({
+        id: studentFetched.id,
+        name: studentFetched.user?.name ?? "",
+        lastName: studentFetched.user?.lastName ?? "",
+        email: studentFetched.user?.email ?? "",
+        telephone: studentFetched.telephone ?? "",
+        dni: studentFetched.dni ?? "",
+        address: studentFetched.address ?? "",
+        observations: studentFetched.observations ?? "",
+        countryId: studentFetched.countryId,
+        careers: studentFetched.careers ?? [],
+      });
+      return studentFetched;
+    } catch {
+      return null;
+    }
   };
 
   function normalizeSubjectStateKey(v: any) {
@@ -323,7 +364,19 @@ const Reuniones: React.FC = () => {
   const renderRow = useCallback(
     (r: Row) => (
       <Tr key={r.id}>
-        <Td>{r.alumno}</Td>
+        <Td
+          cursor="pointer"
+          color="blue.500"
+          fontWeight="medium"
+          _hover={{ textDecoration: "underline" }}
+          onClick={async () => {
+            if (!r.studentId) return;
+            const data = await loadStudentById(r.studentId);
+            if (data) onStudentOpen();
+          }}
+        >
+          {r.alumno}
+        </Td>
         <Td>{r.fecha}</Td>
         <Td>{r.hora}</Td>
         <Td>{r.aula}</Td>
@@ -867,6 +920,31 @@ const Reuniones: React.FC = () => {
         cancelText="Cancelar"
         confirmColorScheme="red"
       />
+      {selectedStudent && (
+        <StudentModal
+          isOpen={isStudentOpen}
+          onClose={() => {
+            onStudentClose();
+            setSelectedStudent(null);
+          }}
+          isViewMode={true}
+          role={me?.roleId ?? 0}
+          formData={selectedStudent}
+          countries={countries} 
+          renderSubjectNowView={(s, i) => (
+            <Tr key={s.subjectId ?? i}>
+              <Td>{s.subjectName}</Td>
+              <Td>{s.year}</Td>
+              <Td>{s.subjectState}</Td>
+              <Td>
+                {s.updateAt
+                  ? new Date(s.updateAt).toLocaleDateString("es-AR")
+                  : "-"}
+              </Td>
+            </Tr>
+          )}
+        />
+      )}
     </>
   );
 };
