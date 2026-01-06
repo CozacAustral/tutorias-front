@@ -9,7 +9,6 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import { FaRegCalendarAlt } from "react-icons/fa";
 import DeleteModal from "../../common/components/modals/detele.modal";
 import ImportModal from "../../common/components/modals/import.modal";
 import { UserService } from "../../services/admin-service";
@@ -157,13 +156,31 @@ const Estudiantes: React.FC = () => {
     const loadRole = async () => {
       try {
         const me = await UserService.fetchMe();
-        // adaptá según tu respuesta real:
-        // si viene me.roleId -> setRole(me.roleId)
-        // si viene me.role.id -> setRole(me.role.id)
-        setRole(
-          Number((me as any).roleId ?? (me as any).role?.id ?? (me as any).role)
-        );
-      } catch (e) {
+        const raw =
+          (me as any).roleId ??
+          (me as any).role?.id ??
+          (me as any).role ??
+          (me as any).user?.roleId ??
+          (me as any).user?.role?.id;
+
+        let parsed = 0;
+
+        if (typeof raw === "number") parsed = raw;
+        else if (typeof raw === "string") {
+          const n = Number(raw);
+          if (!Number.isNaN(n)) parsed = n;
+          else {
+            const r = raw.toUpperCase();
+            if (r === "ADMIN") parsed = 1;
+            if (r === "TUTOR") parsed = 2;
+          }
+        } else if (typeof raw === "object" && raw) {
+          const objId = (raw as any).id;
+          if (typeof objId === "number") parsed = objId;
+        }
+
+        setRole(parsed);
+      } catch {
         setRole(0);
       }
     };
@@ -663,9 +680,16 @@ const Estudiantes: React.FC = () => {
             onClick={() => handleViewClick(student)}
           />
           <IconButton
-            aria-label="Seleccionar fecha"
-            icon={<FaRegCalendarAlt />}
-            variant="ghost"
+            icon={<EditIcon boxSize={5} />}
+            aria-label="Edit"
+            mr={5}
+            backgroundColor="white"
+            _hover={{
+              borderRadius: 15,
+              backgroundColor: "#318AE4",
+              color: "White",
+            }}
+            onClick={() => handleEditClick(student)}
           />
         </Td>
       )}
@@ -703,6 +727,7 @@ const Estudiantes: React.FC = () => {
                 backgroundColor: "#318AE4",
                 color: "White",
               }}
+              onClick={() => handleAllSubject(career)}
             />
             <IconButton
               icon={<EditIcon boxSize={5} />}
@@ -716,16 +741,19 @@ const Estudiantes: React.FC = () => {
               }}
               onClick={() => handleAllSubject(career)}
             />
-            <IconButton
-              icon={<DeleteIcon boxSize={5} />}
-              aria-label="Delete"
-              backgroundColor="white"
-              _hover={{
-                borderRadius: 15,
-                backgroundColor: "#318AE4",
-                color: "White",
-              }}
-            />
+
+            {role === 1 ? (
+              <IconButton
+                icon={<DeleteIcon boxSize={5} />}
+                aria-label="Delete"
+                backgroundColor="white"
+                _hover={{
+                  borderRadius: 15,
+                  backgroundColor: "#318AE4",
+                  color: "White",
+                }}
+              />
+            ) : null}
           </>
         )}
       </Td>
@@ -782,7 +810,7 @@ const Estudiantes: React.FC = () => {
           : "-"}
       </Td>
       <Td>
-        {role === 2 ? null : (
+        {role === 1 || role === 2 ? (
           <IconButton
             icon={<EditIcon boxSize={5} />}
             aria-label="Edit"
@@ -804,7 +832,7 @@ const Estudiantes: React.FC = () => {
               handleEditSubjectClick(subject.subjectId);
             }}
           />
-        )}
+        ) : null}
       </Td>
     </Tr>
   );

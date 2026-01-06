@@ -124,7 +124,8 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
     if (!onConfirmEditSubject) {
       toast({
         title: "No se puede guardar",
-        description: "No se definió la acción para guardar cambios de materias.",
+        description:
+          "No se definió la acción para guardar cambios de materias.",
         status: "warning",
       });
       return;
@@ -138,7 +139,7 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
   // - el StudentModal NO está en viewMode
   // - no es tutor
   // - y abriste con el lápiz (openMode === "edit")
-  const canEditSubjects = !isViewMode && role !== 2 && openMode === "edit";
+  const canEditSubjects = !isViewMode && openMode === "edit";
 
   const renderCareerRow = (career: StudentCareer, index: number) => (
     <Tr key={index}>
@@ -157,10 +158,8 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
           onClick={() => loadSubjectsAndOpen(career, "view")}
         />
 
-        {/* En edición del alumno, muestro botones extra */}
-        {!isViewMode && role !== 2 && (
+        {!isViewMode && (
           <>
-            {/* ✏️ Editar materias (abre editable) */}
             <IconButton
               icon={<EditIcon boxSize={5} />}
               aria-label="Editar materias"
@@ -169,14 +168,17 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
               _hover={{ backgroundColor: "#318AE4", color: "white" }}
               onClick={() => loadSubjectsAndOpen(career, "edit")}
             />
-            <IconButton
-              icon={<DeleteIcon boxSize={5} />}
-              aria-label="Eliminar carrera"
-              mr={2}
-              backgroundColor="white"
-              _hover={{ backgroundColor: "#E53E3E", color: "white" }}
-              onClick={() => handleDeleteCareer(career)}
-            />
+
+            {role === 1 ? (
+              <IconButton
+                icon={<DeleteIcon boxSize={5} />}
+                aria-label="Eliminar carrera"
+                mr={2}
+                backgroundColor="white"
+                _hover={{ backgroundColor: "#E53E3E", color: "white" }}
+                onClick={() => handleDeleteCareer(career)}
+              />
+            ) : null}
           </>
         )}
       </Td>
@@ -195,7 +197,6 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
           <ModalBody overflowY="auto" p={0}>
             <Box width="100%" overflow="hidden">
               <GenericTable<StudentCareer>
-
                 data={careers || []}
                 TableHeader={[
                   "Carrera",
@@ -230,7 +231,9 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
         entityName="Materias"
         titleCareer={selectedCareer?.name}
         subjects={subjects}
-        renderSubjectNow={canEditSubjects ? renderSubjectNow : renderSubjectNowView}
+        renderSubjectNow={
+          canEditSubjects ? renderSubjectNow : renderSubjectNowView
+        }
         showButtonCancelSave={canEditSubjects}
       />
     </>
