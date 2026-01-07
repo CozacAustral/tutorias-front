@@ -25,6 +25,7 @@ import SubjectModal from "./subject-student.modal";
 type SubjectOpenMode = "view" | "edit";
 
 interface CareerModalEditProps {
+  onAddCareer?: () => void;
   isOpen: boolean;
   onClose: () => void;
   careers: StudentCareer[];
@@ -55,6 +56,7 @@ interface CareerModalEditProps {
 }
 
 const CareerModalEdit: React.FC<CareerModalEditProps> = ({
+  onAddCareer,
   isOpen,
   onClose,
   careers,
@@ -135,10 +137,6 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
     closeSubjectModal();
   };
 
-  // ✅ solo se puede editar si:
-  // - el StudentModal NO está en viewMode
-  // - no es tutor
-  // - y abriste con el lápiz (openMode === "edit")
   const canEditSubjects = !isViewMode && openMode === "edit";
 
   const renderCareerRow = (career: StudentCareer, index: number) => (
@@ -148,7 +146,6 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
       <Td>{career.yearEntry || "-"}</Td>
       <Td>{career.yearOfThePlan || "-"}</Td>
       <Td>
-        {/* 👁️ Ver materias (SIEMPRE solo lectura) */}
         <IconButton
           icon={<ViewIcon boxSize={5} />}
           aria-label="Ver materias"
@@ -210,7 +207,8 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
                 compact={false}
                 filter={false}
                 itemsPerPage={3}
-                showAddMenu={false}
+                showAddMenu={!isViewMode && role === 1}
+                onCreateOpen={onAddCareer}
                 isInModal
                 careerModalEdit
               />

@@ -26,7 +26,7 @@ import { UserService } from "../../../services/admin-service";
 import { Country } from "../interfaces/country.interface";
 import { StudentCareer } from "../interfaces/student-career.interface";
 import { SubjectCareerWithState } from "../interfaces/subject-career-student.interface";
-import CareerModalEdit from "./rendercareer-modal.modal";
+import CareerModalEdit from "./career-modal-edit.modal";
 
 interface StudentModalProps {
   countries?: Country[];
@@ -58,9 +58,11 @@ interface StudentModalProps {
     subject: SubjectCareerWithState,
     index: number
   ) => React.ReactNode;
+    onAddCareer?: () => void;
 }
 
 const StudentModal: React.FC<StudentModalProps> = ({
+    onAddCareer,
   countries,
   renderSubjectNow,
   isOpen,
@@ -352,6 +354,7 @@ const StudentModal: React.FC<StudentModalProps> = ({
       </Modal>
 
       <CareerModalEdit
+        onAddCareer={onAddCareer}
         isOpen={isCareersModalOpen}
         onClose={closeCareersModal}
         careers={formData.careers || []}

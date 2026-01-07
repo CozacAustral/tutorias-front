@@ -107,6 +107,7 @@ const Estudiantes: React.FC = () => {
     email: "",
     careers: [
       {
+        id: 0,
         careerId: 0,
         name: "",
         active: false,
@@ -297,6 +298,19 @@ const Estudiantes: React.FC = () => {
         status: "error",
       });
     }
+  };
+
+  const handleOpenCreateCareerModal = () => {
+    if (!selectedStudent?.id) return;
+
+    setCareerData((prev) => ({
+      ...prev,
+      studentId: selectedStudent.id, // ✅ ACÁ
+      careerId: 0,
+      yearOfAdmission: 0,
+    }));
+
+    openCreateCareerModal();
   };
 
   const handleEditClick = async (student: any) => {
@@ -529,6 +543,34 @@ const Estudiantes: React.FC = () => {
           isClosable: true,
         });
       }
+    }
+  };
+
+  const onDeleteCareer = async (career: StudentCareer) => {
+    if (!selectedStudent) return;
+
+    try {
+      await UserService.deleteCareerStudent([career.id]);
+
+      // actualizar estado local
+      setFormData((prev) => ({
+        ...prev,
+        careers: prev.careers.filter((c) => c.id !== career.id),
+      }));
+
+      toast({
+        title: "Carrera eliminada",
+        description: `La carrera "${career.name}" fue desasignada del alumno.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la carrera.",
+        status: "error",
+      });
     }
   };
 
@@ -862,6 +904,8 @@ const Estudiantes: React.FC = () => {
       {error && role !== 2 && <p>{error}</p>}
 
       <StudentModal
+        onAddCareer={handleOpenCreateCareerModal}
+        onDeleteCareer={onDeleteCareer}
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onConfirm={handleStudentUpdate}

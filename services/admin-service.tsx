@@ -26,6 +26,11 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async deleteCareerStudent(careerStudentIds: number[]): Promise<void> {
+    await axiosInstance.delete("/students/career-student", {
+      data: careerStudentIds,
+    });
+  },
   async getMeetings(
     page = 1,
     limit = 10,
