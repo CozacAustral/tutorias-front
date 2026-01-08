@@ -37,13 +37,11 @@ interface CareerModalEditProps {
   onDeleteCareer?: (career: StudentCareer) => void;
   onToggleActive?: (career: StudentCareer) => void;
 
-  // 👇 renderer EDITABLE (el que tiene Select + lápiz)
   renderSubjectNow?: (
     subject: SubjectCareerWithState,
     index: number
   ) => React.ReactNode;
 
-  // 👇 renderer SOLO LECTURA (sin Select ni acciones)
   renderSubjectNowView?: (
     subject: SubjectCareerWithState,
     index: number

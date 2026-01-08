@@ -7,7 +7,6 @@ import {
   Tooltip,
   Tr,
   useDisclosure,
-  useToast,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import DeleteModal from "../../common/components/modals/detele.modal";
@@ -50,12 +49,17 @@ const Estudiantes: React.FC = () => {
   const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
     undefined
   );
-  const [loading, setLoading] = useState(true);
+  const [loadingRole, setLoadingRole] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(true);
+  const [loadingCareers, setLoadingCareers] = useState(true);
+  const [loadingCountries, setLoadingCountries] = useState(false);
   const [role, setRole] = useState(0);
 
-  const toast = useToast();
-
-  const jwt = require("jsonwebtoken");
+  const isLoading =
+    loadingRole ||
+    loadingStudents ||
+    loadingCareers ||
+    (role !== 2 && loadingCountries);
 
   const {
     isOpen: isEditModalOpen,
@@ -154,9 +158,9 @@ const Estudiantes: React.FC = () => {
     "Carrera/s",
   ];
 
-
   useEffect(() => {
     const loadRole = async () => {
+      setLoadingRole(true);
       try {
         const me = await UserService.fetchMe();
         const raw =
@@ -185,77 +189,115 @@ const Estudiantes: React.FC = () => {
         setRole(parsed);
       } catch {
         setRole(0);
+      } finally {
+        setLoadingRole(false);
       }
     };
 
     loadRole();
   }, []);
 
-  useEffect(() => {
-    const loadStudents = async () => {
-      try {
-        const data = await UserService.fetchStudentsByRole({
-          search: searchTerm,
-          currentPage,
-          resultsPerPage: 10,
-          orderBy,
-        });
+useEffect(() => {
+  const loadStudents = async () => {
+    setLoadingStudents(true);
+    try {
+      const data = await UserService.fetchStudentsByRole({
+        search: searchTerm,
+        currentPage,
+        resultsPerPage: 10,
+        orderBy,
+      });
 
-        if (data.students) {
-          setStudents(data.students);
-          setTotalStudents(data.totalCount);
-        } else {
-          setStudents(data.data);
-          setTotalStudents(data.total);
-        }
-      } catch (error) {
-        console.error("Error fetching students:", error);
-        setError("No se pudieron cargar los estudiantes.");
-      } finally {
-        setLoading(false);
+      if (data.students) {
+        setStudents(data.students);
+        setTotalStudents(data.totalCount);
+      } else {
+        setStudents(data.data);
+        setTotalStudents(data.total);
       }
-    };
-
-    loadStudents();
-  }, [currentPage, searchTerm, orderBy]);
-
-  useEffect(() => {
-    const loadCareers = async () => {
-      try {
-        const fetchedCareers = await UserService.fetchAllCareers();
-        setCareers(fetchedCareers);
-      } catch (error) {
-        console.error("Error fetching careers: ", error);
-        setError("No se puedieron cargar las carreras.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCareers();
-  }, []);
-
-  useEffect(() => {
-    if (role === 2) {
-      setLoading(false);
-      setError(null);
-      return;
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      setError("No se pudieron cargar los estudiantes.");
+    } finally {
+      setLoadingStudents(false);
     }
+  };
 
-    const loadCountries = async () => {
-      try {
-        const fetchedCountries = await UserService.fetchAllCountries();
-        setCountries(fetchedCountries);
-      } catch (error) {
-        console.error("Error fetching countries: ", error);
-        setError("No se pudieron cargar los países.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  loadStudents();
+}, [currentPage, searchTerm, orderBy]);
 
-    loadCountries();
-  }, [role]);
+
+useEffect(() => {
+  const loadCareers = async () => {
+    setLoadingCareers(true);
+    try {
+      const fetchedCareers = await UserService.fetchAllCareers();
+      setCareers(fetchedCareers);
+    } catch (error) {
+      console.error("Error fetching careers: ", error);
+      setError("No se puedieron cargar las carreras.");
+    } finally {
+      setLoadingCareers(false);
+    }
+  };
+
+  loadCareers();
+}, []);
+
+useEffect(() => {
+  if (role === 2) {
+    setLoadingCountries(false);
+    setError(null);
+    return;
+  }
+
+  const loadCountries = async () => {
+    setLoadingCountries(true);
+    try {
+      const fetchedCountries = await UserService.fetchAllCountries();
+      setCountries(fetchedCountries);
+    } catch (error) {
+      console.error("Error fetching countries: ", error);
+      setError("No se pudieron cargar los países.");
+    } finally {
+      setLoadingCountries(false);
+    }
+  };
+
+  loadCountries();
+}, [role]);
+
+
+  const getStudentId = (s: any) => Number(s?.studentId ?? s?.id);
+
+  const getCareerNames = (careersAny: any) => {
+    const careers = Array.isArray(careersAny) ? careersAny : [];
+    return careers
+      .map((c: any) => c?.name ?? c?.career?.name ?? c?.name_career)
+      .filter(Boolean) as string[];
+  };
+
+  const getCareerLabel = (careersAny: any) => {
+    const names = getCareerNames(careersAny);
+    const full = names.join(", ");
+    const short =
+      names.length === 0
+        ? "Sin carrera asignada"
+        : names.length === 1
+          ? names[0]
+          : `${names[0]} +${names.length - 1}…`;
+
+    return { names, full, short };
+  };
+
+  const openStudent = async (student: any, mode: "view" | "edit") => {
+    const realId = getStudentId(student);
+    const data = await loadStudentById(realId);
+    if (!data) return;
+
+    if (mode === "view") openViewModal();
+    else openEditModal();
+  };
 
   const handleDeleteClick = (student: Student) => {
     setSelectedStudent(student);
@@ -294,11 +336,6 @@ const Estudiantes: React.FC = () => {
 
       return studentFetched;
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo obtener los datos del estudiante",
-        status: "error",
-      });
     }
   };
 
@@ -313,12 +350,6 @@ const Estudiantes: React.FC = () => {
     }));
 
     openCreateCareerModal();
-  };
-
-  const handleEditClick = async (student: any) => {
-    const realId = student.studentId ?? student.id;
-    const data = await loadStudentById(realId);
-    if (data) openEditModal();
   };
 
   const handleChangeCreateStudent = (
@@ -369,39 +400,18 @@ const Estudiantes: React.FC = () => {
             (student) => student.user.id !== selectedStudent.user.id
           ) || []
         );
-        toast({
-          title: "Estudiante eliminado.",
-          description: "El tutor ha sido eliminado correctamente.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
         closeDeleteModal();
       } catch (err) {
         console.error("Error al eliminar:", err);
-        toast({
-          title: "Error al eliminar tutor.",
-          description: "Hubo un error al intentar eliminar al tutor.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
       }
     }
   };
 
   const handleImport = (data: any) => {
-    console.log("imported data", data);
   };
 
   const handleCreateClick = () => {
     openCreateModal();
-  };
-
-  const handleViewClick = async (student: any) => {
-    const realId = student.studentId ?? student.id;
-    const data = await loadStudentById(realId);
-    if (data) openViewModal();
   };
 
   const handleStudentUpdate = async () => {
@@ -434,25 +444,9 @@ const Estudiantes: React.FC = () => {
               : student
           )
         );
-
-        toast({
-          title: "Alumno actualizado.",
-          description: "El alumno ha sido actualizado.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-
         closeEditModal();
       } catch (error) {
         console.error("Error al editar estudiante:", error);
-        toast({
-          title: "Error",
-          description: "No se pudo editar el estudiante. Intenta de nuevo.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
       }
     }
   };
@@ -461,11 +455,6 @@ const Estudiantes: React.FC = () => {
     setSelectedCareerState(career.active);
 
     if (!selectedStudent?.id || !career?.careerId) {
-      toast({
-        title: "Error",
-        description: "Faltan datos del estudiante o de la carrera",
-        status: "error",
-      });
       return;
     }
 
@@ -483,11 +472,6 @@ const Estudiantes: React.FC = () => {
         openSujectModal();
       }, 0);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo obtener las materias de la carrera",
-        status: "error",
-      });
     }
   };
 
@@ -525,25 +509,8 @@ const Estudiantes: React.FC = () => {
         );
 
         setEditedSubjects({});
-
-        toast({
-          title:
-            "Los estados de las materias del alumno, han sido actualizadas.",
-          description: "Las materias ya tienen el nuevo estado.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
       } catch (error) {
         console.error("Error al editar el estado de la materia:", error);
-        toast({
-          title: "Error",
-          description:
-            "No se pudo editar el estado de la materia. Intenta de nuevo.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
       }
     }
   };
@@ -558,20 +525,7 @@ const Estudiantes: React.FC = () => {
         ...prev,
         careers: prev.careers.filter((c) => c.id !== career.id),
       }));
-
-      toast({
-        title: "Carrera eliminada",
-        description: `La carrera "${career.name}" fue desasignada del alumno.`,
-        status: "success",
-        duration: 4000,
-        isClosable: true,
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar la carrera.",
-        status: "error",
-      });
     }
   };
 
@@ -632,24 +586,8 @@ const Estudiantes: React.FC = () => {
           ...prevFormData,
           careers: updatedStudent.careers,
         }));
-
-        toast({
-          title: "Carrera creada",
-          description: "La carrera fue creada con exito",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-
         closeCreateCareerModal();
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Error en la creacion de la carrera",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
       }
     }
   };
@@ -659,110 +597,72 @@ const Estudiantes: React.FC = () => {
     closeSubjectModal();
   };
 
-const renderStudentRow = (student: Student) => {
-  const studentCareers = Array.isArray((student as any).careers)
-    ? (student as any).careers
-    : [];
+  const actionBtnProps = {
+    backgroundColor: "white",
+    _hover: {
+      borderRadius: 15,
+      backgroundColor: "#318AE4",
+      color: "White",
+    },
+  } as const;
 
-  const careerNames = studentCareers
-    .map((c: any) => c?.name ?? c?.career?.name ?? c?.name_career)
-    .filter(Boolean) as string[];
+  const dangerBtnProps = {
+    backgroundColor: "white",
+    _hover: {
+      borderRadius: 15,
+      backgroundColor: "#E53E3E",
+      color: "White",
+    },
+  } as const;
 
-  const full = careerNames.join(", ");
-  const short =
-    careerNames.length === 0
-      ? "No name available"
-      : careerNames.length === 1
-        ? careerNames[0]
-        : `${careerNames[0]} +${careerNames.length - 1}…`;
+  const renderStudentRow = (student: Student) => {
+    const { names, full, short } = getCareerLabel((student as any).careers);
+    const canDelete = role !== 2;
 
-  return (
-    <Tr key={student.id}>
-      <Td>{student.user?.name}</Td>
-      <Td>{student.user?.lastName}</Td>
-      <Td>{student.telephone}</Td>
-      <Td>{student.user?.email}</Td>
+    return (
+      <Tr key={student.id}>
+        <Td>{student.user?.name}</Td>
+        <Td>{student.user?.lastName}</Td>
+        <Td>{student.telephone}</Td>
+        <Td>{student.user?.email}</Td>
 
-      <Td>
-        {careerNames.length > 1 ? (
-          <Tooltip label={full} hasArrow>
-            <span>{short}</span>
-          </Tooltip>
-        ) : (
-          short
-        )}
-      </Td>
+        <Td>
+          {names.length > 1 ? (
+            <Tooltip label={full} hasArrow>
+              <span>{short}</span>
+            </Tooltip>
+          ) : (
+            short
+          )}
+        </Td>
 
-      {role !== 2 ? (
         <Td>
           <IconButton
+            {...actionBtnProps}
             icon={<ViewIcon boxSize={5} />}
             aria-label="View"
-            backgroundColor="white"
             mr={5}
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleViewClick(student)}
+            onClick={() => openStudent(student, "view")}
           />
           <IconButton
+            {...actionBtnProps}
             icon={<EditIcon boxSize={5} />}
             aria-label="Edit"
             mr={5}
-            backgroundColor="white"
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleEditClick(student)}
+            onClick={() => openStudent(student, "edit")}
           />
-          <IconButton
-            icon={<DeleteIcon boxSize={5} />}
-            aria-label="Delete"
-            backgroundColor="white"
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleDeleteClick(student)}
-          />
+          {canDelete && (
+            <IconButton
+              {...dangerBtnProps}
+              icon={<DeleteIcon boxSize={5} />}
+              aria-label="Delete"
+              onClick={() => handleDeleteClick(student)}
+            />
+          )}
         </Td>
-      ) : (
-        <Td>
-          <IconButton
-            icon={<ViewIcon boxSize={5} />}
-            aria-label="View"
-            backgroundColor="white"
-            mr={5}
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleViewClick(student)}
-          />
-          <IconButton
-            icon={<EditIcon boxSize={5} />}
-            aria-label="Edit"
-            mr={5}
-            backgroundColor="white"
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleEditClick(student)}
-          />
-        </Td>
-      )}
-    </Tr>
-  );
-};
-
+      </Tr>
+    );
+  };
 
   const renderCareerRow = (career: StudentCareer) => (
     <Tr key={career.careerId}>
@@ -770,60 +670,30 @@ const renderStudentRow = (student: Student) => {
       <Td>{career.active ? "Activa" : "Inactiva"}</Td>
       <Td>{career.yearEntry}</Td>
       <Td>
-        {role === 2 ? (
-          <IconButton
-            icon={<ViewIcon boxSize={5} />}
-            aria-label="View"
-            backgroundColor="white"
-            mr={5}
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleAllSubject(career)}
-          />
-        ) : (
-          <>
-            <IconButton
-              icon={<ViewIcon boxSize={5} />}
-              aria-label="View"
-              backgroundColor="white"
-              mr={5}
-              _hover={{
-                borderRadius: 15,
-                backgroundColor: "#318AE4",
-                color: "White",
-              }}
-              onClick={() => handleAllSubject(career)}
-            />
-            <IconButton
-              icon={<EditIcon boxSize={5} />}
-              aria-label="Edit"
-              mr={5}
-              backgroundColor="white"
-              _hover={{
-                borderRadius: 15,
-                backgroundColor: "#318AE4",
-                color: "White",
-              }}
-              onClick={() => handleAllSubject(career)}
-            />
+        <IconButton
+          {...actionBtnProps}
+          icon={<ViewIcon boxSize={5} />}
+          aria-label="View"
+          mr={5}
+          onClick={() => handleAllSubject(career)}
+        />
 
-            {role === 1 ? (
-              <IconButton
-                icon={<DeleteIcon boxSize={5} />}
-                aria-label="Delete"
-                backgroundColor="white"
-                _hover={{
-                  borderRadius: 15,
-                  backgroundColor: "#318AE4",
-                  color: "White",
-                }}
-              />
-            ) : null}
-          </>
-        )}
+        <IconButton
+          {...actionBtnProps}
+          icon={<EditIcon boxSize={5} />}
+          aria-label="Edit"
+          mr={5}
+          onClick={() => handleAllSubject(career)}
+        />
+
+        {role === 1 ? (
+          <IconButton
+            {...dangerBtnProps}
+            icon={<DeleteIcon boxSize={5} />}
+            aria-label="Delete"
+            onClick={() => onDeleteCareer(career)}
+          />
+        ) : null}
       </Td>
     </Tr>
   );

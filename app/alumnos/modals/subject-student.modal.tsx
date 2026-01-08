@@ -127,7 +127,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                             </td>
                           </tr>
                         ))
-                      } // ✅ fallback visible
+                      }
                       compact={false}
                       itemsPerPage={itemsPerPage}
                       showAddMenu={false}
