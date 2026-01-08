@@ -45,7 +45,7 @@ export const UserService = {
       order?: "asc" | "desc";
     }
   ): Promise<GetMeetingsResp> {
-    const res = await axiosInstance.get(`/meetings/smart-meetings`, {
+    const res = await axiosInstance.get(`/meetings/role/meetings`, {
       params: { currentPage: page, resultsPerPage: limit, ...filters },
     });
     return res.data;

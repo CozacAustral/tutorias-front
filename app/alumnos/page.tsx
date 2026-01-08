@@ -4,6 +4,7 @@ import {
   IconButton,
   Select,
   Td,
+  Tooltip,
   Tr,
   useDisclosure,
   useToast,
@@ -152,6 +153,7 @@ const Estudiantes: React.FC = () => {
     "Nro de telefono",
     "Carrera/s",
   ];
+
 
   useEffect(() => {
     const loadRole = async () => {
@@ -552,7 +554,6 @@ const Estudiantes: React.FC = () => {
     try {
       await UserService.deleteCareerStudent([career.id]);
 
-      // actualizar estado local
       setFormData((prev) => ({
         ...prev,
         careers: prev.careers.filter((c) => c.id !== career.id),
@@ -658,17 +659,40 @@ const Estudiantes: React.FC = () => {
     closeSubjectModal();
   };
 
-  const renderStudentRow = (student: Student) => (
+const renderStudentRow = (student: Student) => {
+  const studentCareers = Array.isArray((student as any).careers)
+    ? (student as any).careers
+    : [];
+
+  const careerNames = studentCareers
+    .map((c: any) => c?.name ?? c?.career?.name ?? c?.name_career)
+    .filter(Boolean) as string[];
+
+  const full = careerNames.join(", ");
+  const short =
+    careerNames.length === 0
+      ? "No name available"
+      : careerNames.length === 1
+        ? careerNames[0]
+        : `${careerNames[0]} +${careerNames.length - 1}…`;
+
+  return (
     <Tr key={student.id}>
       <Td>{student.user?.name}</Td>
       <Td>{student.user?.lastName}</Td>
       <Td>{student.telephone}</Td>
       <Td>{student.user?.email}</Td>
+
       <Td>
-        {student.careers && student.careers.length > 0
-          ? student.careers[0]?.name
-          : "No name available"}
+        {careerNames.length > 1 ? (
+          <Tooltip label={full} hasArrow>
+            <span>{short}</span>
+          </Tooltip>
+        ) : (
+          short
+        )}
       </Td>
+
       {role !== 2 ? (
         <Td>
           <IconButton
@@ -737,6 +761,8 @@ const Estudiantes: React.FC = () => {
       )}
     </Tr>
   );
+};
+
 
   const renderCareerRow = (career: StudentCareer) => (
     <Tr key={career.careerId}>

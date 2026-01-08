@@ -16,6 +16,7 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Select,
   Textarea,
   VStack,
   useDisclosure,
@@ -58,11 +59,11 @@ interface StudentModalProps {
     subject: SubjectCareerWithState,
     index: number
   ) => React.ReactNode;
-    onAddCareer?: () => void;
+  onAddCareer?: () => void;
 }
 
 const StudentModal: React.FC<StudentModalProps> = ({
-    onAddCareer,
+  onAddCareer,
   countries,
   renderSubjectNow,
   isOpen,
@@ -70,8 +71,6 @@ const StudentModal: React.FC<StudentModalProps> = ({
   onConfirm,
   formData,
   onInputChange,
-  onViewSubjects,
-  onEditSubjects,
   onDeleteCareer,
   onToggleActive,
   isViewMode = false,
@@ -88,6 +87,7 @@ const StudentModal: React.FC<StudentModalProps> = ({
   } = useDisclosure();
 
   const toggleBlur = () => setShowObservations((prev) => !prev);
+
   const countryName =
     countries?.find((c) => c.id === Number(formData.countryId))?.name ?? "";
 
@@ -113,17 +113,25 @@ const StudentModal: React.FC<StudentModalProps> = ({
     }
   };
 
-  const careerDisplay = () => {
-    const careers: StudentCareer[] = formData?.careers || [];
-    if (careers.length === 0) return "Sin carrera asignada";
-    if (isViewMode && careers.length > 1)
-      return (
-        careers
-          .map((c: StudentCareer) => c.name)
-          .join(", ")
-          .slice(0, 25) + "..."
-      );
-    return careers.map((c: StudentCareer) => c.name).join(", ");
+  const getCareerNames = () => {
+    const careersAny = Array.isArray((formData as any)?.careers)
+      ? (formData as any).careers
+      : [];
+
+    return careersAny
+      .map((c: any) => c?.name ?? c?.career?.name ?? c?.name_career)
+      .filter(Boolean) as string[];
+  };
+
+  const careerText = () => {
+    const names = getCareerNames();
+
+    const full = names.length === 0 ? "Sin carrera asignada" : names.join(", ");
+
+    const display =
+      names.length <= 1 ? full : `${names[0]} +${names.length - 1}...`; // o `${names[0]} +${names.length - 1}…`
+
+    return { full, display };
   };
 
   const baseFieldProps = {
@@ -246,27 +254,51 @@ const StudentModal: React.FC<StudentModalProps> = ({
               <HStack spacing={4} w="100%">
                 <FormControl>
                   <FormLabel>País</FormLabel>
-                  <Input
-                    name="countryId"
-                    type="text"
-                    {...baseFieldProps}
-                    {...viewFieldProps}
-                    value={countryName}
-                    isReadOnly
-                  />
+
+                  {isViewMode ? (
+                    <Input
+                      name="countryId"
+                      type="text"
+                      {...baseFieldProps}
+                      {...viewFieldProps}
+                      value={countryName}
+                      isReadOnly
+                    />
+                  ) : (
+                    <Select
+                      name="countryId"
+                      {...baseFieldProps}
+                      {...viewFieldProps}
+                      value={String(formData.countryId ?? "")}
+                      onChange={onInputChange}
+                      placeholder="Seleccionar país"
+                    >
+                      {(countries ?? []).map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
                 </FormControl>
 
                 <FormControl>
                   <FormLabel>Carrera/s</FormLabel>
                   <InputGroup>
-                    <Input
-                      name="career"
-                      type="text"
-                      {...baseFieldProps}
-                      {...viewFieldProps}
-                      value={careerDisplay()}
-                      isReadOnly
-                    />
+                    {(() => {
+                      const { full, display } = careerText();
+                      return (
+                        <Input
+                          name="career"
+                          type="text"
+                          {...baseFieldProps}
+                          {...viewFieldProps}
+                          value={display}
+                          title={full} // hover para ver todo
+                          isReadOnly
+                        />
+                      );
+                    })()}
                     <InputRightElement
                       display="flex"
                       alignItems="center"
@@ -286,6 +318,7 @@ const StudentModal: React.FC<StudentModalProps> = ({
                   </InputGroup>
                 </FormControl>
               </HStack>
+
               {hasObservations && (
                 <FormControl>
                   <FormLabel>Observaciones</FormLabel>
