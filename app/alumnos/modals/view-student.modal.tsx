@@ -128,9 +128,7 @@ const StudentModal: React.FC<StudentModalProps> = ({
 
     const full = names.length === 0 ? "Sin carrera asignada" : names.join(", ");
 
-    const display =
-      names.length <= 1 ? full : `${names[0]} +${names.length - 1}...`;
-
+    const display = names.length <= 1 ? full : `${names[0]}...`;
     return { full, display };
   };
 

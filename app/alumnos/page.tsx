@@ -276,18 +276,19 @@ const Estudiantes: React.FC = () => {
       .filter(Boolean) as string[];
   };
 
-  const getCareerLabel = (careersAny: any) => {
-    const names = getCareerNames(careersAny);
-    const full = names.join(", ");
-    const short =
-      names.length === 0
-        ? "Sin carrera asignada"
-        : names.length === 1
-          ? names[0]
-          : `${names[0]} +${names.length - 1}…`;
+const getCareerLabel = (careersAny: any) => {
+  const names = getCareerNames(careersAny);
+  const full = names.join(", ");
 
-    return { names, full, short };
-  };
+  const short =
+    names.length === 0
+      ? "Sin carrera asignada"
+      : names.length === 1
+        ? names[0]
+        : `${names[0]}...`; 
+
+  return { names, full, short };
+};
 
   const openStudent = async (student: any, mode: "view" | "edit") => {
     const realId = getStudentId(student);
@@ -668,19 +669,32 @@ const handleImport = async (_data?: any) => {
     }));
   };
 
-  const handleCreateCareer = async () => {
-    if (selectedStudent?.id && selectedCareer?.id) {
-      try {
-        await UserService.createCareer(careerData);
+const handleCreateCareer = async () => {
+  if (selectedStudent?.id && selectedCareer?.id) {
+    try {
+      await UserService.createCareer(careerData);
 
-        await loadStudentById(selectedStudent.id);
+      const updatedStudent = await loadStudentById(selectedStudent.id);
+      if (!updatedStudent) return;
 
-        closeCreateCareerModal();
-      } catch (error) {
-        console.error("Error creando carrera:", error);
-      }
+      setStudents((prev) =>
+        prev.map((s: any) => {
+          const sid = getStudentId(s);
+          if (sid !== updatedStudent.id) return s;
+
+          return {
+            ...s,
+            careers: updatedStudent.careers,
+          };
+        })
+      );
+
+      closeCreateCareerModal();
+    } catch (error) {
+      console.error("Error creando carrera:", error);
     }
-  };
+  }
+};
 
   const handleCloseModalSubject = () => {
     setEditedSubjects({});
