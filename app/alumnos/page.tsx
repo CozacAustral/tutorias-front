@@ -197,76 +197,74 @@ const Estudiantes: React.FC = () => {
     loadRole();
   }, []);
 
-useEffect(() => {
-  const loadStudents = async () => {
-    setLoadingStudents(true);
-    try {
-      const data = await UserService.fetchStudentsByRole({
-        search: searchTerm,
-        currentPage,
-        resultsPerPage: 10,
-        orderBy,
-      });
+  useEffect(() => {
+    const loadStudents = async () => {
+      setLoadingStudents(true);
+      try {
+        const data = await UserService.fetchStudentsByRole({
+          search: searchTerm,
+          currentPage,
+          resultsPerPage: 10,
+          orderBy,
+        });
 
-      if (data.students) {
-        setStudents(data.students);
-        setTotalStudents(data.totalCount);
-      } else {
-        setStudents(data.data);
-        setTotalStudents(data.total);
+        if (data.students) {
+          setStudents(data.students);
+          setTotalStudents(data.totalCount);
+        } else {
+          setStudents(data.data);
+          setTotalStudents(data.total);
+        }
+      } catch (error) {
+        console.error("Error fetching students:", error);
+        setError("No se pudieron cargar los estudiantes.");
+      } finally {
+        setLoadingStudents(false);
       }
-    } catch (error) {
-      console.error("Error fetching students:", error);
-      setError("No se pudieron cargar los estudiantes.");
-    } finally {
-      setLoadingStudents(false);
-    }
-  };
+    };
 
-  loadStudents();
-}, [currentPage, searchTerm, orderBy]);
+    loadStudents();
+  }, [currentPage, searchTerm, orderBy]);
 
+  useEffect(() => {
+    const loadCareers = async () => {
+      setLoadingCareers(true);
+      try {
+        const fetchedCareers = await UserService.fetchAllCareers();
+        setCareers(fetchedCareers);
+      } catch (error) {
+        console.error("Error fetching careers: ", error);
+        setError("No se puedieron cargar las carreras.");
+      } finally {
+        setLoadingCareers(false);
+      }
+    };
 
-useEffect(() => {
-  const loadCareers = async () => {
-    setLoadingCareers(true);
-    try {
-      const fetchedCareers = await UserService.fetchAllCareers();
-      setCareers(fetchedCareers);
-    } catch (error) {
-      console.error("Error fetching careers: ", error);
-      setError("No se puedieron cargar las carreras.");
-    } finally {
-      setLoadingCareers(false);
-    }
-  };
+    loadCareers();
+  }, []);
 
-  loadCareers();
-}, []);
-
-useEffect(() => {
-  if (role === 2) {
-    setLoadingCountries(false);
-    setError(null);
-    return;
-  }
-
-  const loadCountries = async () => {
-    setLoadingCountries(true);
-    try {
-      const fetchedCountries = await UserService.fetchAllCountries();
-      setCountries(fetchedCountries);
-    } catch (error) {
-      console.error("Error fetching countries: ", error);
-      setError("No se pudieron cargar los países.");
-    } finally {
+  useEffect(() => {
+    if (role === 2) {
       setLoadingCountries(false);
+      setError(null);
+      return;
     }
-  };
 
-  loadCountries();
-}, [role]);
+    const loadCountries = async () => {
+      setLoadingCountries(true);
+      try {
+        const fetchedCountries = await UserService.fetchAllCountries();
+        setCountries(fetchedCountries);
+      } catch (error) {
+        console.error("Error fetching countries: ", error);
+        setError("No se pudieron cargar los países.");
+      } finally {
+        setLoadingCountries(false);
+      }
+    };
 
+    loadCountries();
+  }, [role]);
 
   const getStudentId = (s: any) => Number(s?.studentId ?? s?.id);
 
@@ -335,8 +333,7 @@ useEffect(() => {
       });
 
       return studentFetched;
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleOpenCreateCareerModal = () => {
@@ -407,8 +404,7 @@ useEffect(() => {
     }
   };
 
-  const handleImport = (data: any) => {
-  };
+  const handleImport = (data: any) => {};
 
   const handleCreateClick = () => {
     openCreateModal();
@@ -471,8 +467,7 @@ useEffect(() => {
       setTimeout(() => {
         openSujectModal();
       }, 0);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleEditSubject = async () => {
@@ -515,17 +510,96 @@ useEffect(() => {
     }
   };
 
+  const getCareerStudentId = (c: any) =>
+    Number(c?.id ?? c?.careerStudentId ?? c?.career_student_id);
+
+  const normalizeCareersArray = (careersAny: any) =>
+    Array.isArray(careersAny) ? careersAny : [];
+
+  const removeCareerFromArray = (
+    arr: any[],
+    relId: number,
+    careerId: number,
+    careerName?: string
+  ) => {
+    const targetName = (careerName ?? "").toString().trim().toLowerCase();
+
+    return normalizeCareersArray(arr).filter((c: any) => {
+      const cRelId = Number(
+        c?.id ?? c?.careerStudentId ?? c?.career_student_id
+      );
+      const cCareerId = Number(
+        c?.careerId ?? c?.career?.id ?? c?.career_id ?? c?.idCareer
+      );
+      const cName = (c?.name ?? c?.career?.name ?? c?.name_career ?? "")
+        .toString()
+        .trim()
+        .toLowerCase();
+
+      if (relId && !Number.isNaN(relId) && cRelId === relId) return false;
+      if (careerId && !Number.isNaN(careerId) && cCareerId === careerId)
+        return false;
+      if (targetName && cName && cName === targetName) return false;
+
+      return true;
+    });
+  };
+
   const onDeleteCareer = async (career: StudentCareer) => {
     if (!selectedStudent) return;
 
-    try {
-      await UserService.deleteCareerStudent([career.id]);
+    const relId = getCareerStudentId(career);
+    const studentId = selectedStudent.id;
+    const careerId = Number((career as any)?.careerId);
 
+    if (!relId || Number.isNaN(relId)) {
+      console.error("No hay CareerStudent.id en el objeto career:", career);
+      return;
+    }
+
+    try {
+      await UserService.deleteCareerStudent([relId]);
       setFormData((prev) => ({
         ...prev,
-        careers: prev.careers.filter((c) => c.id !== career.id),
+        careers: removeCareerFromArray(
+          prev.careers as any,
+          relId,
+          careerId,
+          career.name
+        ),
       }));
-    } catch (error) {
+
+      setSelectedStudent((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              careers: removeCareerFromArray(
+                prev.careers as any,
+                relId,
+                careerId,
+                career.name
+              ),
+            }
+          : prev
+      );
+      setStudents((prev) =>
+        prev.map((s: any) => {
+          const sid = getStudentId(s);
+          if (sid !== studentId) return s;
+
+          return {
+            ...s,
+            careers: removeCareerFromArray(
+              (s as any).careers,
+              relId,
+              careerId,
+              career.name
+            ),
+          };
+        })
+      );
+    } catch (e) {
+      console.error("Error al borrar carrera:", e);
     }
   };
 
@@ -578,16 +652,12 @@ useEffect(() => {
       try {
         await UserService.createCareer(careerData);
 
-        const updatedStudent = await UserService.fetchStudent(
-          selectedStudent.id
-        );
+        // ✅ recargá con el mismo endpoint que usás para abrir el alumno (trae ids correctos)
+        await loadStudentById(selectedStudent.id);
 
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          careers: updatedStudent.careers,
-        }));
         closeCreateCareerModal();
       } catch (error) {
+        console.error("Error creando carrera:", error);
       }
     }
   };

@@ -138,7 +138,7 @@ const CareerModalEdit: React.FC<CareerModalEditProps> = ({
   const canEditSubjects = !isViewMode && openMode === "edit";
 
   const renderCareerRow = (career: StudentCareer, index: number) => (
-    <Tr key={index}>
+ <Tr key={career.id ?? career.careerId}>
       <Td>{career.name}</Td>
       <Td>{career.active ? "Activa" : "Inactiva"}</Td>
       <Td>{career.yearEntry || "-"}</Td>
