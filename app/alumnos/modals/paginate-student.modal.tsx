@@ -30,6 +30,7 @@ import {
   TriangleDownIcon,
 } from "@chakra-ui/icons";
 import Search from "../../ui/search";
+import { FiUpload } from 'react-icons/fi';
 
 interface PaginateStudentProps<T> {
   data: T[];
@@ -226,8 +227,8 @@ const PaginateStudent = <T,>({
               </Menu>
 
               <Box>
-                {showAddMenu || compact ? (
-                  <Menu>
+                {(showAddMenu || compact) && (
+                  <Menu placement="bottom-end">
                     <MenuButton
                       as={IconButton}
                       aria-label="Opciones"
@@ -235,12 +236,20 @@ const PaginateStudent = <T,>({
                       size="sm"
                     />
                     <MenuList>
-                      <MenuItem onClick={onCreateOpen}>
-                        Agregar {caption.slice(0, -1)}
-                      </MenuItem>
+                      {onCreateOpen && (
+                        <MenuItem onClick={onCreateOpen}>
+                          Agregar {caption.slice(0, -1)}
+                        </MenuItem>
+                      )}
+
+                      {onImportOpen && (
+                        <MenuItem icon={<FiUpload />} onClick={onImportOpen}>
+                          Importar desde Excel
+                        </MenuItem>
+                      )}
                     </MenuList>
                   </Menu>
-                ) : null}
+                )}
               </Box>
             </HStack>
           </Flex>

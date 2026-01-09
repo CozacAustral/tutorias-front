@@ -266,6 +266,7 @@ const Estudiantes: React.FC = () => {
     loadCountries();
   }, [role]);
 
+
   const getStudentId = (s: any) => Number(s?.studentId ?? s?.id);
 
   const getCareerNames = (careersAny: any) => {
@@ -404,7 +405,25 @@ const Estudiantes: React.FC = () => {
     }
   };
 
-  const handleImport = (data: any) => {};
+const handleImport = async (_data?: any) => {
+  setCurrentPage(1);
+  setSearchTerm("");
+
+  const data = await UserService.fetchStudentsByRole({
+    search: "",
+    currentPage: 1,
+    resultsPerPage: 10,
+    orderBy,
+  });
+
+  if (data.students) {
+    setStudents(data.students);
+    setTotalStudents(data.totalCount);
+  } else {
+    setStudents(data.data);
+    setTotalStudents(data.total);
+  }
+};
 
   const handleCreateClick = () => {
     openCreateModal();
@@ -603,6 +622,8 @@ const Estudiantes: React.FC = () => {
     }
   };
 
+
+
   const handleEditSubjectClick = async (subjectId: number) => {
     if (editSubjectId !== null && editSubjectId !== subjectId) {
       const previousSubjectId = editSubjectId;
@@ -652,7 +673,6 @@ const Estudiantes: React.FC = () => {
       try {
         await UserService.createCareer(careerData);
 
-        // ✅ recargá con el mismo endpoint que usás para abrir el alumno (trae ids correctos)
         await loadStudentById(selectedStudent.id);
 
         closeCreateCareerModal();
