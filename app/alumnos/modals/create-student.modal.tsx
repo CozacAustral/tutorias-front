@@ -26,7 +26,7 @@ import { Country } from "../interfaces/country.interface";
 interface CreateStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddStudent: () => void;
+  onAddStudent: (created: any) => void; // ideal: Student
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
@@ -47,36 +47,50 @@ const CreateStudentModal: React.FC<CreateStudentModalProps> = ({
   const toast = useToast();
   const [error, setError] = useState("");
 
-  const handleSubmit = async () => {
-    try {
-      const formattedData = {
-        ...studentData,
-        birthdate: new Date(studentData.birthdate).toISOString(),
-        yearEntry: new Date(studentData.yearEntry).toISOString(),
-      };
+const handleSubmit = async () => {
+  if (!studentData.countryId || !studentData.careerId) {
+    toast({
+      title: "Error",
+      description: "Seleccioná país y carrera.",
+      status: "error",
+      duration: 5000,
+      isClosable: true,
+    });
+    return;
+  }
 
-      await UserService.createStudent(formattedData);
-      onAddStudent();
+  try {
+    const formattedData = {
+      ...studentData,
+      birthdate: new Date(studentData.birthdate).toISOString(),
+      yearEntry: new Date(studentData.yearEntry).toISOString(),
+    };
 
-      onClose();
-      toast({
-        title: "Éxito",
-        description: "Estudiante creado exitosamente.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error("Error al crear el estudiante", error);
-      toast({
-        title: "Error",
-        description: "No se pudo crear el estudiante.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
+    const created = await UserService.createStudent(formattedData);
+
+    // ✅ en vez de onAddStudent() sin data
+    onAddStudent(created);
+
+    onClose();
+
+    toast({
+      title: "Éxito",
+      description: "Estudiante creado exitosamente.",
+      status: "success",
+      duration: 5000,
+      isClosable: true,
+    });
+  } catch (error) {
+    console.error("Error al crear el estudiante", error);
+    toast({
+      title: "Error",
+      description: "No se pudo crear el estudiante.",
+      status: "error",
+      duration: 5000,
+      isClosable: true,
+    });
+  }
+};
 
   return (
     <>

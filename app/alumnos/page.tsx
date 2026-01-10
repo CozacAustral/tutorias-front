@@ -159,6 +159,28 @@ const Estudiantes: React.FC = () => {
   ];
 
   useEffect(() => {
+    if (!countries.length) return;
+
+    setStudentData((prev) => {
+      const exists = countries.some((c) => c.id === Number(prev.countryId));
+      if (exists) return prev;
+
+      return { ...prev, countryId: countries[0].id };
+    });
+  }, [countries]);
+
+  useEffect(() => {
+    if (!careers.length) return;
+
+    setStudentData((prev) => {
+      const exists = careers.some((c) => c.id === Number(prev.careerId));
+      if (exists) return prev;
+
+      return { ...prev, careerId: careers[0].id };
+    });
+  }, [careers]);
+
+  useEffect(() => {
     const loadRole = async () => {
       setLoadingRole(true);
       try {
@@ -266,7 +288,6 @@ const Estudiantes: React.FC = () => {
     loadCountries();
   }, [role]);
 
-
   const getStudentId = (s: any) => Number(s?.studentId ?? s?.id);
 
   const getCareerNames = (careersAny: any) => {
@@ -276,19 +297,19 @@ const Estudiantes: React.FC = () => {
       .filter(Boolean) as string[];
   };
 
-const getCareerLabel = (careersAny: any) => {
-  const names = getCareerNames(careersAny);
-  const full = names.join(", ");
+  const getCareerLabel = (careersAny: any) => {
+    const names = getCareerNames(careersAny);
+    const full = names.join(", ");
 
-  const short =
-    names.length === 0
-      ? "Sin carrera asignada"
-      : names.length === 1
-        ? names[0]
-        : `${names[0]}...`; 
+    const short =
+      names.length === 0
+        ? "Sin carrera asignada"
+        : names.length === 1
+          ? names[0]
+          : `${names[0]}...`;
 
-  return { names, full, short };
-};
+    return { names, full, short };
+  };
 
   const openStudent = async (student: any, mode: "view" | "edit") => {
     const realId = getStudentId(student);
@@ -385,9 +406,26 @@ const getCareerLabel = (careersAny: any) => {
     }));
   };
 
-  const handleAddStudent = async () => {
-    const fetchedStudents = await UserService.fetchAllStudents();
-    setStudents(fetchedStudents.students);
+  const handleAddStudent = (created: any) => {
+    if (!created) return;
+
+    setStudents((prev) => {
+      const createdId = getStudentId(created);
+
+      const createdEmail = (created?.user?.email ?? "").toLowerCase().trim();
+
+      const without = prev.filter((s: any) => {
+        const sid = getStudentId(s);
+        const semail = (s?.user?.email ?? "").toLowerCase().trim();
+        return sid !== createdId && semail !== createdEmail;
+      });
+
+      return [created, ...without].slice(0, 10);
+    });
+
+    setTotalStudents((prev) => prev + 1);
+
+    setCurrentPage(1);
   };
 
   const handleDeleteConfirm = async () => {
@@ -406,27 +444,42 @@ const getCareerLabel = (careersAny: any) => {
     }
   };
 
-const handleImport = async (_data?: any) => {
-  setCurrentPage(1);
-  setSearchTerm("");
+  const handleImport = async (_data?: any) => {
+    setCurrentPage(1);
+    setSearchTerm("");
 
-  const data = await UserService.fetchStudentsByRole({
-    search: "",
-    currentPage: 1,
-    resultsPerPage: 10,
-    orderBy,
-  });
+    const data = await UserService.fetchStudentsByRole({
+      search: "",
+      currentPage: 1,
+      resultsPerPage: 10,
+      orderBy,
+    });
 
-  if (data.students) {
-    setStudents(data.students);
-    setTotalStudents(data.totalCount);
-  } else {
-    setStudents(data.data);
-    setTotalStudents(data.total);
-  }
-};
+    if (data.students) {
+      setStudents(data.students);
+      setTotalStudents(data.totalCount);
+    } else {
+      setStudents(data.data);
+      setTotalStudents(data.total);
+    }
+  };
 
   const handleCreateClick = () => {
+    setStudentData((prev) => ({
+      ...prev,
+      name: "",
+      lastName: "",
+      dni: "",
+      email: "",
+      telephone: "",
+      birthdate: new Date().toISOString().split("T")[0],
+      yearEntry: new Date().toISOString().split("T")[0],
+      address: "",
+      observations: "",
+      countryId: countries[0]?.id ?? 0,
+      careerId: careers[0]?.id ?? 0,
+    }));
+
     openCreateModal();
   };
 
@@ -623,8 +676,6 @@ const handleImport = async (_data?: any) => {
     }
   };
 
-
-
   const handleEditSubjectClick = async (subjectId: number) => {
     if (editSubjectId !== null && editSubjectId !== subjectId) {
       const previousSubjectId = editSubjectId;
@@ -669,32 +720,32 @@ const handleImport = async (_data?: any) => {
     }));
   };
 
-const handleCreateCareer = async () => {
-  if (selectedStudent?.id && selectedCareer?.id) {
-    try {
-      await UserService.createCareer(careerData);
+  const handleCreateCareer = async () => {
+    if (selectedStudent?.id && selectedCareer?.id) {
+      try {
+        await UserService.createCareer(careerData);
 
-      const updatedStudent = await loadStudentById(selectedStudent.id);
-      if (!updatedStudent) return;
+        const updatedStudent = await loadStudentById(selectedStudent.id);
+        if (!updatedStudent) return;
 
-      setStudents((prev) =>
-        prev.map((s: any) => {
-          const sid = getStudentId(s);
-          if (sid !== updatedStudent.id) return s;
+        setStudents((prev) =>
+          prev.map((s: any) => {
+            const sid = getStudentId(s);
+            if (sid !== updatedStudent.id) return s;
 
-          return {
-            ...s,
-            careers: updatedStudent.careers,
-          };
-        })
-      );
+            return {
+              ...s,
+              careers: updatedStudent.careers,
+            };
+          })
+        );
 
-      closeCreateCareerModal();
-    } catch (error) {
-      console.error("Error creando carrera:", error);
+        closeCreateCareerModal();
+      } catch (error) {
+        console.error("Error creando carrera:", error);
+      }
     }
-  }
-};
+  };
 
   const handleCloseModalSubject = () => {
     setEditedSubjects({});
