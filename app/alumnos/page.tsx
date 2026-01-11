@@ -106,7 +106,7 @@ const Estudiantes: React.FC = () => {
     telephone: "",
     birthdate: new Date(),
     address: "",
-    year: new Date(),
+    yearEntry: new Date(),
     observations: "",
     countryId: 1,
     email: "",
@@ -345,7 +345,7 @@ const Estudiantes: React.FC = () => {
         telephone: studentFetched.telephone || "",
         birthdate: studentFetched.birthdate || new Date(),
         address: studentFetched.address || "",
-        year: studentFetched.yearEntry || new Date(),
+        yearEntry: studentFetched.yearEntry || new Date(),
 
         observations: studentFetched.observations ?? "",
 
@@ -364,7 +364,7 @@ const Estudiantes: React.FC = () => {
 
     setCareerData((prev) => ({
       ...prev,
-      studentId: selectedStudent.id, // ✅ ACÁ
+      studentId: selectedStudent.id,
       careerId: 0,
       yearOfAdmission: 0,
     }));
@@ -406,27 +406,31 @@ const Estudiantes: React.FC = () => {
     }));
   };
 
-  const handleAddStudent = (created: any) => {
-    if (!created) return;
+const handleAddStudent = async (created: any) => {
+  if (!created) return;
+
+  const createdId = getStudentId(created);
+  if (!createdId) return;
+
+  try {
+    const fullStudent = await UserService.getOneStudentByRole(createdId);
 
     setStudents((prev) => {
-      const createdId = getStudentId(created);
-
-      const createdEmail = (created?.user?.email ?? "").toLowerCase().trim();
-
       const without = prev.filter((s: any) => {
         const sid = getStudentId(s);
-        const semail = (s?.user?.email ?? "").toLowerCase().trim();
-        return sid !== createdId && semail !== createdEmail;
+        return sid !== fullStudent.id;
       });
 
-      return [created, ...without].slice(0, 10);
+      return [fullStudent, ...without].slice(0, 10);
     });
 
     setTotalStudents((prev) => prev + 1);
-
     setCurrentPage(1);
-  };
+  } catch (e) {
+    console.error("Error fetching created student:", e);
+  }
+};
+
 
   const handleDeleteConfirm = async () => {
     if (selectedStudent) {
@@ -483,42 +487,43 @@ const Estudiantes: React.FC = () => {
     openCreateModal();
   };
 
-  const handleStudentUpdate = async () => {
-    if (selectedStudent) {
-      try {
-        const newObservationStudent = await UserService.updateStudentModal(
-          selectedStudent.id,
-          formData.lastName,
-          formData.name,
-          formData.email,
-          formData.telephone,
-          formData.observations
-        );
-        setFormData(newObservationStudent);
+const handleStudentUpdate = async () => {
+  if (!selectedStudent) return;
 
-        setStudents((prevStudents) =>
-          prevStudents.map((student) =>
-            student.id === selectedStudent.id
-              ? {
-                  ...student,
-                  user: {
-                    ...student.user,
-                    name: formData.name,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                  },
-                  telephone: formData.telephone,
-                  observations: formData.observations,
-                }
-              : student
-          )
-        );
-        closeEditModal();
-      } catch (error) {
-        console.error("Error al editar estudiante:", error);
-      }
+  try {
+    const payload: any = {
+      name: formData.name,
+      lastName: formData.lastName,
+      email: formData.email,
+      telephone: formData.telephone,
+      dni: formData.dni,
+      address: formData.address,
+      birthdate: formData.birthdate,
+      yearEntry: formData.yearEntry,
+      countryId: formData.countryId,
+    };
+
+    if (role === 2) {
+      payload.observations = formData.observations;
     }
-  };
+
+    await UserService.updateStudent(selectedStudent.id, payload);
+
+    const updatedStudent = await loadStudentById(selectedStudent.id);
+    if (!updatedStudent) return;
+
+    setStudents((prev) =>
+      prev.map((s: any) =>
+        getStudentId(s) === updatedStudent.id ? updatedStudent : s
+      )
+    );
+
+    closeEditModal();
+  } catch (error) {
+    console.error("Error al editar estudiante:", error);
+  }
+};
+
 
   const handleAllSubject = async (career: StudentCareer) => {
     setSelectedCareerState(career.active);

@@ -26,7 +26,7 @@ import { Country } from "../interfaces/country.interface";
 interface CreateStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddStudent: (created: any) => void; // ideal: Student
+  onAddStudent: (created: any) => void;
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
@@ -68,7 +68,6 @@ const handleSubmit = async () => {
 
     const created = await UserService.createStudent(formattedData);
 
-    // ✅ en vez de onAddStudent() sin data
     onAddStudent(created);
 
     onClose();
@@ -297,21 +296,6 @@ const handleSubmit = async () => {
                 </FormControl>
               </HStack>
             </VStack>
-            <FormControl isRequired mt={4}>
-              <FormLabel>Observaciones</FormLabel>
-              <Input
-                type="text"
-                name="observations"
-                borderColor="light_gray"
-                bg="Very_Light_Gray"
-                borderWidth="4px"
-                borderRadius="15px"
-                w="100%"
-                h="50px"
-                value={studentData.observations}
-                onChange={handleChange}
-              />
-            </FormControl>
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" onClick={onClose}>

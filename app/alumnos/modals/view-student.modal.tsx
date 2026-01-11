@@ -292,7 +292,7 @@ const StudentModal: React.FC<StudentModalProps> = ({
                           {...baseFieldProps}
                           {...viewFieldProps}
                           value={display}
-                          title={full} // hover para ver todo
+                          title={full}
                           isReadOnly
                         />
                       );
@@ -317,7 +317,7 @@ const StudentModal: React.FC<StudentModalProps> = ({
                 </FormControl>
               </HStack>
 
-              {hasObservations && (
+              {role === 2 && (
                 <FormControl>
                   <FormLabel>Observaciones</FormLabel>
                   <InputGroup>

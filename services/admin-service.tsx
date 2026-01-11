@@ -600,32 +600,4 @@ export const UserService = {
     }
   },
 
-  async updateStudentModal(
-    studentId: number,
-    lastName: string,
-    name: string,
-    email: string,
-    telephone: string,
-    observations: string
-  ): Promise<UpdateStudentDto> {
-    try {
-      const response = await axiosInstance.patch(
-        `${urlStudents}/updateStudentModal/${studentId}`,
-        {
-          lastName,
-          name,
-          email,
-          telephone,
-          observations,
-        }
-      );
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        `No se pudo actualizar el alumno con ID ${studentId}. ${
-          error.message || error
-        }`
-      );
-    }
-  },
 };
