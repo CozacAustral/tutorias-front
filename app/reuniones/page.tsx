@@ -250,6 +250,19 @@ const Reuniones: React.FC = () => {
     return false;
   }, [me]);
 
+  const normalizedRole = useMemo(() => {
+    if (!me?.role) return 0;
+
+    if (typeof me.role === "number") return me.role;
+    if (typeof me.role === "string") {
+      if (me.role.toUpperCase() === "ADMIN") return 1;
+      if (me.role.toUpperCase() === "TUTOR") return 2;
+    }
+    if (typeof me.role === "object") return me.role.id;
+
+    return 0;
+  }, [me]);
+
   useEffect(() => {
     const init = async () => {
       const user = await UserService.fetchMe();
@@ -928,9 +941,9 @@ const Reuniones: React.FC = () => {
             setSelectedStudent(null);
           }}
           isViewMode={true}
-          role={me?.roleId ?? 0}
+          role={normalizedRole}
           formData={selectedStudent}
-          countries={countries} 
+          countries={countries}
           renderSubjectNowView={(s, i) => (
             <Tr key={s.subjectId ?? i}>
               <Td>{s.subjectName}</Td>
