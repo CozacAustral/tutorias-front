@@ -12,7 +12,6 @@ export function middleware(request: NextRequest) {
     "/carrera",
     "/alumnos_asignados",
     "/profile",
-    "/reuniones"
   ];
   if (
     protectedRoutes.some((route) =>

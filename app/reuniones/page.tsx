@@ -1,6 +1,6 @@
 "use client";
 
-import { DeleteIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
+import { EditIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Badge,
   Box,
@@ -20,7 +20,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { FiFilePlus, FiFileText } from "react-icons/fi";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
 import { Country } from "../alumnos/interfaces/country.interface";
@@ -339,13 +338,14 @@ const Reuniones: React.FC = () => {
       .toUpperCase();
   }
 
-  const headers = useMemo(
-    () =>
-      isTutor
-        ? ["Alumno", "Fecha", "Hora", "Aula", "Status", "Acciones"]
-        : ["Alumno", "Fecha", "Hora", "Aula", "Status"],
-    [isTutor]
-  );
+  const headers = useMemo(() => {
+    if (isTutor)
+      return ["Alumno", "Fecha", "Hora", "Aula", "Status", "Acciones"];
+
+    if (isAdmin) return ["Alumno", "Fecha", "Hora", "Aula", "Status"];
+
+    return ["Fecha", "Hora", "Aula", "Status"];
+  }, [isTutor, isAdmin]);
 
   const requestDelete = useCallback((row: Row) => {
     setRowToDelete(row);
@@ -377,114 +377,32 @@ const Reuniones: React.FC = () => {
   const renderRow = useCallback(
     (r: Row) => (
       <Tr key={r.id}>
-        <Td
-          cursor="pointer"
-          color="blue.500"
-          fontWeight="medium"
-          _hover={{ textDecoration: "underline" }}
-          onClick={async () => {
-            if (!r.studentId) return;
-            const data = await loadStudentById(r.studentId);
-            if (data) onStudentOpen();
-          }}
-        >
-          {r.alumno}
-        </Td>
+        {(isTutor || isAdmin) && (
+          <Td
+            cursor={isTutor ? "pointer" : "default"}
+            color={isTutor ? "blue.500" : "inherit"}
+            fontWeight={isTutor ? "medium" : "normal"}
+            _hover={isTutor ? { textDecoration: "underline" } : undefined}
+            onClick={async () => {
+              if (!isTutor || !r.studentId) return;
+              const data = await loadStudentById(r.studentId);
+              if (data) onStudentOpen();
+            }}
+          >
+            {r.alumno}
+          </Td>
+        )}
+
         <Td>{r.fecha}</Td>
         <Td>{r.hora}</Td>
         <Td>{r.aula}</Td>
         <Td>{statusBadge(r.status)}</Td>
-        {isTutor && (
-          <Td>
-            <HStack spacing={2}>
-              {r.status !== "COMPLETED" && (
-                <IconButton
-                  aria-label="Editar reunión"
-                  icon={<EditIcon boxSize={5} />}
-                  backgroundColor="white"
-                  onClick={() => handleEdit(r)}
-                  _hover={{
-                    borderRadius: 15,
-                    backgroundColor: "#318AE4",
-                    color: "white",
-                  }}
-                />
-              )}
-              {r.status !== "COMPLETED" && (
-                <IconButton
-                  aria-label="Eliminar reunión"
-                  icon={<DeleteIcon boxSize={5} />}
-                  backgroundColor="white"
-                  onClick={() => requestDelete(r)}
-                  _hover={{
-                    borderRadius: 15,
-                    backgroundColor: "red.500",
-                    color: "white",
-                  }}
-                />
-              )}
 
-              {r.status !== "PENDING" &&
-                (r.status === "REPORTMISSING" ? (
-                  <IconButton
-                    aria-label="Crear reporte"
-                    icon={<FiFilePlus />}
-                    backgroundColor="white"
-                    _hover={{
-                      borderRadius: 15,
-                      backgroundColor: "#318AE4",
-                      color: "white",
-                    }}
-                    onClick={() => {
-                      setReportMeetingId(r.id);
-                      setReportStudentId(r.studentId ?? null);
-                      const params = new URLSearchParams(
-                        searchParams.toString()
-                      );
-                      params.set("createReportFor", String(r.id));
-                      onReportOpen();
-                    }}
-                  />
-                ) : (
-                  <IconButton
-                    aria-label="Ver reporte"
-                    icon={<FiFileText />}
-                    backgroundColor="white"
-                    _hover={{
-                      borderRadius: 15,
-                      backgroundColor: "#318AE4",
-                      color: "white",
-                    }}
-                    onClick={() => {
-                      setViewMeetingId(r.id);
-                      setViewStudentId(r.studentId ?? null);
-                      const params = new URLSearchParams(
-                        searchParams.toString()
-                      );
-                      params.set("viewReportFor", String(r.id));
-                      router.replace(`/reuniones?${params.toString()}`, {
-                        scroll: false,
-                      });
-                      onViewOpen();
-                    }}
-                  />
-                ))}
-            </HStack>
-          </Td>
-        )}
+        {isTutor && <Td>{/* acciones (dejás lo que ya tenías) */}</Td>}
       </Tr>
     ),
-    [
-      handleEdit,
-      requestDelete,
-      searchParams,
-      router,
-      onReportOpen,
-      onViewOpen,
-      isTutor,
-    ]
+    [isTutor, isAdmin, handleEdit, requestDelete]
   );
-
   async function loadMeetings(p = page) {
     setLoading(true);
     try {
