@@ -1,17 +1,17 @@
-  "use client";
-import { useState, useEffect } from "react";
-import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
+"use client";
 import {
-  ArrowForwardIcon,
   ArrowBackIcon,
+  ArrowForwardIcon,
   ExternalLinkIcon,
 } from "@chakra-ui/icons";
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-const jwt = require("jsonwebtoken");
+import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import Cookies from "js-cookie";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useSidebar } from "../../app/contexts/SidebarContext";
+const jwt = require("jsonwebtoken");
 
 const SideBar = () => {
   const { collapsed, toggleSidebar } = useSidebar();
@@ -62,7 +62,6 @@ const SideBar = () => {
           alignItems="center"
           justifyContent="center"
           py="1rem"
-
         >
           <Image
             src={
@@ -70,7 +69,7 @@ const SideBar = () => {
                 ? "/images/collapsedaustral.png"
                 : "/images/australsidebar.png"
             }
-            width={collapsed ? 40 : 140} 
+            width={collapsed ? 40 : 140}
             height={collapsed ? 40 : 60}
             alt="logo"
             priority
@@ -191,8 +190,6 @@ const SideBar = () => {
 
           {(role === 1 || role === 2) && (
             <>
-
-
               <Box as="li" mb="1rem">
                 <Link
                   href="/alumnos"
@@ -221,6 +218,31 @@ const SideBar = () => {
                 </Link>
               </Box>
             </>
+          )}
+          {role === 3 && (
+            <Box as="li" mb="0.5rem">
+              <Link href="/my-tutor" passHref style={{ textDecoration: "none" }}>
+                <Flex
+                  align="center"
+                  p="0.5rem"
+                  bg={isActiveLink("/my-tutor") ? "secondary" : "primary"}
+                  color={isActiveLink("/my-tutor") ? "white" : "#fff3e9"}
+                  borderRadius="6px"
+                  transition="background-color 0.1s ease-in-out"
+                  _hover={{ bg: "secondary", color: "white" }}
+                  justifyContent={collapsed ? "center" : "flex-start"}
+                >
+                  <Image
+                    src="/icons/tutor-icon.svg"
+                    width={30}
+                    height={30}
+                    alt="Mi Tutor"
+                    priority
+                  />
+                  {!collapsed && <Text ml="0.5rem">Mi Tutor</Text>}
+                </Flex>
+              </Link>
+            </Box>
           )}
         </Flex>
       </Box>
