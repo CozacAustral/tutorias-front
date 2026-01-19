@@ -27,6 +27,7 @@ type Props = {
   onClose: () => void;
   onApply: (f: Filters) => void;
   onClear: () => void;
+  loadStudents: (search: string) => Promise<StudentOption[]>;
   students?: StudentOption[];
   current?: Filters;
 };
@@ -35,6 +36,7 @@ export default function FilterMeetingsModal({
   isOpen,
   onClose,
   onApply,
+  loadStudents,
   onClear,
   students = [],
   current,
@@ -43,6 +45,12 @@ export default function FilterMeetingsModal({
     status: "all",
     order: "desc",
   });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    loadOptions("");
+  }, [isOpen]);
 
   useEffect(() => {
     setLocal({
@@ -78,29 +86,20 @@ export default function FilterMeetingsModal({
 
   const loadOptions = async (inputValue: string): Promise<Option[]> => {
     const q = (inputValue ?? "").trim();
-    if (cacheRef.current.has(q)) return cacheRef.current.get(q)!;
+    if (cacheRef.current.has(q)) {
+      const cached = cacheRef.current.get(q)!;
+      if (cached.length > 0) return cached;
+    }
 
     try {
-      const resp = await UserService.getMyStudents(1, 20, q);
-      const list = resp?.data?.data ?? resp?.data?.students ?? resp?.data ?? [];
+      const students = await loadStudents(q);
 
-      const opts: Option[] = (list ?? [])
-        .map((s: any) => {
-          const name = s?.user?.name ?? "";
-          const last = s?.user?.lastName ?? "";
-          const email = s?.user?.email ?? "";
-          const full = [name, last].filter(Boolean).join(" ");
-          return {
-            value: s.id,
-            label: full || email || `Alumno #${s?.id ?? "-"}`,
-          } as Option;
-        })
-        .filter((o: Option) => o.value && o.label)
-        .reduce((acc: Option[], cur: Option) => {
-          if (!acc.some((x) => x.value === cur.value)) acc.push(cur);
-          return acc;
-        }, [])
-        .sort((a: Option, b: Option) => a.label.localeCompare(b.label, "es"));
+      const opts: Option[] = students
+        .map((s) => ({
+          value: s.id,
+          label: s.label,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label, "es"));
 
       cacheRef.current.set(q, opts);
       return opts;
@@ -191,7 +190,7 @@ export default function FilterMeetingsModal({
                   <option value="all">Todos</option>
                   <option value="PENDING">Pendiente</option>
                   <option value="REPORTMISSING">Falta reporte</option>
-                  <option value="COMPLETED">Confirmada</option>
+                  <option value="COMPLETED">Completada</option>
                 </select>
               </FormControl>
 

@@ -13,13 +13,21 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FiFilePlus, FiFileText } from "react-icons/fi";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
+import { Country } from "../alumnos/interfaces/country.interface";
 import { Student } from "../alumnos/interfaces/student.interface";
 import { SubjectCareerWithState } from "../alumnos/interfaces/subject-career-student.interface";
 import SubjectModal from "../alumnos/modals/subject-student.modal";
+import StudentModal from "../alumnos/modals/view-student.modal";
 import { useSidebar } from "../contexts/SidebarContext";
 import ConfirmDialog from "./modals/confirm-dialog-modal";
 import CreateReportModal from "./modals/create-report-modal";
@@ -34,7 +42,6 @@ import { MeetingStatus } from "./type/meetings-status.type";
 import { Row } from "./type/rows.type";
 import { StudentOption } from "./type/student-option.type";
 
-
 function studentLabel(s: Pick<Student, "id" | "user"> | any) {
   const name = s?.user?.name ?? "";
   const last = s?.user?.lastName ?? "";
@@ -42,15 +49,18 @@ function studentLabel(s: Pick<Student, "id" | "user"> | any) {
   const full = [name, last].filter(Boolean).join(" ");
   return full || email || `Alumno #${s?.id ?? "-"}`;
 }
+
 function fullName(
   u?: { name?: string; lastName?: string; email?: string } | null
 ) {
   if (!u) return "-";
   return [u.name, u.lastName].filter(Boolean).join(" ") || u.email || "-";
 }
+
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
+
 function formatFecha(dateISO: string) {
   try {
     const d = new Date(dateISO);
@@ -63,6 +73,7 @@ function formatFecha(dateISO: string) {
     return dateISO;
   }
 }
+
 function formatHora(dateISO: string, time?: string) {
   try {
     if (time && /^\d{1,2}:\d{2}/.test(time)) return time;
@@ -72,15 +83,16 @@ function formatHora(dateISO: string, time?: string) {
     return time ?? "";
   }
 }
+
 function statusBadge(s: MeetingStatus) {
   const label =
     s === "COMPLETED"
       ? "Completada"
       : s === "PENDING"
-      ? "Pendiente"
-      : s === "REPORTMISSING"
-      ? "Falta reporte"
-      : "—";
+        ? "Pendiente"
+        : s === "REPORTMISSING"
+          ? "Falta reporte"
+          : "—";
 
   switch (s) {
     case "COMPLETED":
@@ -105,6 +117,7 @@ function statusBadge(s: MeetingStatus) {
       return <Badge textTransform="none">—</Badge>;
   }
 }
+
 function toMeetingRow(r: Row): MeetingRow {
   return {
     ...r,
@@ -128,21 +141,32 @@ const Reuniones: React.FC = () => {
 
   const [rows, setRows] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
+
   const [loading, setLoading] = useState(false);
+  const [me, setMe] = useState<any>(null);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } =
-    useDisclosure();
-  const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } =
-    useDisclosure();
+  const {
+    isOpen: isEditOpen,
+    onOpen: onEditOpen,
+    onClose: onEditClose,
+  } = useDisclosure();
+  const {
+    isOpen: isViewOpen,
+    onOpen: onViewOpen,
+    onClose: onViewClose,
+  } = useDisclosure();
 
   const [viewMeetingId, setViewMeetingId] = useState<number | null>(null);
   const [viewStudentId, setViewStudentId] = useState<number | null>(null);
 
   const [meetingToEdit, setMeetingToEdit] = useState<MeetingRow | null>(null);
 
-  const { isOpen: isFilterOpen, onOpen: onFilterOpen, onClose: onFilterClose } =
-    useDisclosure();
+  const {
+    isOpen: isFilterOpen,
+    onOpen: onFilterOpen,
+    onClose: onFilterClose,
+  } = useDisclosure();
 
   const [filters, setFilters] = useState<Filters>({
     status: "all",
@@ -170,20 +194,157 @@ const Reuniones: React.FC = () => {
   const [editedSubjects, setEditedSubjects] = useState<Record<number, string>>(
     {}
   );
-  const [currentSubjectsStudentId, setCurrentSubjectsStudentId] =
-    useState<number | null>(null);
-  const [currentSubjectsCareerId, setCurrentSubjectsCareerId] =
-    useState<number | null>(null);
+  const [currentSubjectsStudentId, setCurrentSubjectsStudentId] = useState<
+    number | null
+  >(null);
+  const [currentSubjectsCareerId, setCurrentSubjectsCareerId] = useState<
+    number | null
+  >(null);
   const [savingSubjects, setSavingSubjects] = useState(false);
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<Row | null>(null);
   const [deleting, setDeleting] = useState(false);
   const cancelDeleteRef = useRef<HTMLButtonElement | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const {
+    isOpen: isStudentOpen,
+    onOpen: onStudentOpen,
+    onClose: onStudentClose,
+  } = useDisclosure();
+  const [countries, setCountries] = useState<Country[]>([]);
+
+  const isAdmin = useMemo(() => {
+    if (!me?.role) return false;
+
+    if (typeof me.role === "string") {
+      return me.role.toUpperCase() === "ADMIN";
+    }
+
+    if (typeof me.role === "number") {
+      return me.role === 1;
+    }
+
+    if (typeof me.role === "object") {
+      return me.role.name === "ADMIN";
+    }
+
+    return false;
+  }, [me]);
+
+  const isTutor = useMemo(() => {
+    if (!me?.role) return false;
+
+    if (typeof me.role === "string") {
+      return me.role.toUpperCase() === "TUTOR";
+    }
+
+    if (typeof me.role === "number") {
+      return me.role === 2;
+    }
+
+    if (typeof me.role === "object") {
+      return me.role.name === "TUTOR";
+    }
+
+    return false;
+  }, [me]);
+
+  const normalizedRole = useMemo(() => {
+    if (!me?.role) return 0;
+
+    if (typeof me.role === "number") return me.role;
+    if (typeof me.role === "string") {
+      if (me.role.toUpperCase() === "ADMIN") return 1;
+      if (me.role.toUpperCase() === "TUTOR") return 2;
+    }
+    if (typeof me.role === "object") return me.role.id;
+
+    return 0;
+  }, [me]);
+
+  useEffect(() => {
+    const init = async () => {
+      const user = await UserService.fetchMe();
+
+      if (!user) {
+        router.replace("/login");
+        return;
+      }
+
+      setMe(user);
+      setLoading(false);
+    };
+
+    init();
+  }, []);
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const res = await UserService.fetchAllCountries();
+        setCountries(res);
+      } catch {
+        setCountries([]);
+      }
+    };
+
+    loadCountries();
+  }, []);
+  const SUBJECT_STATE_LABELS: Record<string, string> = {
+    APPROVED: "Aprobada",
+    REGULARIZED: "Regularizada",
+    FREE: "Libre",
+    INPROGRESS: "En curso",
+    NOTATTENDED: "No cursada",
+    RETAKING: "Recursando",
+  };
+  const loadStudentById = async (id: number) => {
+    try {
+      const studentFetched = await UserService.getOneStudentByRole(id);
+      setSelectedStudent({
+        id: studentFetched.id,
+        name: studentFetched.user?.name ?? "",
+        lastName: studentFetched.user?.lastName ?? "",
+        email: studentFetched.user?.email ?? "",
+        telephone: studentFetched.telephone ?? "",
+        dni: studentFetched.dni ?? "",
+        address: studentFetched.address ?? "",
+        observations: studentFetched.observations ?? "",
+        countryId: studentFetched.countryId,
+        careers: studentFetched.careers ?? [],
+      });
+      return studentFetched;
+    } catch {
+      return null;
+    }
+  };
+
+  function normalizeSubjectStateKey(v: any) {
+    return String(v ?? "")
+      .trim()
+      .toUpperCase()
+      .replace(/[\s_]/g, "");
+  }
+
+  function subjectStateLabel(v: any) {
+    const k = normalizeSubjectStateKey(v);
+    return SUBJECT_STATE_LABELS[k] ?? String(v ?? "—");
+  }
+
+  function subjectStateValueForSelect(v: any) {
+    const k = normalizeSubjectStateKey(v);
+    if (k in SUBJECT_STATE_LABELS) return k;
+    return String(v ?? "")
+      .trim()
+      .toUpperCase();
+  }
 
   const headers = useMemo(
-    () => ["Alumno", "Fecha", "Hora", "Aula", "Status", "Acciones"],
-    []
+    () =>
+      isTutor
+        ? ["Alumno", "Fecha", "Hora", "Aula", "Status", "Acciones"]
+        : ["Alumno", "Fecha", "Hora", "Aula", "Status"],
+    [isTutor]
   );
 
   const requestDelete = useCallback((row: Row) => {
@@ -199,8 +360,8 @@ const Reuniones: React.FC = () => {
       setIsDeleteOpen(false);
       setRowToDelete(null);
       loadMeetings(page);
-    } catch {}
-    finally {
+    } catch {
+    } finally {
       setDeleting(false);
     }
   }, [rowToDelete, page]);
@@ -216,83 +377,101 @@ const Reuniones: React.FC = () => {
   const renderRow = useCallback(
     (r: Row) => (
       <Tr key={r.id}>
-        <Td>{r.alumno}</Td>
+        <Td
+          cursor="pointer"
+          color="blue.500"
+          fontWeight="medium"
+          _hover={{ textDecoration: "underline" }}
+          onClick={async () => {
+            if (!r.studentId) return;
+            const data = await loadStudentById(r.studentId);
+            if (data) onStudentOpen();
+          }}
+        >
+          {r.alumno}
+        </Td>
         <Td>{r.fecha}</Td>
         <Td>{r.hora}</Td>
         <Td>{r.aula}</Td>
         <Td>{statusBadge(r.status)}</Td>
-        <Td>
-          <HStack spacing={2}>
-            {r.status !== "COMPLETED" && (
-              <IconButton
-                aria-label="Editar reunión"
-                icon={<EditIcon boxSize={5} />}
-                backgroundColor="white"
-                onClick={() => handleEdit(r)}
-                _hover={{
-                  borderRadius: 15,
-                  backgroundColor: "#318AE4",
-                  color: "white",
-                }}
-              />
-            )}
-            {r.status !== "COMPLETED" && (
-              <IconButton
-                aria-label="Eliminar reunión"
-                icon={<DeleteIcon boxSize={5} />}
-                backgroundColor="white"
-                onClick={() => requestDelete(r)}
-                _hover={{
-                  borderRadius: 15,
-                  backgroundColor: "red.500",
-                  color: "white",
-                }}
-              />
-            )}
+        {isTutor && (
+          <Td>
+            <HStack spacing={2}>
+              {r.status !== "COMPLETED" && (
+                <IconButton
+                  aria-label="Editar reunión"
+                  icon={<EditIcon boxSize={5} />}
+                  backgroundColor="white"
+                  onClick={() => handleEdit(r)}
+                  _hover={{
+                    borderRadius: 15,
+                    backgroundColor: "#318AE4",
+                    color: "white",
+                  }}
+                />
+              )}
+              {r.status !== "COMPLETED" && (
+                <IconButton
+                  aria-label="Eliminar reunión"
+                  icon={<DeleteIcon boxSize={5} />}
+                  backgroundColor="white"
+                  onClick={() => requestDelete(r)}
+                  _hover={{
+                    borderRadius: 15,
+                    backgroundColor: "red.500",
+                    color: "white",
+                  }}
+                />
+              )}
 
-            {r.status !== "PENDING" &&
-              (r.status === "REPORTMISSING" ? (
-                <IconButton
-                  aria-label="Crear reporte"
-                  icon={<FiFilePlus />}
-                  backgroundColor="white"
-                  _hover={{
-                    borderRadius: 15,
-                    backgroundColor: "#318AE4",
-                    color: "white",
-                  }}
-                  onClick={() => {
-                    setReportMeetingId(r.id);
-                    setReportStudentId(r.studentId ?? null);
-                    const params = new URLSearchParams(searchParams.toString());
-                    params.set("createReportFor", String(r.id));
-                    onReportOpen();
-                  }}
-                />
-              ) : (
-                <IconButton
-                  aria-label="Ver reporte"
-                  icon={<FiFileText />}
-                  backgroundColor="white"
-                  _hover={{
-                    borderRadius: 15,
-                    backgroundColor: "#318AE4",
-                    color: "white",
-                  }}
-                  onClick={() => {
-                    setViewMeetingId(r.id);
-                    setViewStudentId(r.studentId ?? null);
-                    const params = new URLSearchParams(searchParams.toString());
-                    params.set("viewReportFor", String(r.id));
-                    router.replace(`/reuniones?${params.toString()}`, {
-                      scroll: false,
-                    });
-                    onViewOpen();
-                  }}
-                />
-              ))}
-          </HStack>
-        </Td>
+              {r.status !== "PENDING" &&
+                (r.status === "REPORTMISSING" ? (
+                  <IconButton
+                    aria-label="Crear reporte"
+                    icon={<FiFilePlus />}
+                    backgroundColor="white"
+                    _hover={{
+                      borderRadius: 15,
+                      backgroundColor: "#318AE4",
+                      color: "white",
+                    }}
+                    onClick={() => {
+                      setReportMeetingId(r.id);
+                      setReportStudentId(r.studentId ?? null);
+                      const params = new URLSearchParams(
+                        searchParams.toString()
+                      );
+                      params.set("createReportFor", String(r.id));
+                      onReportOpen();
+                    }}
+                  />
+                ) : (
+                  <IconButton
+                    aria-label="Ver reporte"
+                    icon={<FiFileText />}
+                    backgroundColor="white"
+                    _hover={{
+                      borderRadius: 15,
+                      backgroundColor: "#318AE4",
+                      color: "white",
+                    }}
+                    onClick={() => {
+                      setViewMeetingId(r.id);
+                      setViewStudentId(r.studentId ?? null);
+                      const params = new URLSearchParams(
+                        searchParams.toString()
+                      );
+                      params.set("viewReportFor", String(r.id));
+                      router.replace(`/reuniones?${params.toString()}`, {
+                        scroll: false,
+                      });
+                      onViewOpen();
+                    }}
+                  />
+                ))}
+            </HStack>
+          </Td>
+        )}
       </Tr>
     ),
     [
@@ -302,13 +481,14 @@ const Reuniones: React.FC = () => {
       router,
       onReportOpen,
       onViewOpen,
+      isTutor,
     ]
   );
 
   async function loadMeetings(p = page) {
     setLoading(true);
     try {
-      const meetingsRes = await UserService.getMyMeetings(p, limit, {
+      const meetingsRes = await UserService.getMeetings(p, limit, {
         ...filters,
       });
       let foundTutorId: number | null = null;
@@ -365,6 +545,11 @@ const Reuniones: React.FC = () => {
 
   const loadStudentsForTutor = useCallback(
     async (tutorId?: number | null) => {
+      if (!isTutor) {
+        setStudentsOptions([]);
+        return;
+      }
+
       setLoadingStudents(true);
       try {
         const meRes = await UserService.getMyStudents(1, 500);
@@ -395,16 +580,45 @@ const Reuniones: React.FC = () => {
         setLoadingStudents(false);
       }
     },
-    []
+    [isTutor]
   );
 
   useEffect(() => {
+    if (!isTutor) return;
     loadStudentsForTutor(null);
-  }, [loadStudentsForTutor]);
+  }, [isTutor, loadStudentsForTutor]);
 
   useEffect(() => {
-    if (myTutorId) loadStudentsForTutor(myTutorId);
-  }, [myTutorId, loadStudentsForTutor]);
+    if (!isTutor || !myTutorId) return;
+    loadStudentsForTutor(myTutorId);
+  }, [isTutor, myTutorId, loadStudentsForTutor]);
+
+  const loadStudentsForFilter = async (
+    search: string
+  ): Promise<{ id: number; label: string }[]> => {
+    if (!me) return [];
+
+    if (isAdmin) {
+      const res = await UserService.fetchAllStudents({
+        search,
+        currentPage: 1,
+        resultsPerPage: 20,
+      });
+
+      return res.students.map((s) => ({
+        id: s.id,
+        label: `${s.user?.name ?? ""} ${s.user?.lastName ?? ""}`.trim(),
+      }));
+    }
+
+    const res = await UserService.getMyStudents(1, 20, search);
+    const list = res.data?.data ?? [];
+
+    return list.map((s: any) => ({
+      id: s.id,
+      label: `${s.user.name} ${s.user.lastName}`,
+    }));
+  };
 
   const handleOpenSubjects = useCallback(
     async ({
@@ -468,30 +682,28 @@ const Reuniones: React.FC = () => {
 
       setEditedSubjects({});
       onSubjectsClose();
-    } catch {}
-    finally {
+    } catch {
+    } finally {
       setSavingSubjects(false);
     }
-  }, [
-    editedSubjects,
-    currentSubjectsStudentId,
-    onSubjectsClose,
-  ]);
+  }, [editedSubjects, currentSubjectsStudentId, onSubjectsClose]);
 
   const renderSubjectNow = useCallback(
     (subject: SubjectCareerWithState) => {
-      const normalized = String(subject.subjectState);
+      const selectValue =
+        editedSubjects[subject.subjectId] !== undefined
+          ? editedSubjects[subject.subjectId]
+          : subjectStateValueForSelect(subject.subjectState);
+
       return (
         <Tr key={subject.subjectId}>
           <Td>{subject.subjectName}</Td>
           <Td>{subject.year}</Td>
+
           <Td>
             {editedSubjects[subject.subjectId] !== undefined ? (
               <Select
-                value={
-                  editedSubjects[subject.subjectId] ??
-                  normalized.toUpperCase()
-                }
+                value={selectValue}
                 onChange={(e) =>
                   setEditedSubjects((prev) => ({
                     ...prev,
@@ -499,28 +711,32 @@ const Reuniones: React.FC = () => {
                   }))
                 }
               >
-                <option value="APPROVED">APROBADO</option>
-                <option value="REGULARIZED">REGULARIZADO</option>
-                <option value="FREE">LIBRE</option>
-                <option value="INPROGRESS">EN CURSO</option>
-                <option value="NOTATTENDED">NO CURSADA</option>
-                <option value="RETAKING">RECURSANDO</option>
+                <option value="APPROVED">Aprobada</option>
+                <option value="REGULARIZED">Regularizada</option>
+                <option value="FREE">Libre</option>
+                <option value="INPROGRESS">En curso</option>
+                <option value="NOTATTENDED">No cursada</option>
+                <option value="RETAKING">Recursando</option>
               </Select>
             ) : (
-              subject.subjectState
+              subjectStateLabel(subject.subjectState)
             )}
           </Td>
+
           <Td>
             {subject.updateAt
-              ? new Date(subject.updateAt).toLocaleDateString()
+              ? new Date(subject.updateAt).toLocaleDateString("es-AR")
               : "-"}
           </Td>
+
           <Td>
             <IconButton
               icon={<EditIcon boxSize={5} />}
               aria-label="Editar"
               backgroundColor={
-                editedSubjects[subject.subjectId] ? "#318AE4" : "white"
+                editedSubjects[subject.subjectId] !== undefined
+                  ? "#318AE4"
+                  : "white"
               }
               _hover={{
                 borderRadius: 15,
@@ -530,7 +746,9 @@ const Reuniones: React.FC = () => {
               onClick={() =>
                 setEditedSubjects((prev) => ({
                   ...prev,
-                  [subject.subjectId]: String(subject.subjectState),
+                  [subject.subjectId]: subjectStateValueForSelect(
+                    subject.subjectState
+                  ),
                 }))
               }
             />
@@ -566,34 +784,42 @@ const Reuniones: React.FC = () => {
               >
                 Filtros
               </Button>
-              <Button onClick={openCreate} isLoading={loading}>
-                + Agendar
-              </Button>
+              {isTutor && (
+                <Button onClick={openCreate} isLoading={loading}>
+                  + Agendar
+                </Button>
+              )}
             </HStack>
           }
           minH="500px"
         />
       </Box>
 
-      <ScheduleMeetingModal
-        isOpen={isOpen}
-        onClose={() => {
-          onClose();
-          const params = new URLSearchParams(searchParams.toString());
-          params.delete("openCreate");
-          params.delete("studentId");
-          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
-        }}
-        students={[]}
-        onCreated={() => {
-          setPage(1);
-          loadMeetings(1);
-          const params = new URLSearchParams(searchParams.toString());
-          params.delete("openCreate");
-          params.delete("studentId");
-          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
-        }}
-      />
+      {isTutor && (
+        <ScheduleMeetingModal
+          isOpen={isOpen}
+          onClose={() => {
+            onClose();
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete("openCreate");
+            params.delete("studentId");
+            router.replace(`/reuniones?${params.toString()}`, {
+              scroll: false,
+            });
+          }}
+          students={[]}
+          onCreated={() => {
+            setPage(1);
+            loadMeetings(1);
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete("openCreate");
+            params.delete("studentId");
+            router.replace(`/reuniones?${params.toString()}`, {
+              scroll: false,
+            });
+          }}
+        />
+      )}
 
       <EditMeetingModal
         isOpen={isEditOpen}
@@ -609,6 +835,7 @@ const Reuniones: React.FC = () => {
         isOpen={isFilterOpen}
         onClose={onFilterClose}
         students={studentsOptions}
+        loadStudents={loadStudentsForFilter}
         current={filters}
         onApply={(f) => {
           setFilters(f);
@@ -706,6 +933,31 @@ const Reuniones: React.FC = () => {
         cancelText="Cancelar"
         confirmColorScheme="red"
       />
+      {selectedStudent && (
+        <StudentModal
+          isOpen={isStudentOpen}
+          onClose={() => {
+            onStudentClose();
+            setSelectedStudent(null);
+          }}
+          isViewMode={true}
+          role={normalizedRole}
+          formData={selectedStudent}
+          countries={countries}
+          renderSubjectNowView={(s, i) => (
+            <Tr key={s.subjectId ?? i}>
+              <Td>{s.subjectName}</Td>
+              <Td>{s.year}</Td>
+              <Td>{s.subjectState}</Td>
+              <Td>
+                {s.updateAt
+                  ? new Date(s.updateAt).toLocaleDateString("es-AR")
+                  : "-"}
+              </Td>
+            </Tr>
+          )}
+        />
+      )}
     </>
   );
 };

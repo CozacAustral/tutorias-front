@@ -1,3 +1,4 @@
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -56,6 +57,7 @@ const EditModal: React.FC<EditModalProps> = ({
   role,
   showButtonCancelSave,
 }) => {
+  const [showObs, setShowObs] = React.useState(false);
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
@@ -163,7 +165,22 @@ const EditModal: React.FC<EditModalProps> = ({
                 </HStack>
               </VStack>
               <FormControl flex={1} minW="200px">
-                <FormLabel>Observaciones</FormLabel>
+                <FormLabel
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  Observaciones
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowObs((prev) => !prev)}
+                    _hover={{ bg: "transparent" }}
+                  >
+                    {showObs ? <ViewOffIcon /> : <ViewIcon />}
+                  </Button>
+                </FormLabel>
+
                 <Textarea
                   name="observations"
                   borderColor="light_gray"
@@ -176,6 +193,10 @@ const EditModal: React.FC<EditModalProps> = ({
                   isReadOnly={isViewModal}
                   py={3}
                   px={4}
+                  style={{
+                    filter: showObs ? "none" : "blur(5px)",
+                    transition: "all 0.2s ease-in-out",
+                  }}
                 />
               </FormControl>
             </HStack>

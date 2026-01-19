@@ -1,15 +1,16 @@
 import { StudentCareer } from "./student-career.interface";
 
 export interface UpdateStudentDto {
+  id?: number;
   name: string;
   lastName: string;
   dni: string;
   telephone: string;
   birthdate: Date;
   address: string;
-  year: Date;
+  yearEntry: Date;
   observations: string;
   countryId: number;
   email: string;
-  careers: StudentCareer[];
+  careers?: StudentCareer[];
 }

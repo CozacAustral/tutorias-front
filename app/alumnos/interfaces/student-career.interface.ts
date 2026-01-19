@@ -1,4 +1,5 @@
 export interface StudentCareer {
+    id: number;
     careerId: number;
     name: string;
     yearEntry: number;
