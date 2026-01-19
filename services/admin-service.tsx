@@ -163,7 +163,6 @@ export const UserService = {
     });
     return res.data;
   },
-
   async schedule(body: CreateMeetingBody) {
     const res = await axiosInstance.post(`/meetings/schedule-meeting`, body);
     return res.data;
