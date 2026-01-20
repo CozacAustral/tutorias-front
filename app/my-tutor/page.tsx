@@ -31,51 +31,46 @@ export default function MyTutorPage() {
   }, []);
 
   return (
-    <Box
-      ml={collapsed ? "15rem" : "15.5rem"}
-      mr={collapsed ? "15rem" : "10.5rem"}
-      mt={collapsed ? "10rem" : "10.5rem"}
-      mb={collapsed ? "10rem" : "10.5rem"}
-      p={8}
-      transition="margin-left 0.3s ease"
+    <Flex
       minH="100vh"
-      bg="#ffffff"
+      bg="gray.50"
+      ml={collapsed ? "6rem" : "12rem"}
+      px={6}
     >
-      <Heading mb={6}>Mi Tutor</Heading>
+      <Flex
+        flex="1"
+        justify="center"
+        align="center"
+      >
+        <Box
+          bg="white"
+          borderRadius="2xl"
+          boxShadow="md"
+          p={10}
+          w="100%"
+          maxW="900px"
+        >
+          <Heading mb={8}>Mi Tutor</Heading>
 
-      {loading ? (
-        <Spinner />
-      ) : tutor ? (
-        <Flex justify="center">
-          <Box
-            bg="white"
-            p={8}
-            borderRadius="16px"
-            maxW="900px"
-            w="100%"
-            boxShadow="sm"
-          >
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={5}>
-              <Input value={tutor.name} isReadOnly placeholder="Nombre" />
-              <Input value={tutor.lastName} isReadOnly placeholder="Apellido" />
-              <Input value={tutor.email} isReadOnly placeholder="Correo" />
-              <Input
-                value={tutor.telephone ?? ""}
-                isReadOnly
-                placeholder="Teléfono"
-              />
+          {loading ? (
+            <Spinner />
+          ) : tutor ? (
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+              <Input value={tutor.name} isReadOnly />
+              <Input value={tutor.lastName} isReadOnly />
+              <Input value={tutor.email} isReadOnly />
+              <Input value={tutor.telephone ?? ""} isReadOnly />
               <Input
                 gridColumn={{ md: "span 2" }}
                 value={tutor.department?.name ?? ""}
                 isReadOnly
-                placeholder="Departamento"
               />
             </SimpleGrid>
-          </Box>
-        </Flex>
-      ) : (
-        <Box>No tenés tutor asignado</Box>
-      )}
-    </Box>
+          ) : (
+            <Box>No tenés tutor asignado</Box>
+          )}
+        </Box>
+      </Flex>
+    </Flex>
   );
 }

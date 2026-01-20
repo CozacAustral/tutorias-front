@@ -233,7 +233,7 @@ const SideBar = () => {
                   justifyContent={collapsed ? "center" : "flex-start"}
                 >
                   <Image
-                    src="/icons/tutor-icon.svg"
+                    src="/icons/tutors-icon.svg"
                     width={30}
                     height={30}
                     alt="Mi Tutor"
