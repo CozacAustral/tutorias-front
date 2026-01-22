@@ -18,6 +18,10 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  toastError,
+  toastSuccess,
+} from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
 import { Report } from "./type/report.type";
 
@@ -45,6 +49,9 @@ const ViewReportModal: React.FC<Props> = ({
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
 
+  const [submitting, setSubmitting] = useState(false);
+  const [sendingReport, setSendingReport] = useState(false);
+
   const loadReport = useCallback(async () => {
     if (!meetingId) return;
     setLoading(true);
@@ -53,8 +60,8 @@ const ViewReportModal: React.FC<Props> = ({
     try {
       const res = await UserService.getReport(meetingId);
       setReport(res as any);
-    } catch {}
-    finally {
+    } catch {
+    } finally {
       setLoading(false);
     }
   }, [meetingId]);
@@ -75,10 +82,7 @@ const ViewReportModal: React.FC<Props> = ({
     [report?.yearOfAdmission]
   );
 
-  const topicsValue = useMemo(
-    () => report?.topicos ?? "",
-    [report?.topicos]
-  );
+  const topicsValue = useMemo(() => report?.topicos ?? "", [report?.topicos]);
 
   const commentsValue = useMemo(
     () => report?.comments ?? "",
@@ -92,6 +96,29 @@ const ViewReportModal: React.FC<Props> = ({
       careerName: report?.career?.name,
     });
   }, [onOpenSubjects, studentId, report?.career?.id, report?.career?.name]);
+
+  const handleSendReport = useCallback(async () => {
+    if (!meetingId) return;
+
+    try {
+      setSendingReport(true);
+      await UserService.sendReportToStudent(meetingId);
+
+      toastSuccess({
+        title: "Reporte enviado al alumno",
+        description:
+          "El reporte ha sido enviado correctamente al correo del alumno.",
+      });
+    } catch (err) {
+      toastError({
+        title: "Error al enviar el reporte",
+        description:
+          "No se pudo enviar el reporte al alumno. Por favor, intentá nuevamente más tarde.",
+      });
+    } finally {
+      setSendingReport(false);
+    }
+  }, [meetingId]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
@@ -152,6 +179,15 @@ const ViewReportModal: React.FC<Props> = ({
 
           <Button variant="ghost" mr={3} onClick={onClose}>
             Cerrar
+          </Button>
+
+          <Button
+            colorScheme="blue"
+            onClick={handleSendReport}
+            isLoading={sendingReport}
+            isDisabled={submitting}
+          >
+            Enviar reporte
           </Button>
         </ModalFooter>
       </ModalContent>

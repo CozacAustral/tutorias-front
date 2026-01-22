@@ -16,12 +16,15 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  toastError,
+  toastSuccess,
+} from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
 import { Props } from "../type/props.type";
 import { StudentOption } from "../type/student-option.type";
 
 export default function ScheduleMeetingModal({
-
   isOpen,
   onClose,
   students,
@@ -40,7 +43,7 @@ export default function ScheduleMeetingModal({
 
   const locationRegex = useMemo(
     () => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,_\-\/()#:]+$/,
-    []
+    [],
   );
   const isLocationValid =
     locationValue.trim().length > 0 && locationRegex.test(locationValue.trim());
@@ -109,10 +112,19 @@ export default function ScheduleMeetingModal({
       setLoading(true);
       const resp = await UserService.schedule(body);
       onCreated?.(resp);
+      toastSuccess({
+        title: "Reunión agendada",
+        description: "La reunión ha sido agendada correctamente.",
+      });
       onClose();
       resetForm();
     } catch (e) {
       console.error(e);
+      toastError({
+        title: "Error al agendar reunión",
+        description:
+          "Ocurrió un error al intentar agendar la reunión. Intenta nuevamente.",
+      });
     } finally {
       setLoading(false);
     }
