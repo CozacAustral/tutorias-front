@@ -564,7 +564,6 @@ const Reuniones: React.FC = () => {
 
   useEffect(() => {
     loadMeetings(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, JSON.stringify(filters)]);
 
   const openCreate = useCallback(() => {
