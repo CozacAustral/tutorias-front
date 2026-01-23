@@ -1,10 +1,12 @@
-  "use client";
+"use client";
 import { useState, useEffect } from "react";
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import {
   ArrowForwardIcon,
   ArrowBackIcon,
   ExternalLinkIcon,
+  CopyIcon,
+  AttachmentIcon,
 } from "@chakra-ui/icons";
 import Link from "next/link";
 import Image from "next/image";
@@ -62,7 +64,6 @@ const SideBar = () => {
           alignItems="center"
           justifyContent="center"
           py="1rem"
-
         >
           <Image
             src={
@@ -70,7 +71,7 @@ const SideBar = () => {
                 ? "/images/collapsedaustral.png"
                 : "/images/australsidebar.png"
             }
-            width={collapsed ? 40 : 140} 
+            width={collapsed ? 40 : 140}
             height={collapsed ? 40 : 60}
             alt="logo"
             priority
@@ -191,8 +192,6 @@ const SideBar = () => {
 
           {(role === 1 || role === 2) && (
             <>
-
-
               <Box as="li" mb="1rem">
                 <Link
                   href="/alumnos"
@@ -217,6 +216,28 @@ const SideBar = () => {
                       priority
                     />
                     {!collapsed && <Text ml="0.5rem">Alumnos</Text>}
+                  </Flex>
+                </Link>
+              </Box>
+
+              <Box as="li" mb="1rem">
+                <Link
+                  href="/documents"
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
+                  <Flex
+                    align="center"
+                    p="0.5rem"
+                    bg={isActiveLink("/documents") ? "secondary" : "primary"}
+                    color={isActiveLink("/documents") ? "white" : "#fff3e9"}
+                    borderRadius="6px"
+                    transition="background-color 0.1s ease-in-out"
+                    _hover={{ bg: "secondary", color: "white" }}
+                    justifyContent={collapsed ? "center" : "flex-start"}
+                  >
+                    <AttachmentIcon boxSize={6} />
+                    {!collapsed && <Text ml="0.5rem">Documentos</Text>}
                   </Flex>
                 </Link>
               </Box>
