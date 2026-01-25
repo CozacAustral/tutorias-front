@@ -1,11 +1,12 @@
 "use client";
 
 import { Td, Tr } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, Suspense } from "react"; // Importamos Suspense
 import GenericTable from "../../common/components/generic-table";
 import { CareerStudent } from "./interfaces/career-student.interface";
 
-const Carrera: React.FC = () => {
+// 1. Renombramos el componente interno
+const CarreraContent: React.FC = () => {
   const [career, setCareer] = useState<CareerStudent[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,4 +39,12 @@ const Carrera: React.FC = () => {
   );
 };
 
-export default Carrera;
+// 2. Exportamos el componente envuelto en Suspense
+// Esto evita el error de prerendering en Vercel
+export default function Carrera() {
+  return (
+    <Suspense fallback={<p>Cargando información...</p>}>
+      <CarreraContent />
+    </Suspense>
+  );
+}
