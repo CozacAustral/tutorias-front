@@ -56,7 +56,6 @@ const Estudiantes: React.FC = () => {
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [role, setRole] = useState(0);
   type StudentLike = Student | { studentId: number };
-  type CreatedStudentResponse = { studentId: number } | Student;
 
   const isLoading =
     loadingRole ||
