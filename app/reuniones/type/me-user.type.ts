@@ -1,0 +1,3 @@
+type MeUser = {
+  role?: MeRole;
+};
