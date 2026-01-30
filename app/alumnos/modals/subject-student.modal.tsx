@@ -25,7 +25,7 @@ interface SubjectStudentModal<t = any> {
   subjects: SubjectCareerWithState[];
   renderSubjectNow?: (
     subject: SubjectCareerWithState,
-    index: number
+    index: number,
   ) => React.ReactNode;
   state?: boolean | null;
   role?: number | null;

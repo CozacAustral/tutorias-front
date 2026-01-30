@@ -3,6 +3,8 @@ import {
   ArrowBackIcon,
   ArrowForwardIcon,
   ExternalLinkIcon,
+  CopyIcon,
+  AttachmentIcon,
 } from "@chakra-ui/icons";
 import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import Cookies from "js-cookie";
@@ -214,6 +216,28 @@ const SideBar = () => {
                       priority
                     />
                     {!collapsed && <Text ml="0.5rem">Alumnos</Text>}
+                  </Flex>
+                </Link>
+              </Box>
+
+              <Box as="li" mb="1rem">
+                <Link
+                  href="/documents"
+                  passHref
+                  style={{ textDecoration: "none" }}
+                >
+                  <Flex
+                    align="center"
+                    p="0.5rem"
+                    bg={isActiveLink("/documents") ? "secondary" : "primary"}
+                    color={isActiveLink("/documents") ? "white" : "#fff3e9"}
+                    borderRadius="6px"
+                    transition="background-color 0.1s ease-in-out"
+                    _hover={{ bg: "secondary", color: "white" }}
+                    justifyContent={collapsed ? "center" : "flex-start"}
+                  >
+                    <AttachmentIcon boxSize={6} />
+                    {!collapsed && <Text ml="0.5rem">Documentos</Text>}
                   </Flex>
                 </Link>
               </Box>

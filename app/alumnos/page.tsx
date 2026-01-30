@@ -20,12 +20,13 @@ import { AssignedCareer } from "./interfaces/create-career.interface";
 import { StudentCareer } from "./interfaces/student-career.interface";
 import { Student } from "./interfaces/student.interface";
 import { SubjectCareerWithState } from "./interfaces/subject-career-student.interface";
-import { UpdateStudentDto } from "./interfaces/update-student";
+import { UpdateStudentDto } from "./interfaces/update-student.interface";
 import CareerModal from "./modals/create-career-student.modal";
 import CreateStudentModal from "./modals/create-student.modal";
 import PaginateStudent from "./modals/paginate-student.modal";
 import SubjectModal from "./modals/subject-student.modal";
 import StudentModal from "./modals/view-student.modal";
+import { CareerLike } from "./type/careerlike.type";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -47,13 +48,14 @@ const Estudiantes: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [totalStudents, setTotalStudents] = useState(0);
   const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
-    undefined
+    undefined,
   );
   const [loadingRole, setLoadingRole] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [loadingCareers, setLoadingCareers] = useState(true);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [role, setRole] = useState(0);
+  type StudentLike = Student | { studentId: number };
 
   const isLoading =
     loadingRole ||
@@ -162,7 +164,9 @@ const Estudiantes: React.FC = () => {
     if (!countries.length) return;
 
     setStudentData((prev) => {
-      const exists = countries.some((c) => c.id === Number(prev.countryId));
+      const exists = countries.some(
+        (country) => country.id === Number(prev.countryId),
+      );
       if (exists) return prev;
 
       return { ...prev, countryId: countries[0].id };
@@ -173,7 +177,9 @@ const Estudiantes: React.FC = () => {
     if (!careers.length) return;
 
     setStudentData((prev) => {
-      const exists = careers.some((c) => c.id === Number(prev.careerId));
+      const exists = careers.some(
+        (careerItem) => careerItem.id === Number(prev.careerId),
+      );
       if (exists) return prev;
 
       return { ...prev, careerId: careers[0].id };
@@ -196,12 +202,12 @@ const Estudiantes: React.FC = () => {
 
         if (typeof raw === "number") parsed = raw;
         else if (typeof raw === "string") {
-          const n = Number(raw);
-          if (!Number.isNaN(n)) parsed = n;
+          const parsedRoleId = Number(raw);
+          if (!Number.isNaN(parsedRoleId)) parsed = parsedRoleId;
           else {
-            const r = raw.toUpperCase();
-            if (r === "ADMIN") parsed = 1;
-            if (r === "TUTOR") parsed = 2;
+            const roleString = raw.toUpperCase();
+            if (roleString === "ADMIN") parsed = 1;
+            if (roleString === "TUTOR") parsed = 2;
           }
         } else if (typeof raw === "object" && raw) {
           const objId = (raw as any).id;
@@ -226,7 +232,7 @@ const Estudiantes: React.FC = () => {
         const data = await UserService.fetchStudentsByRole({
           search: searchTerm,
           currentPage,
-          resultsPerPage: 10,
+          resultsPerPage: 7,
           orderBy,
         });
 
@@ -288,17 +294,15 @@ const Estudiantes: React.FC = () => {
     loadCountries();
   }, [role]);
 
-  const getStudentId = (s: any) => Number(s?.studentId ?? s?.id);
+  const getStudentId = (student: StudentLike): number =>
+    "studentId" in student ? student.studentId : student.id;
 
-  const getCareerNames = (careersAny: any) => {
-    const careers = Array.isArray(careersAny) ? careersAny : [];
-    return careers
-      .map((c: any) => c?.name ?? c?.career?.name ?? c?.name_career)
-      .filter(Boolean) as string[];
+  const getCareerNames = (careers: StudentCareer[]): string[] => {
+    return careers.map((career) => career.name);
   };
 
-  const getCareerLabel = (careersAny: any) => {
-    const names = getCareerNames(careersAny);
+  const getCareerLabel = (careers: StudentCareer[]) => {
+    const names = getCareerNames(careers);
     const full = names.join(", ");
 
     const short =
@@ -311,7 +315,7 @@ const Estudiantes: React.FC = () => {
     return { names, full, short };
   };
 
-  const openStudent = async (student: any, mode: "view" | "edit") => {
+  const openStudent = async (student: Student, mode: "view" | "edit") => {
     const realId = getStudentId(student);
     const data = await loadStudentById(realId);
     if (!data) return;
@@ -373,9 +377,9 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleChangeCreateStudent = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
 
     setStudentData((prevData) => ({
       ...prevData,
@@ -387,16 +391,15 @@ const Estudiantes: React.FC = () => {
             : value,
     }));
   };
-
   const handleChange = (
-    e: React.ChangeEvent<
+    event: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
 
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData((previousFormData) => ({
+      ...previousFormData,
       [name]:
         name === "birthdate" || name === "yearEntry"
           ? new Date(value).toISOString().split("T")[0]
@@ -406,31 +409,25 @@ const Estudiantes: React.FC = () => {
     }));
   };
 
-const handleAddStudent = async (created: any) => {
-  if (!created) return;
+  const handleAddStudent = async () => {
+    setCurrentPage(1);
+    setSearchTerm("");
 
-  const createdId = getStudentId(created);
-  if (!createdId) return;
-
-  try {
-    const fullStudent = await UserService.getOneStudentByRole(createdId);
-
-    setStudents((prev) => {
-      const without = prev.filter((s: any) => {
-        const sid = getStudentId(s);
-        return sid !== fullStudent.id;
-      });
-
-      return [fullStudent, ...without].slice(0, 10);
+    const data = await UserService.fetchStudentsByRole({
+      search: "",
+      currentPage: 1,
+      resultsPerPage: 7,
+      orderBy,
     });
 
-    setTotalStudents((prev) => prev + 1);
-    setCurrentPage(1);
-  } catch (e) {
-    console.error("Error fetching created student:", e);
-  }
-};
-
+    if (data.students) {
+      setStudents(data.students);
+      setTotalStudents(data.totalCount);
+    } else {
+      setStudents(data.data);
+      setTotalStudents(data.total);
+    }
+  };
 
   const handleDeleteConfirm = async () => {
     if (selectedStudent) {
@@ -438,8 +435,8 @@ const handleAddStudent = async (created: any) => {
         await UserService.deleteStudent(selectedStudent.id);
         setStudents(
           students?.filter(
-            (student) => student.user.id !== selectedStudent.user.id
-          ) || []
+            (student) => student.user.id !== selectedStudent.user.id,
+          ) || [],
         );
         closeDeleteModal();
       } catch (err) {
@@ -455,7 +452,7 @@ const handleAddStudent = async (created: any) => {
     const data = await UserService.fetchStudentsByRole({
       search: "",
       currentPage: 1,
-      resultsPerPage: 10,
+      resultsPerPage: 7,
       orderBy,
     });
 
@@ -487,43 +484,44 @@ const handleAddStudent = async (created: any) => {
     openCreateModal();
   };
 
-const handleStudentUpdate = async () => {
-  if (!selectedStudent) return;
+  const handleStudentUpdate = async () => {
+    if (!selectedStudent) return;
 
-  try {
-    const payload: any = {
-      name: formData.name,
-      lastName: formData.lastName,
-      email: formData.email,
-      telephone: formData.telephone,
-      dni: formData.dni,
-      address: formData.address,
-      birthdate: formData.birthdate,
-      yearEntry: formData.yearEntry,
-      countryId: formData.countryId,
-    };
+    try {
+      const payload: any = {
+        name: formData.name,
+        lastName: formData.lastName,
+        email: formData.email,
+        telephone: formData.telephone,
+        dni: formData.dni,
+        address: formData.address,
+        birthdate: formData.birthdate,
+        yearEntry: formData.yearEntry,
+        countryId: formData.countryId,
+      };
 
-    if (role === 2) {
-      payload.observations = formData.observations;
+      if (role === 2) {
+        payload.observations = formData.observations;
+      }
+
+      await UserService.updateStudent(selectedStudent.id, payload);
+
+      const updatedStudent = await loadStudentById(selectedStudent.id);
+      if (!updatedStudent) return;
+
+      setStudents((previousStudents) =>
+        previousStudents.map((student) =>
+          getStudentId(student) === updatedStudent.id
+            ? updatedStudent
+            : student,
+        ),
+      );
+
+      closeEditModal();
+    } catch (error) {
+      console.error("Error al editar estudiante:", error);
     }
-
-    await UserService.updateStudent(selectedStudent.id, payload);
-
-    const updatedStudent = await loadStudentById(selectedStudent.id);
-    if (!updatedStudent) return;
-
-    setStudents((prev) =>
-      prev.map((s: any) =>
-        getStudentId(s) === updatedStudent.id ? updatedStudent : s
-      )
-    );
-
-    closeEditModal();
-  } catch (error) {
-    console.error("Error al editar estudiante:", error);
-  }
-};
-
+  };
 
   const handleAllSubject = async (career: StudentCareer) => {
     setSelectedCareerState(career.active);
@@ -538,7 +536,7 @@ const handleStudentUpdate = async () => {
 
       const allSubjects = await UserService.fetchStudentSubject(
         selectedStudent.id,
-        careerSelected.id
+        careerSelected.id,
       );
       setSubjects(allSubjects);
 
@@ -561,24 +559,26 @@ const handleStudentUpdate = async () => {
               UserService.updateStateSubject(
                 selectedStudent.id,
                 parseInt(subjectIdStr),
-                newState
-              )
-            )
+                newState,
+              ),
+            ),
           );
         }
 
-        setSubjects((prevSubject) =>
-          prevSubject.map((subject) => {
-            const newState = editedSubjects[subject.subjectId];
-            if (newState) {
+        setSubjects((previousSubjects) =>
+          previousSubjects.map((subject) => {
+            const updatedState = editedSubjects[subject.subjectId];
+
+            if (updatedState) {
               return {
                 ...subject,
-                subjectState: newState,
+                subjectState: updatedState,
                 updateAt: new Date(),
               };
             }
+
             return subject;
-          })
+          }),
         );
 
         setEditedSubjects({});
@@ -588,39 +588,86 @@ const handleStudentUpdate = async () => {
     }
   };
 
-  const getCareerStudentId = (c: any) =>
-    Number(c?.id ?? c?.careerStudentId ?? c?.career_student_id);
+  const getCareerStudentId = (career: StudentCareer): number => career.id;
 
-  const normalizeCareersArray = (careersAny: any) =>
-    Array.isArray(careersAny) ? careersAny : [];
+  const normalizeCareersArray = (careers: unknown): CareerLike[] =>
+    Array.isArray(careers) ? (careers as CareerLike[]) : [];
+
+  const toStudentCareer = (rawCareer: CareerLike): StudentCareer | null => {
+    const relationId =
+      rawCareer.id ?? rawCareer.careerStudentId ?? rawCareer.career_student_id;
+
+    const careerId =
+      rawCareer.careerId ??
+      rawCareer.career?.id ??
+      rawCareer.career_id ??
+      rawCareer.idCareer;
+
+    const careerName =
+      rawCareer.name ?? rawCareer.career?.name ?? rawCareer.name_career;
+
+    if (!relationId || !careerId || !careerName) return null;
+
+    return {
+      id: relationId,
+      careerId,
+      name: careerName,
+      yearEntry: rawCareer.yearEntry ?? 0,
+      yearOfThePlan: rawCareer.yearOfThePlan ?? 0,
+      active: rawCareer.active ?? false,
+    };
+  };
 
   const removeCareerFromArray = (
-    arr: any[],
+    careers: unknown,
     relId: number,
     careerId: number,
-    careerName?: string
-  ) => {
-    const targetName = (careerName ?? "").toString().trim().toLowerCase();
+    careerName?: string,
+  ): StudentCareer[] => {
+    const targetName = careerName?.trim().toLowerCase();
 
-    return normalizeCareersArray(arr).filter((c: any) => {
-      const cRelId = Number(
-        c?.id ?? c?.careerStudentId ?? c?.career_student_id
+    return normalizeCareersArray(careers)
+      .filter((careerItem) => {
+        const relationIdCandidate = Number(
+          careerItem.id ??
+            careerItem.careerStudentId ??
+            careerItem.career_student_id,
+        );
+
+        const careerIdCandidate = Number(
+          careerItem.careerId ??
+            careerItem.career?.id ??
+            careerItem.career_id ??
+            careerItem.idCareer,
+        );
+
+        const normalizedCareerName = (
+          careerItem.name ??
+          careerItem.career?.name ??
+          careerItem.name_career ??
+          ""
+        )
+          .toString()
+          .trim()
+          .toLowerCase();
+
+        if (relId && !Number.isNaN(relId) && relationIdCandidate === relId)
+          return false;
+        if (
+          careerId &&
+          !Number.isNaN(careerId) &&
+          careerIdCandidate === careerId
+        )
+          return false;
+        if (targetName && normalizedCareerName === targetName) return false;
+
+        return true;
+      })
+      .map(toStudentCareer)
+      .filter(
+        (studentCareer): studentCareer is StudentCareer =>
+          studentCareer !== null,
       );
-      const cCareerId = Number(
-        c?.careerId ?? c?.career?.id ?? c?.career_id ?? c?.idCareer
-      );
-      const cName = (c?.name ?? c?.career?.name ?? c?.name_career ?? "")
-        .toString()
-        .trim()
-        .toLowerCase();
-
-      if (relId && !Number.isNaN(relId) && cRelId === relId) return false;
-      if (careerId && !Number.isNaN(careerId) && cCareerId === careerId)
-        return false;
-      if (targetName && cName && cName === targetName) return false;
-
-      return true;
-    });
   };
 
   const onDeleteCareer = async (career: StudentCareer) => {
@@ -628,7 +675,7 @@ const handleStudentUpdate = async () => {
 
     const relId = getCareerStudentId(career);
     const studentId = selectedStudent.id;
-    const careerId = Number((career as any)?.careerId);
+    const careerId = career.careerId;
 
     if (!relId || Number.isNaN(relId)) {
       console.error("No hay CareerStudent.id en el objeto career:", career);
@@ -640,14 +687,14 @@ const handleStudentUpdate = async () => {
       setFormData((prev) => ({
         ...prev,
         careers: removeCareerFromArray(
-          prev.careers as any,
+          prev.careers ?? [],
           relId,
           careerId,
-          career.name
+          career.name,
         ),
       }));
 
-      setSelectedStudent((prev: any) =>
+      setSelectedStudent((prev: Student | null) =>
         prev
           ? {
               ...prev,
@@ -655,30 +702,28 @@ const handleStudentUpdate = async () => {
                 prev.careers as any,
                 relId,
                 careerId,
-                career.name
+                career.name,
               ),
             }
-          : prev
+          : prev,
       );
-      setStudents((prev) =>
-        prev.map((s: any) => {
-          const sid = getStudentId(s);
-          if (sid !== studentId) return s;
+      setStudents((previousStudents) =>
+        previousStudents.map((student: Student) => {
+          const studentIdValue = getStudentId(student);
+          if (studentIdValue !== studentId) return student;
 
           return {
-            ...s,
+            ...student,
             careers: removeCareerFromArray(
-              (s as any).careers,
+              (student as any).careers,
               relId,
               careerId,
-              career.name
+              career.name,
             ),
           };
-        })
+        }),
       );
-    } catch (e) {
-      console.error("Error al borrar carrera:", e);
-    }
+    } catch (error) {}
   };
 
   const handleEditSubjectClick = async (subjectId: number) => {
@@ -696,7 +741,7 @@ const handleStudentUpdate = async () => {
               };
             }
             return subject;
-          })
+          }),
         );
       }
     }
@@ -705,20 +750,22 @@ const handleStudentUpdate = async () => {
   };
 
   const handleChangeCreateCareer = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
 
     if (name === "careerId") {
-      const career = careers.find((c) => c.id === parseInt(value));
-      setSelectedCareer(career || null);
+      const selectedCareerItem = careers.find(
+        (careerItem) => careerItem.id === parseInt(value),
+      );
+      setSelectedCareer(selectedCareerItem || null);
     }
 
-    setCareerData((prev) => ({
-      ...prev,
+    setCareerData((previousCareerData) => ({
+      ...previousCareerData,
       [name]:
         name === "yearOfAdmission"
-          ? parseInt(e.target.value)
+          ? parseInt(value)
           : name === "careerId"
             ? parseInt(value)
             : value,
@@ -734,17 +781,16 @@ const handleStudentUpdate = async () => {
         if (!updatedStudent) return;
 
         setStudents((prev) =>
-          prev.map((s: any) => {
-            const sid = getStudentId(s);
-            if (sid !== updatedStudent.id) return s;
+          prev.map((student) => {
+            const studentId = getStudentId(student);
+            if (studentId !== updatedStudent.id) return student;
 
             return {
-              ...s,
+              ...student,
               careers: updatedStudent.careers,
             };
-          })
+          }),
         );
-
         closeCreateCareerModal();
       } catch (error) {
         console.error("Error creando carrera:", error);
@@ -776,7 +822,7 @@ const handleStudentUpdate = async () => {
   } as const;
 
   const renderStudentRow = (student: Student) => {
-    const { names, full, short } = getCareerLabel((student as any).careers);
+    const { names, full, short } = getCareerLabel(student.careers);
     const canDelete = role !== 2;
 
     return (
@@ -860,7 +906,7 @@ const handleStudentUpdate = async () => {
 
   const renderSubjectRowView = (
     subject: SubjectCareerWithState,
-    index: number
+    index: number,
   ) => (
     <Tr key={subject.subjectId ?? index}>
       <Td>{subject.subjectName}</Td>
@@ -882,10 +928,10 @@ const handleStudentUpdate = async () => {
         {editedSubjects[subject.subjectId] !== undefined ? (
           <Select
             value={editedSubjects[subject.subjectId] ?? subject.subjectState}
-            onChange={(e) =>
-              setEditedSubjects((prev) => ({
-                ...prev,
-                [subject.subjectId]: e.target.value,
+            onChange={(selectChangeEvent) =>
+              setEditedSubjects((previousEditedSubjects) => ({
+                ...previousEditedSubjects,
+                [subject.subjectId]: selectChangeEvent.target.value,
               }))
             }
           >
@@ -969,8 +1015,12 @@ const handleStudentUpdate = async () => {
         onInputChange={handleChange}
         isViewMode={false}
         role={role}
-        renderSubjectNow={(s, i) => renderSubjectRow(s, i)}
-        renderSubjectNowView={(s, i) => renderSubjectRowView(s, i)}
+        renderSubjectNow={(subjectItem, index) =>
+          renderSubjectRow(subjectItem, index)
+        }
+        renderSubjectNowView={(subjectItem, index) =>
+          renderSubjectRowView(subjectItem, index)
+        }
         onConfirmEditSubject={handleEditSubject}
         countries={countries}
       />
@@ -981,7 +1031,9 @@ const handleStudentUpdate = async () => {
         formData={{ ...formData, id: selectedStudent?.id }}
         isViewMode={true}
         role={role}
-        renderSubjectNowView={(s, i) => renderSubjectRowView(s, i)}
+        renderSubjectNowView={(subjectItem, index) =>
+          renderSubjectRowView(subjectItem, index)
+        }
         countries={countries}
       />
 

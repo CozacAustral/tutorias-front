@@ -4,7 +4,7 @@ import { Country } from "../app/alumnos/interfaces/country.interface";
 import { AssignedCareer } from "../app/alumnos/interfaces/create-career.interface";
 import { Student } from "../app/alumnos/interfaces/student.interface";
 import { SubjectCareerWithState } from "../app/alumnos/interfaces/subject-career-student.interface";
-import { UpdateStudentDto } from "../app/alumnos/interfaces/update-student";
+import { UpdateStudentDto } from "../app/alumnos/interfaces/update-student.interface";
 import { CreateStudent } from "../app/carrera/interfaces/create-student.interface";
 import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
