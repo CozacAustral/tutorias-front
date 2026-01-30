@@ -4,13 +4,13 @@ import { Country } from "../app/alumnos/interfaces/country.interface";
 import { AssignedCareer } from "../app/alumnos/interfaces/create-career.interface";
 import { Student } from "../app/alumnos/interfaces/student.interface";
 import { SubjectCareerWithState } from "../app/alumnos/interfaces/subject-career-student.interface";
-import { UpdateStudentDto } from "../app/alumnos/interfaces/update-student";
+import { UpdateStudentDto } from "../app/alumnos/interfaces/update-student.interface";
 import { CreateStudent } from "../app/carrera/interfaces/create-student.interface";
 import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
 import { CreateMeetingBody } from "../app/reuniones/type/create-meeting-body.type";
 import { GetMeetingsResp } from "../app/reuniones/type/get-meeting-response.type";
-import { ReportInfo } from '../app/reuniones/type/report-info.type';
+import { ReportInfo } from "../app/reuniones/type/report-info.type";
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
 import { CreateUser } from "./interfaces/createUser";
@@ -26,6 +26,75 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async deleteCareerStudent(careerStudentIds: number[]): Promise<void> {
+    await axiosInstance.delete("/students/career-student", {
+      data: careerStudentIds,
+    });
+  },
+  async getMeetings(
+    page = 1,
+    limit = 10,
+    filters?: {
+      from?: string;
+      to?: string;
+      timeFrom?: string;
+      timeTo?: string;
+      studentId?: number;
+      studentQuery?: string;
+      status?: "all" | "PENDING" | "REPORTMISSING" | "COMPLETED";
+      order?: "asc" | "desc";
+    },
+  ): Promise<GetMeetingsResp> {
+    const res = await axiosInstance.get(`/meetings/role/meetings`, {
+      params: { currentPage: page, resultsPerPage: limit, ...filters },
+    });
+    return res.data;
+  },
+
+  async fetchMe(): Promise<{
+    name: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    department?: string;
+    role: any;
+  }> {
+    const res = await axiosInstance.get("/users/me");
+    return res.data;
+  },
+
+  async getOneStudentByRole(studentId: number) {
+    const res = await axiosInstance.get(
+      `/students/get-students-by-role/${studentId}`,
+    );
+    return res.data;
+  },
+
+  async fetchStudentsByRole(params: {
+    search?: string;
+    currentPage?: number;
+    resultsPerPage?: number;
+    orderBy?: [string, "ASC" | "DESC"];
+  }) {
+    const res = await axiosInstance.get(
+      `/students/students/get-students-by-role`,
+      {
+        params,
+      },
+    );
+    return res.data;
+  },
+
+  async fetchMyStudents(params: {
+    search?: string;
+    currentPage?: number;
+    resultsPerPage?: number;
+    orderBy?: [string, "ASC" | "DESC"];
+  }) {
+    const res = await axiosInstance.get(`/students/me`, { params });
+    return res.data;
+  },
+
   async getStudentCareers(studentId: number) {
     const r = await axiosInstance.get(`/tutors/${studentId}/careers`);
     return r.data?.data ?? r.data;
@@ -42,25 +111,25 @@ export const UserService = {
 
   async getReportInfo(meetingId: number): Promise<ReportInfo> {
     const res = await axiosInstance.get(
-      `/reports/meetings/${meetingId}/report-info`
+      `/reports/meetings/${meetingId}/report-info`,
     );
     return res.data as ReportInfo;
   },
 
   async createReport(
     meetingId: number,
-    dto: { topicos: string; comments?: string; careerId?: number }
+    dto: { topicos: string; comments?: string; careerId?: number },
   ) {
     const res = await axiosInstance.post(
       `/reports/meetings/${meetingId}/report`,
-      dto
+      dto,
     );
     return res.data;
   },
 
   async getReport(meetingId: number) {
     const res = await axiosInstance.get(
-      `/reports/meetings/${meetingId}/report`
+      `/reports/meetings/${meetingId}/report`,
     );
     return res.data;
   },
@@ -87,14 +156,13 @@ export const UserService = {
       studentQuery?: string;
       status?: "all" | "PENDING" | "REPORTMISSING" | "COMPLETED";
       order?: "asc" | "desc";
-    }
+    },
   ): Promise<GetMeetingsResp> {
     const res = await axiosInstance.get(`/meetings/me/meetings`, {
       params: { currentPage: page, resultsPerPage: limit, ...filters },
     });
     return res.data;
   },
-  
   async schedule(body: CreateMeetingBody) {
     const res = await axiosInstance.post(`/meetings/schedule-meeting`, body);
     return res.data;
@@ -103,14 +171,14 @@ export const UserService = {
   async fetchTutorById(tutorId: number): Promise<ResponseTutor> {
     try {
       const response = await axiosInstance.get<ResponseTutor>(
-        `${urlTutors}/${tutorId}`
+        `${urlTutors}/${tutorId}`,
       );
       return response.data;
     } catch (error: any) {
       throw new Error(
         `No se pudo obtener el tutor con ID ${tutorId}. ${
           error.message || error
-        }`
+        }`,
       );
     }
   },
@@ -121,7 +189,7 @@ export const UserService = {
       search?: string;
       currentPage?: number;
       resultsPerPage?: number;
-    }
+    },
   ): Promise<{
     data: Student[];
     total: number;
@@ -132,7 +200,7 @@ export const UserService = {
       `/tutors/get-students/${tutorId}`,
       {
         params: query,
-      }
+      },
     );
     return response.data;
   },
@@ -145,7 +213,7 @@ export const UserService = {
   getStudentsWithoutTutor: async (
     page: number,
     search: string = "",
-    resultsPerPage: number = 7
+    resultsPerPage: number = 7,
   ) => {
     const params = new URLSearchParams();
     params.append("currentPage", page.toString());
@@ -155,7 +223,7 @@ export const UserService = {
     }
 
     const res = await axiosInstance.get(
-      `/students/without-tutor?${params.toString()}`
+      `/students/without-tutor?${params.toString()}`,
     );
     return res.data;
   },
@@ -183,7 +251,7 @@ export const UserService = {
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `Error al obtener administradores. ${error.message || error}`
+        `Error al obtener administradores. ${error.message || error}`,
       );
     }
   },
@@ -200,13 +268,13 @@ export const UserService = {
       lastName?: string;
       telephone?: string;
       password?: string;
-    }
+    },
   ): Promise<void> {
     try {
       await axiosInstance.patch(`users/${id}`, updatedData);
     } catch (error: any) {
       throw new Error(
-        `No se pudo actualizar el usuario. ${error.message || error}`
+        `No se pudo actualizar el usuario. ${error.message || error}`,
       );
     }
   },
@@ -217,7 +285,7 @@ export const UserService = {
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `No se pudo obtener el usuario con ID ${id}. ${error.message || error}`
+        `No se pudo obtener el usuario con ID ${id}. ${error.message || error}`,
       );
     }
   },
@@ -225,12 +293,12 @@ export const UserService = {
   async fetchAllDepartments(): Promise<Department[]> {
     try {
       const response = await axiosInstance.get<Department[]>(
-        `${urlDepartments}`
+        `${urlDepartments}`,
       );
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `Error al obtener los departamentos: ${error.message || error}`
+        `Error al obtener los departamentos: ${error.message || error}`,
       );
     }
   },
@@ -238,12 +306,12 @@ export const UserService = {
   async fetchAllCareers(): Promise<Career[]> {
     try {
       const response = await axiosInstance.get<Career[]>(
-        `${urlCareers}/carreras`
+        `${urlCareers}/carreras`,
       );
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `Error al obtener las carreras: ${error.message || error}`
+        `Error al obtener las carreras: ${error.message || error}`,
       );
     }
   },
@@ -251,7 +319,7 @@ export const UserService = {
   async fetchCareers(careerId: number): Promise<Career> {
     try {
       const response = await axiosInstance.get<Career>(
-        `${urlCareers}/${careerId}`
+        `${urlCareers}/${careerId}`,
       );
       return response.data;
     } catch (error: any) {
@@ -262,14 +330,14 @@ export const UserService = {
   async fetchAllCountries(): Promise<Country[]> {
     try {
       const response = await axiosInstance.get<Country[]>(
-        `${urlCountries}/paises`
+        `${urlCountries}/paises`,
       );
       return response.data;
     } catch (error: any) {
       throw new Error(
         `Error al obtener los paises de los estudiantes: ${
           error.message || error
-        }`
+        }`,
       );
     }
   },
@@ -282,7 +350,7 @@ export const UserService = {
       throw new Error(
         `No se pudo obtener el estudiante con ID ${id}. ${
           error.message || error
-        }`
+        }`,
       );
     }
   },
@@ -293,23 +361,23 @@ export const UserService = {
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `Error al obtener los usuarios: ${error.message || error}`
+        `Error al obtener los usuarios: ${error.message || error}`,
       );
     }
   },
 
   async fetchStudentSubject(
     studentId: number,
-    careerId: number
+    careerId: number,
   ): Promise<SubjectCareerWithState[]> {
     try {
       const response = await axiosInstance.get<SubjectCareerWithState[]>(
-        `${urlStudents}/subjects/${studentId}/${careerId}`
+        `${urlStudents}/subjects/${studentId}/${careerId}`,
       );
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `Error al obtener las materias de la carrera: ${error.message || error}`
+        `Error al obtener las materias de la carrera: ${error.message || error}`,
       );
     }
   },
@@ -320,13 +388,13 @@ export const UserService = {
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `Error al crear el estudiante: ${error.message || error}`
+        `Error al crear el estudiante: ${error.message || error}`,
       );
     }
   },
 
   async createCareer(
-    careerData: AssignedCareer
+    careerData: AssignedCareer,
   ): Promise<ResponseCreateCareer> {
     try {
       const response = await axiosInstance.post(urlCareers, {
@@ -352,14 +420,14 @@ export const UserService = {
       });
     } catch (error: any) {
       throw new Error(
-        `Error al importar estudiantes: ${error.message || error}`
+        `Error al importar estudiantes: ${error.message || error}`,
       );
     }
   },
 
   async tutorPatchMe(
     id_tutor: number,
-    updatedTutor: TutorPatchMe
+    updatedTutor: TutorPatchMe,
   ): Promise<void> {
     try {
       await axiosInstance.patch(`${urlTutors}/${id_tutor}`, {
@@ -372,7 +440,7 @@ export const UserService = {
       });
     } catch (error: any) {
       throw new Error(
-        `No se pudo actualizar el tutor. ${error.message || error}`
+        `No se pudo actualizar el tutor. ${error.message || error}`,
       );
     }
   },
@@ -384,7 +452,7 @@ export const UserService = {
       throw new Error(
         `No se pudo eliminar al tutor con ID ${tutorId}. ${
           error.message || error
-        }`
+        }`,
       );
     }
   },
@@ -396,7 +464,7 @@ export const UserService = {
       });
     } catch (error: any) {
       throw new Error(
-        `No se pudo eliminar al tutor con ID ${id}. ${error.message || error}`
+        `No se pudo eliminar al tutor con ID ${id}. ${error.message || error}`,
       );
     }
   },
@@ -420,7 +488,7 @@ export const UserService = {
   },
 
   async fetchAllStudents(
-    params?: QueryParamsDto
+    params?: QueryParamsDto,
   ): Promise<ResponsePaginateStudent> {
     try {
       const response = await axiosInstance.get<{
@@ -432,7 +500,7 @@ export const UserService = {
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `Error al obtener los estudiantes: ${error.message || error}`
+        `Error al obtener los estudiantes: ${error.message || error}`,
       );
     }
   },
@@ -440,12 +508,12 @@ export const UserService = {
   async fetchStudent(studentId: number): Promise<Student> {
     try {
       const response = await axiosInstance.get<Student>(
-        `${urlStudents}/${studentId}`
+        `${urlStudents}/${studentId}`,
       );
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `Error al obtener el estudiante: ${error.message || error}`
+        `Error al obtener el estudiante: ${error.message || error}`,
       );
     }
   },
@@ -457,7 +525,7 @@ export const UserService = {
         {
           currentPassword: currentPassword,
           newPassword: newPassword,
-        }
+        },
       );
       return response.data;
     } catch (error) {
@@ -467,19 +535,19 @@ export const UserService = {
 
   async updateStudent(
     studentId: number,
-    updatedData: UpdateStudentDto
+    updatedData: UpdateStudentDto,
   ): Promise<void> {
     try {
       const response = await axiosInstance.patch(
         `${urlStudents}/${studentId}`,
-        updatedData
+        updatedData,
       );
       return response.data;
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el estudiante con ID ${studentId}. ${
           error.message || error
-        }`
+        }`,
       );
     }
   },
@@ -491,7 +559,7 @@ export const UserService = {
       throw new Error(
         `No se pudo eliminar al estudiante con ID ${studentId}. ${
           error.message || error
-        }`
+        }`,
       );
     }
   },
@@ -503,7 +571,7 @@ export const UserService = {
       throw new Error(
         `No se pudo actualizar el tutor con ID ${tutorId}. ${
           error.message || error
-        }`
+        }`,
       );
     }
   },
@@ -511,7 +579,7 @@ export const UserService = {
   async updateStateSubject(
     studentId: number,
     subjectId: number,
-    state: string
+    state: string,
   ): Promise<void> {
     try {
       const response = await axiosInstance.patch(
@@ -519,43 +587,14 @@ export const UserService = {
         {
           subjectId: subjectId,
           newState: state,
-        }
+        },
       );
       return response.data;
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el estado de la materia del alumno con ID ${studentId}. ${
           error.message || error
-        }`
-      );
-    }
-  },
-
-  async updateStudentModal(
-    studentId: number,
-    lastName: string,
-    name: string,
-    email: string,
-    telephone: string,
-    observations: string
-  ): Promise<UpdateStudentDto> {
-    try {
-      const response = await axiosInstance.patch(
-        `${urlStudents}/updateStudentModal/${studentId}`,
-        {
-          lastName,
-          name,
-          email,
-          telephone,
-          observations,
-        }
-      );
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        `No se pudo actualizar el alumno con ID ${studentId}. ${
-          error.message || error
-        }`
+        }`,
       );
     }
   },

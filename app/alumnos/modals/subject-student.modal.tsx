@@ -19,11 +19,14 @@ import { SubjectCareerWithState } from "../interfaces/subject-career-student.int
 interface SubjectStudentModal<t = any> {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  onConfirm?: () => Promise<void> | void;
   entityName: string;
   titleCareer: string | undefined;
   subjects: SubjectCareerWithState[];
-  renderSubjectNow: (career: any, index: number) => React.ReactNode;
+  renderSubjectNow?: (
+    subject: SubjectCareerWithState,
+    index: number,
+  ) => React.ReactNode;
   state?: boolean | null;
   role?: number | null;
   showButtonCancelSave?: boolean;
@@ -66,7 +69,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
             marginBottom={1}
           >
             <Text as="span" fontWeight="bold">
-              Editar:{" "}
+              {showButtonCancelSave ? "Editar: " : "Ver: "}
             </Text>
             {titleCareer}
           </Text>
@@ -93,16 +96,39 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                     flexDirection="column"
                   >
                     <GenericTable
+                      filter={false}
                       data={subjects}
-                      TableHeader={[
-                        "Materia",
-                        "Año",
-                        "Estado",
-                        "Ultima fecha de actualización",
-                      ]}
+                      TableHeader={
+                        showButtonCancelSave
+                          ? [
+                              "Materia",
+                              "Año",
+                              "Estado",
+                              "Ultima fecha de actualización",
+                              "Acciones",
+                            ]
+                          : [
+                              "Materia",
+                              "Año",
+                              "Estado",
+                              "Ultima fecha de actualización",
+                            ]
+                      }
                       caption={entityName}
-                      renderRow={renderSubjectNow}
-                      compact
+                      renderRow={
+                        renderSubjectNow ??
+                        ((subject: SubjectCareerWithState, index: number) => (
+                          <tr key={subject.subjectId ?? index}>
+                            <td>{subject.subjectName}</td>
+                            <td>{subject.year}</td>
+                            <td>{subject.subjectState}</td>
+                            <td>
+                              {new Date(subject.updateAt).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))
+                      }
+                      compact={false}
                       itemsPerPage={itemsPerPage}
                       showAddMenu={false}
                       isInModal
@@ -117,8 +143,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
                       maxWidth="100%"
                       padding={2}
                       height="100%"
-                      filter
-                      actions
+                      actions={showButtonCancelSave}
                     />
                   </Box>
                 </HStack>
