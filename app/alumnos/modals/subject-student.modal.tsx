@@ -25,7 +25,7 @@ interface SubjectStudentModal<t = any> {
   subjects: SubjectCareerWithState[];
   renderSubjectNow?: (
     subject: SubjectCareerWithState,
-    index: number
+    index: number,
   ) => React.ReactNode;
   state?: boolean | null;
   role?: number | null;
@@ -157,7 +157,7 @@ const SubjectModal: React.FC<SubjectStudentModal> = ({
             <Button variant="ghost" onClick={onClose} mr={3}>
               Cancelar
             </Button>
-            <Button bg="primary" color="white" onClick={() => onConfirm?.()}>
+            <Button bg="primary" color="white" onClick={onConfirm}>
               Guardar
             </Button>
           </ModalFooter>

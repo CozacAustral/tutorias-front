@@ -1,9 +1,10 @@
 "use client";
 
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Badge,
   Box,
+  Button,
   HStack,
   IconButton,
   Select,
@@ -12,18 +13,13 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiFilePlus, FiFileText } from "react-icons/fi";
 import GenericTable from "../../common/components/generic-table";
 import { UserService } from "../../services/admin-service";
 import { Country } from "../alumnos/interfaces/country.interface";
 import { Student } from "../alumnos/interfaces/student.interface";
+import { StudentCareer } from "../alumnos/interfaces/student-career.interface";
 import { SubjectCareerWithState } from "../alumnos/interfaces/subject-career-student.interface";
 import SubjectModal from "../alumnos/modals/subject-student.modal";
 import StudentModal from "../alumnos/modals/view-student.modal";
@@ -199,6 +195,7 @@ const Reuniones: React.FC = () => {
     status: "all",
     order: "desc",
   });
+
   const [studentsOptions, setStudentsOptions] = useState<StudentOption[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
@@ -240,6 +237,7 @@ const Reuniones: React.FC = () => {
     onOpen: onStudentOpen,
     onClose: onStudentClose,
   } = useDisclosure();
+
   const [countries, setCountries] = useState<Country[]>([]);
 
   const isAdmin = useMemo(() => {
@@ -286,26 +284,27 @@ const Reuniones: React.FC = () => {
       if (me.role.toUpperCase() === "ADMIN") return 1;
       if (me.role.toUpperCase() === "TUTOR") return 2;
     }
-    if (typeof me.role === "object") return me.role.id;
+    if (typeof me.role === "object") return me.role.id ?? 0;
 
     return 0;
   }, [me]);
 
   useEffect(() => {
     const init = async () => {
-      const user = await UserService.fetchMe();
+      const user = (await UserService.fetchMe()) as unknown;
 
       if (!user) {
         router.replace("/login");
         return;
       }
 
-      setMe(user);
+      setMe(user as MeUser);
       setLoading(false);
     };
 
     init();
-  }, []);
+  }, [router]);
+
   useEffect(() => {
     const loadCountries = async () => {
       try {
@@ -318,6 +317,7 @@ const Reuniones: React.FC = () => {
 
     loadCountries();
   }, []);
+
   const SUBJECT_STATE_LABELS: Record<string, string> = {
     APPROVED: "Aprobada",
     REGULARIZED: "Regularizada",
@@ -326,9 +326,11 @@ const Reuniones: React.FC = () => {
     NOTATTENDED: "No cursada",
     RETAKING: "Recursando",
   };
+
   const loadStudentById = async (id: number) => {
     try {
-      const studentFetched = await UserService.getOneStudentByRole(id);
+      const studentFetched = (await UserService.getOneStudentByRole(id)) as Student;
+
       setSelectedStudent({
         id: studentFetched.id,
         name: studentFetched.user?.name ?? "",
@@ -339,8 +341,9 @@ const Reuniones: React.FC = () => {
         address: studentFetched.address ?? "",
         observations: studentFetched.observations ?? "",
         countryId: studentFetched.countryId,
-        careers: studentFetched.careers ?? [],
+        careers: (studentFetched.careers ?? []) as StudentCareer[],
       });
+
       return studentFetched;
     } catch {
       return null;
@@ -490,6 +493,8 @@ const Reuniones: React.FC = () => {
                     onClick={() => {
                       setReportMeetingId(row.id);
                       setReportStudentId(row.studentId ?? null);
+                      const params = new URLSearchParams(searchParams.toString());
+                      params.set("createReportFor", String(row.id));
                       onReportOpen();
                     }}
                   />
@@ -506,6 +511,9 @@ const Reuniones: React.FC = () => {
                     onClick={() => {
                       setViewMeetingId(row.id);
                       setViewStudentId(row.studentId ?? null);
+                      const params = new URLSearchParams(searchParams.toString());
+                      params.set("viewReportFor", String(row.id));
+                      router.replace(`/reuniones?${params.toString()}`, { scroll: false });
                       onViewOpen();
                     }}
                   />
@@ -522,7 +530,8 @@ const Reuniones: React.FC = () => {
     try {
       const meetingsRes = await UserService.getMeetings(pages, limit, {
         ...filters,
-      });
+      })) as GetMeetingsResp;
+
       let foundTutorId: number | null = null;
 
       const mapped: Row[] = (meetingsRes.data ?? []).map(
@@ -546,6 +555,7 @@ const Reuniones: React.FC = () => {
               student?.id ?? meeting?.tutorship?.studentId ?? undefined,
             tutorId: meeting?.tutorship?.tutorId ?? undefined,
           };
+
           if (!foundTutorId && row.tutorId) foundTutorId = row.tutorId;
           return row;
         },
@@ -553,8 +563,8 @@ const Reuniones: React.FC = () => {
 
       if (foundTutorId) setMyTutorId(foundTutorId);
 
-      setRows(mapped);
-      setTotal(meetingsRes.total ?? mapped.length);
+      setRows(mappedRows);
+      setTotal(meetingsRes.total ?? mappedRows.length);
     } catch {
       setRows([]);
       setTotal(0);
@@ -678,9 +688,8 @@ const loadStudentsForFilter = async (
     }) => {
       if (!studentId || !careerId) return;
       try {
-        const list =
-          (await UserService.fetchStudentSubject(studentId, careerId)) ?? [];
-        setSubjects(list);
+        const list = (await UserService.fetchStudentSubject(studentId, careerId)) as SubjectCareerWithState[];
+        setSubjects(list ?? []);
         setSubjectsTitle(careerName);
         setEditedSubjects({});
         setCurrentSubjectsStudentId(studentId);
@@ -696,11 +705,13 @@ const loadStudentsForFilter = async (
       onSubjectsClose();
       return;
     }
+
     const updates = Object.entries(editedSubjects);
     if (updates.length === 0) {
       onSubjectsClose();
       return;
     }
+
     try {
       setSavingSubjects(true);
 
@@ -769,11 +780,7 @@ const loadStudentsForFilter = async (
             )}
           </Td>
 
-          <Td>
-            {subject.updateAt
-              ? new Date(subject.updateAt).toLocaleDateString("es-AR")
-              : "-"}
-          </Td>
+          <Td>{subject.updateAt ? new Date(subject.updateAt).toLocaleDateString("es-AR") : "-"}</Td>
 
           <Td>
             <IconButton
@@ -824,21 +831,43 @@ const loadStudentsForFilter = async (
           filter={false}
           actions={false}
           hasSidebar
+          topRightComponent={
+            <HStack>
+              <Button leftIcon={<SearchIcon />} variant="outline" onClick={onFilterOpen}>
+                Filtros
+              </Button>
+              {isTutor && (
+                <Button onClick={openCreate} isLoading={loading}>
+                  + Agendar
+                </Button>
+              )}
+            </HStack>
+          }
           minH="500px"
         />
       </Box>
 
-      <ScheduleMeetingModal
-        isOpen={isOpen}
-        onClose={() => {
-          onClose();
-          const params = new URLSearchParams(searchParams.toString());
-          params.delete("openCreate");
-          router.replace(`/reuniones?${params.toString()}`, { scroll: false });
-        }}
-        students={studentsOptions}
-        onCreated={() => loadMeetings(page)}
-      />
+      {isTutor && (
+        <ScheduleMeetingModal
+          isOpen={isOpen}
+          onClose={() => {
+            onClose();
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete("openCreate");
+            params.delete("studentId");
+            router.replace(`/reuniones?${params.toString()}`, { scroll: false });
+          }}
+          students={[]}
+          onCreated={() => {
+            setPage(1);
+            loadMeetings(1);
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete("openCreate");
+            params.delete("studentId");
+            router.replace(`/reuniones?${params.toString()}`, { scroll: false });
+          }}
+        />
+      )}
 
       <EditMeetingModal
         isOpen={isEditOpen}
@@ -856,8 +885,8 @@ const loadStudentsForFilter = async (
         students={studentsOptions}
         loadStudents={loadStudentsForFilter}
         current={filters}
-        onApply={(f) => {
-          setFilters(f);
+        onApply={(appliedFilters: Filters) => {
+          setFilters(appliedFilters);
           setPage(1);
         }}
         onClear={() => {
@@ -952,6 +981,7 @@ const loadStudentsForFilter = async (
         cancelText="Cancelar"
         confirmColorScheme="red"
       />
+
       {selectedStudent && (
         <StudentModal
           isOpen={isStudentOpen}
@@ -963,15 +993,13 @@ const loadStudentsForFilter = async (
           role={normalizedRole}
           formData={selectedStudent}
           countries={countries}
-          renderSubjectNowView={(student, i) => (
-            <Tr key={student.subjectId ?? i}>
-              <Td>{student.subjectName}</Td>
-              <Td>{student.year}</Td>
-              <Td>{student.subjectState}</Td>
+          renderSubjectNowView={(subjectItem: SubjectCareerWithState, rowIndex: number) => (
+            <Tr key={subjectItem.subjectId ?? rowIndex}>
+              <Td>{subjectItem.subjectName}</Td>
+              <Td>{subjectItem.year}</Td>
+              <Td>{subjectItem.subjectState}</Td>
               <Td>
-                {student.updateAt
-                  ? new Date(student.updateAt).toLocaleDateString("es-AR")
-                  : "-"}
+                {subjectItem.updateAt ? new Date(subjectItem.updateAt).toLocaleDateString("es-AR") : "-"}
               </Td>
             </Tr>
           )}

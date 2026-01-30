@@ -17,9 +17,10 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AsyncSelect from "react-select/async";
-import { Option } from "../../alumnos/type/option.type";
-import { Filters } from "../type/filters.type";
-import { StudentOption } from "../type/student-option.type";
+import { UserService } from "../../../services/admin-service";
+import { StudentOption } from '../type/student-option.type';
+import { Filters } from '../type/filters.type';
+import { Option } from '../../alumnos/type/option.type';
 
 type Props = {
   isOpen: boolean;

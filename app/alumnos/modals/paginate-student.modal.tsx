@@ -76,7 +76,7 @@ const PaginateStudent = <T,>({
 
   currentPage,
   totalItems,
-  itemsPerPage = 10,
+  itemsPerPage = 7,
   onPageChange,
   searchTerm,
   onSearch,
