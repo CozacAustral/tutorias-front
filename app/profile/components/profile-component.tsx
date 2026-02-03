@@ -28,6 +28,11 @@ import {
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import {
+  toastError,
+  toastSuccess,
+  toastWarn,
+} from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
 import { AuthService } from "../../../services/auth-service";
 import { Department } from "../interfaces/departments.interface";
@@ -36,7 +41,6 @@ import { TutorPatchMe } from "../interfaces/tutor-patch-me.interface";
 const jwt = require("jsonwebtoken");
 
 const ProfileComponent = () => {
-  const [role, setRole] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [userData, setUserData] = useState<TutorPatchMe>({
     id: 0,
@@ -47,12 +51,18 @@ const ProfileComponent = () => {
     departmentId: 0,
   });
   const [isDelete, setIsDelete] = useState(false);
-  const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [departments, setDepartments] = useState<Department[]>();
+  const [decodedToken, setDecodedToken] = useState({
+    email: "",
+    sub: 0,
+    role: 0,
+    iat: 0,
+    exp: 0,
+  });
 
   const toast = useToast();
   const router = useRouter();
@@ -73,51 +83,94 @@ const ProfileComponent = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
     if (!userData?.name) {
-      setError("Debes ingresar el nuevo nombre del tutor");
+      toastWarn({
+        title: "Campo vacío",
+        description:
+          decodedToken.role === 1
+            ? "Debe completar el nuevo nombre del estudiante"
+            : "Debe completar el nuevo nombre del tutor",
+      });
       nameRef.current?.focus();
       return;
     }
 
     if (!userData?.lastName) {
-      setError("Debes ingresar el nuevo apellido del tutor");
+      toastWarn({
+        title: "Campo vacío",
+        description:
+          decodedToken.role === 1
+            ? "Debe completar el nuevo apellido del estudiante"
+            : "Debe completar el nuevo apellido del tutor",
+      });
       lastNameRef.current?.focus();
       return;
     }
 
     if (!userData?.telephone) {
-      setError("Debes ingresar el nuevo teléfono del tutor");
+      toastWarn({
+        title: "Campo vacío",
+        description:
+          decodedToken.role === 1
+            ? "Debe completar el nuevo telefono del estudiante"
+            : "Debe completar el nuevo telefono del tutor",
+      });
       telephoneRef.current?.focus();
       return;
     }
 
-    if (!userData?.departmentId) {
-      setError("Debes ingresar el nuevo departamento del tutor");
+    if (decodedToken.role === 1 && !userData?.departmentId) {
+      toastWarn({
+        title: "Campo vacío",
+        description: "Debe completar el nuevo departamento del tutor",
+      });
       departamentRef.current?.focus();
       return;
     }
 
     try {
-      await UserService.tutorPatchMe(userData.id, userData);
-      setSuccess(true);
-      toast({
-        title: "Tutor editado",
-        description: "El tutor fue editado con exito",
-        duration: 3000,
-        isClosable: true,
-        status: "success",
-      });
-      setIsEditing(false);
+      if (decodedToken.role === 2) {
+        await UserService.tutorPatchMe(userData.id, userData);
+        setSuccess(true);
+        toastSuccess({
+          title: "Edicion de tutor",
+          description: "El tutor fue editado con exito",
+        });
+        setIsEditing(false);
+      }
+
+      if (decodedToken.role === 1) {
+        await UserService.updateStudentMe(
+          userData.id,
+          userData.name,
+          userData.lastName,
+          userData.telephone,
+        );
+        setSuccess(true);
+        toastSuccess({
+          title: "Edicion de estudiante",
+          description: "El estudiante fue editado con exito",
+        });
+        setIsEditing(false);
+      }
     } catch (error) {
-      setError("Error al actualizar el tutor");
+      toastError({
+        title:
+          decodedToken.role === 1
+            ? "Edicion de tutor"
+            : "Edicion de estudiante",
+        description:
+          decodedToken.role === 1
+            ? "El tutor no pudo ser editado"
+            : "El estudiante no pudo ser editado",
+      });
       setSuccess(false);
     }
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
 
@@ -130,12 +183,12 @@ const ProfileComponent = () => {
   const handleDelete = async () => {
     try {
       await UserService.deleteUser(userData.id, password);
-      toast({
-        title: "Tutor Eliminado!",
-        description: "El tutor fue eliminado con exito",
-        duration: 1500,
-        isClosable: true,
-        status: "success",
+      toastSuccess({
+        title: "Cuenta eliminado!",
+        description:
+          decodedToken.role === 1
+            ? "El estudiante fue eliminado con exito"
+            : "El tutor fue eliminado con exito",
       });
       onClose();
       Cookies.remove("authTokens", { path: "/" });
@@ -143,7 +196,10 @@ const ProfileComponent = () => {
     } catch (err) {
       console.error(err);
       setIsDelete(false);
-      setError("El usuario no se pudo eliminar");
+      toastError({
+        title: "Eliminar usuario",
+        description: "No se pudo eliminar el usuario. Ocurrió un error",
+      });
     }
   };
 
@@ -166,32 +222,31 @@ const ProfileComponent = () => {
       }
     };
 
-    const fetchAllDepartments = async () => {
-      try {
-        const departments = await UserService.fetchAllDepartments();
-        setDepartments(departments);
-      } catch (error) {
-        console.error("Error fetching departments:", error);
-      }
-    };
-
     const token = Cookies.get("authTokens");
-    console.log("TOKEN FROM COOKIE: ", token);
     if (!token) {
       console.log("No token found");
       return;
     }
 
     try {
-      const decodedToken = jwt.decode(token);
-      console.log("Decoded token:", decodedToken);
-      setRole(decodedToken?.role);
+      const decoded = jwt.decode(token);
+      setDecodedToken(decoded);
+
+      if (decoded?.role !== 1) {
+        (async () => {
+          try {
+            const departments = await UserService.fetchAllDepartments();
+            setDepartments(departments);
+          } catch (error) {
+            console.error("Error fetching departments:", error);
+          }
+        })();
+      }
     } catch (error) {
       console.error("Error decoding token:", error);
     }
 
     fetchUserData();
-    fetchAllDepartments();
   }, []);
 
   if (isLoading) {
@@ -305,16 +360,12 @@ const ProfileComponent = () => {
           </ModalContent>
         </Modal>
 
-        {error && isEditing ? (
-          <Text
-            color="red"
-            textAlign="center"
-            marginBottom="17px"
-            fontSize="17px"
-          >
-            {error}
-          </Text>
-        ) : undefined}
+        <Text
+          color="red"
+          textAlign="center"
+          marginBottom="17px"
+          fontSize="17px"
+        ></Text>
 
         <form onSubmit={handleSubmit}>
           <VStack spacing={4} align="stretch" marginBottom="20px">
@@ -397,7 +448,7 @@ const ProfileComponent = () => {
             </HStack>
           </VStack>
 
-          {role === 2 && (
+          {decodedToken.role === 2 && (
             <VStack spacing={4} align="stretch">
               <HStack spacing={4} w="99%">
                 <FormControl>

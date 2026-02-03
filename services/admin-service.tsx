@@ -366,16 +366,16 @@ export const UserService = {
     id_tutor: number,
     updatedTutor: TutorPatchMe,
   ): Promise<void> {
+    console.log("TUTOR data update: ", updatedTutor);
     try {
       await axiosInstance.patch(`${urlTutors}/${id_tutor}`, {
-        user: {
-          name: updatedTutor.name,
-          lastName: updatedTutor.lastName,
-          telephone: updatedTutor.telephone,
-        },
+        name: updatedTutor.name,
+        lastName: updatedTutor.lastName,
+        telephone: updatedTutor.telephone,
         departmentId: updatedTutor.departmentId,
       });
     } catch (error: any) {
+      console.log("ERROR: ", error);
       throw new Error(
         `No se pudo actualizar el tutor. ${error.message || error}`,
       );
@@ -452,18 +452,24 @@ export const UserService = {
     }
   },
 
-  async changePassword(currentPassword: string, newPassword: string) {
+  async changePassword(
+    currentPassword: string,
+    newPassword: string,
+    confirmNewPassword: string,
+  ) {
     try {
       const response = await axiosInstance.patch(
         `${urlUsers}/change-password`,
         {
           currentPassword: currentPassword,
           newPassword: newPassword,
+          confirmNewPassword: confirmNewPassword,
         },
       );
+
       return response.data;
-    } catch (error) {
-      throw new Error(`No se pudo actualizar la contraseña. ${error}`);
+    } catch (err: any) {
+      throw err;
     }
   },
 
@@ -475,6 +481,31 @@ export const UserService = {
       const response = await axiosInstance.patch(
         `${urlStudents}/${studentId}`,
         updatedData,
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `No se pudo actualizar el estudiante con ID ${studentId}. ${
+          error.message || error
+        }`,
+      );
+    }
+  },
+
+  async updateStudentMe(
+    studentId: number,
+    nameStudent: string,
+    lastNameStudent: string,
+    telephoneStudent: string,
+  ): Promise<void> {
+    try {
+      const response = await axiosInstance.patch(
+        `${urlStudents}/me/${studentId}`,
+        {
+          name: nameStudent,
+          lastName: lastNameStudent,
+          telephone: telephoneStudent,
+        },
       );
       return response.data;
     } catch (error: any) {

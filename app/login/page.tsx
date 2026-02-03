@@ -18,6 +18,10 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { HiEye, HiEyeOff } from "react-icons/hi";
+import {
+  toastError,
+  toastSuccess,
+} from "../../common/feedback/toast-standalone";
 import { login, sendRecoveryEmail } from "./api";
 
 const Login = () => {
@@ -38,11 +42,18 @@ const Login = () => {
     setIsLoading(true);
     try {
       const data = await login(email, password);
+      toastSuccess({
+        title: "Inicio de sesión",
+        description: "Bienvenido a la app de tutorias.",
+      });
       Cookies.set("authTokens", data.accessToken, { expires: 7 });
       setError("");
       router.replace("/profile");
     } catch {
-      setError("Error en la autenticación");
+      toastError({
+        title: "Inicio de sesión",
+        description: "Error en el inicio de sesión",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +63,7 @@ const Login = () => {
     try {
       await sendRecoveryEmail(email);
       setRecoveryMessage(
-        "Si el correo existe, se ha enviado un mail para restablecer la contraseña."
+        "Si el correo existe, se ha enviado un mail para restablecer la contraseña.",
       );
     } catch {
       setRecoveryMessage("Hubo un error al enviar el correo.");
