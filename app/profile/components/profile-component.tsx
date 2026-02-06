@@ -35,6 +35,7 @@ import {
 } from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
 import { AuthService } from "../../../services/auth-service";
+import { ProfileToastMessages } from "../enums/toast-messages.enum";
 import { Department } from "../interfaces/departments.interface";
 import { TutorPatchMe } from "../interfaces/tutor-patch-me.interface";
 
@@ -86,11 +87,13 @@ const ProfileComponent = () => {
 
     if (!userData?.name) {
       toastWarn({
-        title: "Campo vacío",
+        title: ProfileToastMessages.EMPTY_NAME_WARNING_TITLE,
         description:
           decodedToken.role === 1
-            ? "Debe completar el nuevo nombre del estudiante"
-            : "Debe completar el nuevo nombre del tutor",
+            ? ProfileToastMessages.EMPTY_NAME_WARNING_DESC_STUDENT
+            : decodedToken.role === 2
+              ? ProfileToastMessages.EMPTY_NAME_WARNING_DESC_TUTOR
+              : ProfileToastMessages.EMPTY_NAME_WARNING_DESC_ADMIN,
       });
       nameRef.current?.focus();
       return;
@@ -98,11 +101,13 @@ const ProfileComponent = () => {
 
     if (!userData?.lastName) {
       toastWarn({
-        title: "Campo vacío",
+        title: ProfileToastMessages.EMPTY_LASTNAME_WARNING_TITLE,
         description:
           decodedToken.role === 1
-            ? "Debe completar el nuevo apellido del estudiante"
-            : "Debe completar el nuevo apellido del tutor",
+            ? ProfileToastMessages.EMPTY_LASTNAME_WARNING_DESC_STUDENT
+            : decodedToken.role === 2
+              ? ProfileToastMessages.EMPTY_LASTNAME_WARNING_DESC_TUTOR
+              : ProfileToastMessages.EMPTY_LASTNAME_WARNING_DESC_ADMIN,
       });
       lastNameRef.current?.focus();
       return;
@@ -110,20 +115,22 @@ const ProfileComponent = () => {
 
     if (!userData?.telephone) {
       toastWarn({
-        title: "Campo vacío",
+        title: ProfileToastMessages.EMPTY_TELEPHONE_WARNING_TITLE,
         description:
           decodedToken.role === 1
-            ? "Debe completar el nuevo telefono del estudiante"
-            : "Debe completar el nuevo telefono del tutor",
+            ? ProfileToastMessages.EMPTY_TELEPHONE_WARNING_DESC_STUDENT
+            : decodedToken.role === 2
+              ? ProfileToastMessages.EMPTY_TELEPHONE_WARNING_DESC_TUTOR
+              : ProfileToastMessages.EMPTY_TELEPHONE_WARNING_DESC_ADMIN,
       });
       telephoneRef.current?.focus();
       return;
     }
 
-    if (decodedToken.role === 1 && !userData?.departmentId) {
+    if (decodedToken.role === 2 && !userData?.departmentId) {
       toastWarn({
-        title: "Campo vacío",
-        description: "Debe completar el nuevo departamento del tutor",
+        title: ProfileToastMessages.EMPTY_DEPARTMENT_WARNING_TITLE,
+        description: ProfileToastMessages.EMPTY_DEPARTMENT_WARNING_DESC,
       });
       departamentRef.current?.focus();
       return;
@@ -134,12 +141,11 @@ const ProfileComponent = () => {
         await UserService.tutorPatchMe(userData.id, userData);
         setSuccess(true);
         toastSuccess({
-          title: "Edicion de tutor",
-          description: "El tutor fue editado con exito",
+          title: ProfileToastMessages.EDIT_TUTOR_SUCCESS_TITLE,
+          description: ProfileToastMessages.EDIT_TUTOR_SUCCESS_DESC,
         });
         setIsEditing(false);
       }
-
       if (decodedToken.role === 1) {
         await UserService.updateStudentMe(
           userData.id,
@@ -149,21 +155,40 @@ const ProfileComponent = () => {
         );
         setSuccess(true);
         toastSuccess({
-          title: "Edicion de estudiante",
-          description: "El estudiante fue editado con exito",
+          title: ProfileToastMessages.EDIT_STUDENT_SUCCESS_TITLE,
+          description: ProfileToastMessages.EDIT_STUDENT_SUCCESS_DESC,
+        });
+        setIsEditing(false);
+      }
+
+      if (decodedToken.role === 3) {
+        await UserService.updateUser(userData.id, {
+          name: userData.name,
+          lastName: userData.lastName,
+          telephone: userData.telephone,
+        });
+        setSuccess(true);
+        toastSuccess({
+          title: ProfileToastMessages.EDIT_ADMIN_SUCCESS_TITLE,
+          description: ProfileToastMessages.EDIT_ADMIN_SUCCESS_DESC,
         });
         setIsEditing(false);
       }
     } catch (error) {
+      console.error(error);
       toastError({
         title:
           decodedToken.role === 1
-            ? "Edicion de tutor"
-            : "Edicion de estudiante",
+            ? ProfileToastMessages.EDIT_STUDENT_ERROR_TITLE
+            : decodedToken.role === 2
+              ? ProfileToastMessages.EDIT_TUTOR_ERROR_TITLE
+              : ProfileToastMessages.EDIT_ADMIN_ERROR_TITLE,
         description:
           decodedToken.role === 1
-            ? "El tutor no pudo ser editado"
-            : "El estudiante no pudo ser editado",
+            ? ProfileToastMessages.EDIT_STUDENT_ERROR_DESC
+            : decodedToken.role === 2
+              ? ProfileToastMessages.EDIT_TUTOR_ERROR_DESC
+              : ProfileToastMessages.EDIT_ADMIN_ERROR_DESC,
       });
       setSuccess(false);
     }
@@ -184,11 +209,13 @@ const ProfileComponent = () => {
     try {
       await UserService.deleteUser(userData.id, password);
       toastSuccess({
-        title: "Cuenta eliminado!",
+        title: ProfileToastMessages.DELETE_ACCOUNT_SUCCESS_TITLE,
         description:
           decodedToken.role === 1
-            ? "El estudiante fue eliminado con exito"
-            : "El tutor fue eliminado con exito",
+            ? ProfileToastMessages.DELETE_STUDENT_SUCCESS_DESC
+            : decodedToken.role === 2
+              ? ProfileToastMessages.DELETE_TUTOR_SUCCESS_DESC
+              : ProfileToastMessages.DELETE_ADMIN_SUCCESS_DESC,
       });
       onClose();
       Cookies.remove("authTokens", { path: "/" });
@@ -196,10 +223,6 @@ const ProfileComponent = () => {
     } catch (err) {
       console.error(err);
       setIsDelete(false);
-      toastError({
-        title: "Eliminar usuario",
-        description: "No se pudo eliminar el usuario. Ocurrió un error",
-      });
     }
   };
 
@@ -224,7 +247,6 @@ const ProfileComponent = () => {
 
     const token = Cookies.get("authTokens");
     if (!token) {
-      console.log("No token found");
       return;
     }
 
@@ -313,7 +335,6 @@ const ProfileComponent = () => {
               right="30px"
               zIndex={1000}
               onClick={() => {
-                console.log("Botón clickeado");
                 onOpen();
               }}
             >

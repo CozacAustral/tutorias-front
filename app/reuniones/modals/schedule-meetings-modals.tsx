@@ -21,6 +21,7 @@ import {
   toastSuccess,
 } from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
+import { ReunionestoastMessages } from "../enums/toast-messages.enum";
 import { Props } from "../type/props.type";
 import { StudentOption } from "../type/student-option.type";
 
@@ -113,17 +114,16 @@ export default function ScheduleMeetingModal({
       const resp = await UserService.schedule(body);
       onCreated?.(resp);
       toastSuccess({
-        title: "Reunión agendada",
-        description: "La reunión ha sido agendada correctamente.",
+        title: ReunionestoastMessages.SCHEDULE_SUCCESS_TITLE,
+        description: ReunionestoastMessages.SCHEDULE_SUCCESS_DESC,
       });
       onClose();
       resetForm();
     } catch (e) {
       console.error(e);
       toastError({
-        title: "Error al agendar reunión",
-        description:
-          "Ocurrió un error al intentar agendar la reunión. Intenta nuevamente.",
+        title: ReunionestoastMessages.SCHEDULE_ERROR_TITLE,
+        description: ReunionestoastMessages.SCHEDULE_ERROR_DESC,
       });
     } finally {
       setLoading(false);

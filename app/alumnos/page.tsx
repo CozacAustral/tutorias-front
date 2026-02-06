@@ -50,7 +50,7 @@ const Estudiantes: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [totalStudents, setTotalStudents] = useState(0);
   const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
-    undefined
+    undefined,
   );
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState(0);
@@ -176,13 +176,11 @@ const Estudiantes: React.FC = () => {
 
     const token = Cookies.get("authTokens");
     if (!token) {
-      console.log("No token found");
       return;
     }
 
     try {
       const decodedToken = jwt.decode(token);
-      console.log("Decode TOKEN: ", decodedToken);
       setRole(decodedToken?.role);
     } catch (error) {
       console.error("Error decoding token: ", error);
@@ -241,7 +239,6 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleEditClick = async (student: Student) => {
-    console.log("CUANDO SE PRESIONA EDIT DESDE ADMIN: ", student);
     try {
       const studentSelected = await UserService.fetchStudent(student.id);
       setSelectedStudent(studentSelected);
@@ -268,12 +265,12 @@ const Estudiantes: React.FC = () => {
     }
     console.log(
       "Datos CARRER CUANDO SE PRESIONA EDIT DESDE ADMIN: ",
-      formData.careers
+      formData.careers,
     );
   };
 
   const handleChangeCreateStudent = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
 
@@ -291,7 +288,7 @@ const Estudiantes: React.FC = () => {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
 
@@ -317,8 +314,8 @@ const Estudiantes: React.FC = () => {
         await UserService.deleteStudent(selectedStudent.id);
         setStudents(
           students?.filter(
-            (student) => student.user.id !== selectedStudent.user.id
-          ) || []
+            (student) => student.user.id !== selectedStudent.user.id,
+          ) || [],
         );
         toast({
           title: "Estudiante eliminado.",
@@ -361,8 +358,6 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleViewClick = (student: Student) => {
-    console.log("Student cuando se presiona el view", student);
-
     if (student && student.user) {
       const formattedStudent: UpdateStudentDto = {
         name: student.user.name || "",
@@ -384,8 +379,6 @@ const Estudiantes: React.FC = () => {
     } else {
       console.error("Student data is incomplete:", student);
     }
-
-    console.log("CARRERAS DEL ESTUDIANTE: ", formData.careers);
   };
 
   const handleStudentUpdate = async () => {
@@ -397,7 +390,7 @@ const Estudiantes: React.FC = () => {
           formData.name,
           formData.email,
           formData.telephone,
-          formData.observations
+          formData.observations,
         );
         setFormData(newObservationStudent);
 
@@ -415,8 +408,8 @@ const Estudiantes: React.FC = () => {
                   telephone: formData.telephone,
                   observations: formData.observations,
                 }
-              : student
-          )
+              : student,
+          ),
         );
 
         toast({
@@ -459,7 +452,7 @@ const Estudiantes: React.FC = () => {
 
       const allSubjects = await UserService.fetchStudentSubject(
         selectedStudent?.id,
-        careerSelected.id
+        careerSelected.id,
       );
       setSubjects(allSubjects);
 
@@ -486,9 +479,9 @@ const Estudiantes: React.FC = () => {
               UserService.updateStateSubject(
                 selectedStudent.id,
                 parseInt(subjectIdStr),
-                newState
-              )
-            )
+                newState,
+              ),
+            ),
           );
         }
 
@@ -503,7 +496,7 @@ const Estudiantes: React.FC = () => {
               };
             }
             return subject;
-          })
+          }),
         );
 
         setEditedSubjects({});
@@ -545,7 +538,7 @@ const Estudiantes: React.FC = () => {
               };
             }
             return subject;
-          })
+          }),
         );
       }
     }
@@ -554,7 +547,7 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleChangeCreateCareer = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
 
@@ -580,7 +573,7 @@ const Estudiantes: React.FC = () => {
         await UserService.createCareer(careerData);
 
         const updatedStudent = await UserService.fetchStudent(
-          selectedStudent.id
+          selectedStudent.id,
         );
 
         setFormData((prevFormData) => ({

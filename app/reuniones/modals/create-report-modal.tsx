@@ -28,6 +28,7 @@ import React, {
 import { toastSuccess } from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
 import { CreateReportDto } from "../dto/create-report.dto";
+import { ReunionestoastMessages } from "../enums/toast-messages.enum";
 import ConfirmDialog from "./confirm-dialog-modal";
 import { UiCareer } from "./type/ui-career.type";
 
@@ -101,7 +102,7 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
     () =>
       activeCareers.find((c) => String(c.id) === String(selectedCareerId)) ??
       null,
-    [activeCareers, selectedCareerId]
+    [activeCareers, selectedCareerId],
   );
 
   const openConfirm = useCallback(() => {
@@ -132,8 +133,8 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
       setReportSaved(true);
 
       toastSuccess({
-        title: "Reporte creado",
-        description: "El reporte ha sido creado correctamente.",
+        title: ReunionestoastMessages.CREATE_REPORT_SUCCESS_TITLE,
+        description: ReunionestoastMessages.CREATE_REPORT_SUCCESS_DESC,
       });
 
       onCreated?.();

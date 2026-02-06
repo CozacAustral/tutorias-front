@@ -23,6 +23,7 @@ import {
   toastSuccess,
 } from "../../common/feedback/toast-standalone";
 import { login, sendRecoveryEmail } from "./api";
+import { LoginToastMessages } from "./enums/toast-messages.enum";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -43,16 +44,16 @@ const Login = () => {
     try {
       const data = await login(email, password);
       toastSuccess({
-        title: "Inicio de sesión",
-        description: "Bienvenido a la app de tutorias.",
+        title: LoginToastMessages.LOGIN_SUCCESS_TITLE,
+        description: LoginToastMessages.LOGIN_SUCCESS_DESC,
       });
       Cookies.set("authTokens", data.accessToken, { expires: 7 });
       setError("");
       router.replace("/profile");
     } catch {
       toastError({
-        title: "Inicio de sesión",
-        description: "Error en el inicio de sesión",
+        title: LoginToastMessages.LOGIN_ERROR_TITLE,
+        description: LoginToastMessages.LOGIN_ERROR_DESC,
       });
     } finally {
       setIsLoading(false);

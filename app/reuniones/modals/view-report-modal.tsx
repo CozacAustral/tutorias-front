@@ -23,6 +23,7 @@ import {
   toastSuccess,
 } from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
+import { ReunionestoastMessages } from "../enums/toast-messages.enum";
 import { Report } from "./type/report.type";
 
 type Props = {
@@ -74,19 +75,19 @@ const ViewReportModal: React.FC<Props> = ({
 
   const careerName = useMemo(
     () => report?.career?.name ?? "—",
-    [report?.career?.name]
+    [report?.career?.name],
   );
 
   const admissionYear = useMemo(
     () => (report?.yearOfAdmission ? String(report.yearOfAdmission) : "—"),
-    [report?.yearOfAdmission]
+    [report?.yearOfAdmission],
   );
 
   const topicsValue = useMemo(() => report?.topicos ?? "", [report?.topicos]);
 
   const commentsValue = useMemo(
     () => report?.comments ?? "",
-    [report?.comments]
+    [report?.comments],
   );
 
   const handleOpenSubjectsClick = useCallback(() => {
@@ -105,15 +106,13 @@ const ViewReportModal: React.FC<Props> = ({
       await UserService.sendReportToStudent(meetingId);
 
       toastSuccess({
-        title: "Reporte enviado al alumno",
-        description:
-          "El reporte ha sido enviado correctamente al correo del alumno.",
+        title: ReunionestoastMessages.SEND_REPORT_SUCCESS_TITLE,
+        description: ReunionestoastMessages.SEND_REPORT_SUCCESS_DESC,
       });
     } catch (err) {
       toastError({
-        title: "Error al enviar el reporte",
-        description:
-          "No se pudo enviar el reporte al alumno. Por favor, intentá nuevamente más tarde.",
+        title: ReunionestoastMessages.SEND_REPORT_ERROR_TITLE,
+        description: ReunionestoastMessages.SEND_REPORT_ERROR_DESC,
       });
     } finally {
       setSendingReport(false);

@@ -366,7 +366,6 @@ export const UserService = {
     id_tutor: number,
     updatedTutor: TutorPatchMe,
   ): Promise<void> {
-    console.log("TUTOR data update: ", updatedTutor);
     try {
       await axiosInstance.patch(`${urlTutors}/${id_tutor}`, {
         name: updatedTutor.name,
@@ -375,7 +374,6 @@ export const UserService = {
         departmentId: updatedTutor.departmentId,
       });
     } catch (error: any) {
-      console.log("ERROR: ", error);
       throw new Error(
         `No se pudo actualizar el tutor. ${error.message || error}`,
       );
@@ -400,9 +398,8 @@ export const UserService = {
         data: { password },
       });
     } catch (error: any) {
-      throw new Error(
-        `No se pudo eliminar al tutor con ID ${id}. ${error.message || error}`,
-      );
+      console.error("DELETE USER ERROR:", error?.response?.data ?? error);
+      throw error;
     }
   },
 
@@ -493,24 +490,21 @@ export const UserService = {
   },
 
   async updateStudentMe(
-    studentId: number,
+    userId: number,
     nameStudent: string,
     lastNameStudent: string,
     telephoneStudent: string,
   ): Promise<void> {
     try {
-      const response = await axiosInstance.patch(
-        `${urlStudents}/me/${studentId}`,
-        {
-          name: nameStudent,
-          lastName: lastNameStudent,
-          telephone: telephoneStudent,
-        },
-      );
+      const response = await axiosInstance.patch(`${urlUsers}/${userId}`, {
+        name: nameStudent,
+        lastName: lastNameStudent,
+        telephone: telephoneStudent,
+      });
       return response.data;
     } catch (error: any) {
       throw new Error(
-        `No se pudo actualizar el estudiante con ID ${studentId}. ${
+        `No se pudo actualizar el estudiante con ID ${userId}. ${
           error.message || error
         }`,
       );
