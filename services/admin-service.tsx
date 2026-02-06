@@ -4,7 +4,7 @@ import { Country } from "../app/alumnos/interfaces/country.interface";
 import { AssignedCareer } from "../app/alumnos/interfaces/create-career.interface";
 import { Student } from "../app/alumnos/interfaces/student.interface";
 import { SubjectCareerWithState } from "../app/alumnos/interfaces/subject-career-student.interface";
-import { UpdateStudentDto } from "../app/alumnos/interfaces/update-student";
+import { UpdateStudentDto } from "../app/alumnos/interfaces/update-student.interface";
 import { CreateStudent } from "../app/carrera/interfaces/create-student.interface";
 import { Department } from "../app/profile/interfaces/departments.interface";
 import { TutorPatchMe } from "../app/profile/interfaces/tutor-patch-me.interface";
@@ -14,7 +14,9 @@ import { ReportInfo } from "../app/reuniones/type/report-info.type";
 import { ResponseTutor } from "../app/tutores/interfaces/response-tutor.interface";
 import axiosInstance from "../axiosConfig";
 import { CreateUser } from "./interfaces/createUser";
+import { QueryParamsDto } from "./interfaces/query-params-dto";
 import { ResponseCreateCareer } from "./interfaces/response-create-career.interface";
+import { ResponsePaginateStudent } from "./interfaces/response-paginate";
 
 const urlUsers = "users";
 const urlTutors = "tutors";
@@ -24,6 +26,75 @@ const urlCountries = "countries";
 const urlDepartments = "departments";
 
 export const UserService = {
+  async deleteCareerStudent(careerStudentIds: number[]): Promise<void> {
+    await axiosInstance.delete("/students/career-student", {
+      data: careerStudentIds,
+    });
+  },
+  async getMeetings(
+    page = 1,
+    limit = 10,
+    filters?: {
+      from?: string;
+      to?: string;
+      timeFrom?: string;
+      timeTo?: string;
+      studentId?: number;
+      studentQuery?: string;
+      status?: "all" | "PENDING" | "REPORTMISSING" | "COMPLETED";
+      order?: "asc" | "desc";
+    },
+  ): Promise<GetMeetingsResp> {
+    const res = await axiosInstance.get(`/meetings/role/meetings`, {
+      params: { currentPage: page, resultsPerPage: limit, ...filters },
+    });
+    return res.data;
+  },
+
+  async fetchMe(): Promise<{
+    name: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    department?: string;
+    role: any;
+  }> {
+    const res = await axiosInstance.get("/users/me");
+    return res.data;
+  },
+
+  async getOneStudentByRole(studentId: number) {
+    const res = await axiosInstance.get(
+      `/students/get-students-by-role/${studentId}`,
+    );
+    return res.data;
+  },
+
+  async fetchStudentsByRole(params: {
+    search?: string;
+    currentPage?: number;
+    resultsPerPage?: number;
+    orderBy?: [string, "ASC" | "DESC"];
+  }) {
+    const res = await axiosInstance.get(
+      `/students/students/get-students-by-role`,
+      {
+        params,
+      },
+    );
+    return res.data;
+  },
+
+  async fetchMyStudents(params: {
+    search?: string;
+    currentPage?: number;
+    resultsPerPage?: number;
+    orderBy?: [string, "ASC" | "DESC"];
+  }) {
+    const res = await axiosInstance.get(`/students/me`, { params });
+    return res.data;
+  },
+
   async getStudentCareers(studentId: number) {
     const r = await axiosInstance.get(`/tutors/${studentId}/careers`);
     return r.data?.data ?? r.data;
@@ -63,13 +134,6 @@ export const UserService = {
     return res.data;
   },
 
-  async sendReportToStudent(meetingId: number) {
-    const res = await axiosInstance.post(
-      `/reports/meetings/${meetingId}/report/send-to-student`,
-    );
-    return res.data;
-  },
-
   async updateMeeting(id: number, body: any) {
     const res = await axiosInstance.patch(`/meetings/${id}`, body);
     return res.data;
@@ -99,7 +163,6 @@ export const UserService = {
     });
     return res.data;
   },
-
   async schedule(body: CreateMeetingBody) {
     const res = await axiosInstance.post(`/meetings/schedule-meeting`, body);
     return res.data;
@@ -398,8 +461,9 @@ export const UserService = {
         data: { password },
       });
     } catch (error: any) {
-      console.error("DELETE USER ERROR:", error?.response?.data ?? error);
-      throw error;
+      throw new Error(
+        `No se pudo eliminar al tutor con ID ${id}. ${error.message || error}`,
+      );
     }
   },
 
@@ -421,19 +485,22 @@ export const UserService = {
     return response.data;
   },
 
-  async fetchAllStudents(params: {
-    search?: string;
-    currentPage?: number;
-    resultsPerPage?: number;
-    orderBy?: [string, "ASC" | "DESC"];
-  }) {
-    const res = await axiosInstance.get(
-      `/students/students/get-students-by-role`,
-      {
-        params,
-      },
-    );
-    return res.data;
+  async fetchAllStudents(
+    params?: QueryParamsDto,
+  ): Promise<ResponsePaginateStudent> {
+    try {
+      const response = await axiosInstance.get<{
+        students: Student[];
+        totalCount: number;
+      }>(urlStudents, {
+        params: params,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `Error al obtener los estudiantes: ${error.message || error}`,
+      );
+    }
   },
 
   async fetchStudent(studentId: number): Promise<Student> {
@@ -460,7 +527,6 @@ export const UserService = {
         {
           currentPassword: currentPassword,
           newPassword: newPassword,
-          confirmNewPassword: confirmNewPassword,
         },
       );
 
@@ -483,28 +549,6 @@ export const UserService = {
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el estudiante con ID ${studentId}. ${
-          error.message || error
-        }`,
-      );
-    }
-  },
-
-  async updateStudentMe(
-    userId: number,
-    nameStudent: string,
-    lastNameStudent: string,
-    telephoneStudent: string,
-  ): Promise<void> {
-    try {
-      const response = await axiosInstance.patch(`${urlUsers}/${userId}`, {
-        name: nameStudent,
-        lastName: lastNameStudent,
-        telephone: telephoneStudent,
-      });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        `No se pudo actualizar el estudiante con ID ${userId}. ${
           error.message || error
         }`,
       );
@@ -552,35 +596,6 @@ export const UserService = {
     } catch (error: any) {
       throw new Error(
         `No se pudo actualizar el estado de la materia del alumno con ID ${studentId}. ${
-          error.message || error
-        }`,
-      );
-    }
-  },
-
-  async updateStudentModal(
-    studentId: number,
-    lastName: string,
-    name: string,
-    email: string,
-    telephone: string,
-    observations: string,
-  ): Promise<UpdateStudentDto> {
-    try {
-      const response = await axiosInstance.patch(
-        `${urlStudents}/updateStudentModal/${studentId}`,
-        {
-          lastName,
-          name,
-          email,
-          telephone,
-          observations,
-        },
-      );
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        `No se pudo actualizar el alumno con ID ${studentId}. ${
           error.message || error
         }`,
       );

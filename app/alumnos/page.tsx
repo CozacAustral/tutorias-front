@@ -4,15 +4,13 @@ import {
   IconButton,
   Select,
   Td,
+  Tooltip,
   Tr,
   useDisclosure,
-  useToast,
 } from "@chakra-ui/react";
 import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
-import { FaRegCalendarAlt } from "react-icons/fa";
 import DeleteModal from "../../common/components/modals/detele.modal";
-import EditModal from "../../common/components/modals/edit.modal";
 import ImportModal from "../../common/components/modals/import.modal";
 import { UserService } from "../../services/admin-service";
 import { CreateStudent } from "../carrera/interfaces/create-student.interface";
@@ -23,12 +21,13 @@ import { AssignedCareer } from "./interfaces/create-career.interface";
 import { StudentCareer } from "./interfaces/student-career.interface";
 import { Student } from "./interfaces/student.interface";
 import { SubjectCareerWithState } from "./interfaces/subject-career-student.interface";
-import { UpdateStudentDto } from "./interfaces/update-student";
+import { UpdateStudentDto } from "./interfaces/update-student.interface";
 import CareerModal from "./modals/create-career-student.modal";
 import CreateStudentModal from "./modals/create-student.modal";
 import PaginateStudent from "./modals/paginate-student.modal";
 import SubjectModal from "./modals/subject-student.modal";
-import ViewStudentModal from "./modals/view-student.modal";
+import StudentModal from "./modals/view-student.modal";
+import { CareerLike } from "./type/careerlike.type";
 
 const Estudiantes: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -52,12 +51,18 @@ const Estudiantes: React.FC = () => {
   const [orderBy, setOrderBy] = useState<[string, "ASC" | "DESC"] | undefined>(
     undefined,
   );
-  const [loading, setLoading] = useState(true);
+  const [loadingRole, setLoadingRole] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(true);
+  const [loadingCareers, setLoadingCareers] = useState(true);
+  const [loadingCountries, setLoadingCountries] = useState(false);
   const [role, setRole] = useState(0);
+  type StudentLike = Student | { studentId: number };
 
-  const toast = useToast();
-
-  const jwt = require("jsonwebtoken");
+  const isLoading =
+    loadingRole ||
+    loadingStudents ||
+    loadingCareers ||
+    (role !== 2 && loadingCountries);
 
   const {
     isOpen: isEditModalOpen,
@@ -104,12 +109,13 @@ const Estudiantes: React.FC = () => {
     telephone: "",
     birthdate: new Date(),
     address: "",
-    year: new Date(),
+    yearEntry: new Date(),
     observations: "",
     countryId: 1,
     email: "",
     careers: [
       {
+        id: 0,
         careerId: 0,
         name: "",
         active: false,
@@ -156,21 +162,93 @@ const Estudiantes: React.FC = () => {
   ];
 
   useEffect(() => {
-    const loadStudents = async () => {
+    if (!countries.length) return;
+
+    setStudentData((prev) => {
+      const exists = countries.some(
+        (country) => country.id === Number(prev.countryId),
+      );
+      if (exists) return prev;
+
+      return { ...prev, countryId: countries[0].id };
+    });
+  }, [countries]);
+
+  useEffect(() => {
+    if (!careers.length) return;
+
+    setStudentData((prev) => {
+      const exists = careers.some(
+        (careerItem) => careerItem.id === Number(prev.careerId),
+      );
+      if (exists) return prev;
+
+      return { ...prev, careerId: careers[0].id };
+    });
+  }, [careers]);
+
+  useEffect(() => {
+    const loadRole = async () => {
+      setLoadingRole(true);
       try {
-        const { students, totalCount } = await UserService.fetchAllStudents({
+        const me = await UserService.fetchMe();
+        const raw =
+          (me as any).roleId ??
+          (me as any).role?.id ??
+          (me as any).role ??
+          (me as any).user?.roleId ??
+          (me as any).user?.role?.id;
+
+        let parsed = 0;
+
+        if (typeof raw === "number") parsed = raw;
+        else if (typeof raw === "string") {
+          const parsedRoleId = Number(raw);
+          if (!Number.isNaN(parsedRoleId)) parsed = parsedRoleId;
+          else {
+            const roleString = raw.toUpperCase();
+            if (roleString === "ADMIN") parsed = 1;
+            if (roleString === "TUTOR") parsed = 2;
+          }
+        } else if (typeof raw === "object" && raw) {
+          const objId = (raw as any).id;
+          if (typeof objId === "number") parsed = objId;
+        }
+
+        setRole(parsed);
+      } catch {
+        setRole(0);
+      } finally {
+        setLoadingRole(false);
+      }
+    };
+
+    loadRole();
+  }, []);
+
+  useEffect(() => {
+    const loadStudents = async () => {
+      setLoadingStudents(true);
+      try {
+        const data = await UserService.fetchStudentsByRole({
           search: searchTerm,
           currentPage,
-          resultsPerPage: 10,
-          orderBy: orderBy,
+          resultsPerPage: 7,
+          orderBy,
         });
-        setStudents(students);
-        setTotalStudents(totalCount);
+
+        if (data.students) {
+          setStudents(data.students);
+          setTotalStudents(data.totalCount);
+        } else {
+          setStudents(data.data);
+          setTotalStudents(data.total);
+        }
       } catch (error) {
         console.error("Error fetching students:", error);
         setError("No se pudieron cargar los estudiantes.");
       } finally {
-        setLoading(false);
+        setLoadingStudents(false);
       }
     };
 
@@ -180,6 +258,7 @@ const Estudiantes: React.FC = () => {
     }
 
     try {
+      const jwt = require("jsonwebtoken");
       const decodedToken = jwt.decode(token);
       setRole(decodedToken?.role);
     } catch (error) {
@@ -191,6 +270,7 @@ const Estudiantes: React.FC = () => {
 
   useEffect(() => {
     const loadCareers = async () => {
+      setLoadingCareers(true);
       try {
         const fetchedCareers = await UserService.fetchAllCareers();
         setCareers(fetchedCareers);
@@ -198,7 +278,7 @@ const Estudiantes: React.FC = () => {
         console.error("Error fetching careers: ", error);
         setError("No se puedieron cargar las carreras.");
       } finally {
-        setLoading(false);
+        setLoadingCareers(false);
       }
     };
 
@@ -207,12 +287,13 @@ const Estudiantes: React.FC = () => {
 
   useEffect(() => {
     if (role === 2) {
-      setLoading(false);
+      setLoadingCountries(false);
       setError(null);
       return;
     }
 
     const loadCountries = async () => {
+      setLoadingCountries(true);
       try {
         const fetchedCountries = await UserService.fetchAllCountries();
         setCountries(fetchedCountries);
@@ -220,12 +301,42 @@ const Estudiantes: React.FC = () => {
         console.error("Error fetching countries: ", error);
         setError("No se pudieron cargar los países.");
       } finally {
-        setLoading(false);
+        setLoadingCountries(false);
       }
     };
 
     loadCountries();
   }, [role]);
+
+  const getStudentId = (student: StudentLike): number =>
+    "studentId" in student ? student.studentId : student.id;
+
+  const getCareerNames = (careers: StudentCareer[]): string[] => {
+    return careers.map((career) => career.name);
+  };
+
+  const getCareerLabel = (careers: StudentCareer[]) => {
+    const names = getCareerNames(careers);
+    const full = names.join(", ");
+
+    const short =
+      names.length === 0
+        ? "Sin carrera asignada"
+        : names.length === 1
+          ? names[0]
+          : `${names[0]}...`;
+
+    return { names, full, short };
+  };
+
+  const openStudent = async (student: Student, mode: "view" | "edit") => {
+    const realId = getStudentId(student);
+    const data = await loadStudentById(realId);
+    if (!data) return;
+
+    if (mode === "view") openViewModal();
+    else openEditModal();
+  };
 
   const handleDeleteClick = (student: Student) => {
     setSelectedStudent(student);
@@ -238,41 +349,51 @@ const Estudiantes: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleEditClick = async (student: Student) => {
+  const loadStudentById = async (id: number) => {
     try {
-      const studentSelected = await UserService.fetchStudent(student.id);
-      setSelectedStudent(studentSelected);
+      const studentFetched = await UserService.getOneStudentByRole(id);
+
+      setSelectedStudent(studentFetched);
+
       setFormData({
-        name: studentSelected.user.name || "",
-        lastName: studentSelected.user.lastName || "",
-        dni: studentSelected.dni || "",
-        telephone: studentSelected.telephone || "",
-        birthdate: studentSelected.birthdate || new Date(),
-        address: studentSelected.address || "",
-        year: studentSelected.yearEntry || new Date(),
-        observations: studentSelected.observations || "",
-        countryId: studentSelected.countryId,
-        email: studentSelected.user.email || "",
-        careers: studentSelected.careers,
+        id: studentFetched.id,
+        name: studentFetched.user?.name || "",
+        lastName: studentFetched.user?.lastName || "",
+        dni: studentFetched.dni || "",
+        telephone: studentFetched.telephone || "",
+        birthdate: studentFetched.birthdate || new Date(),
+        address: studentFetched.address || "",
+        yearEntry: studentFetched.yearEntry || new Date(),
+
+        observations: studentFetched.observations ?? "",
+
+        countryId: studentFetched.countryId,
+        email: studentFetched.user?.email || "",
+
+        careers: studentFetched.careers || [],
       });
-      openEditModal();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo obtener los datos del estudiante",
-        status: "error",
-      });
-    }
-    console.log(
-      "Datos CARRER CUANDO SE PRESIONA EDIT DESDE ADMIN: ",
-      formData.careers,
-    );
+
+      return studentFetched;
+    } catch (error) {}
+  };
+
+  const handleOpenCreateCareerModal = () => {
+    if (!selectedStudent?.id) return;
+
+    setCareerData((prev) => ({
+      ...prev,
+      studentId: selectedStudent.id,
+      careerId: 0,
+      yearOfAdmission: 0,
+    }));
+
+    openCreateCareerModal();
   };
 
   const handleChangeCreateStudent = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
 
     setStudentData((prevData) => ({
       ...prevData,
@@ -284,19 +405,18 @@ const Estudiantes: React.FC = () => {
             : value,
     }));
   };
-
   const handleChange = (
-    e: React.ChangeEvent<
+    event: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
 
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData((previousFormData) => ({
+      ...previousFormData,
       [name]:
         name === "birthdate" || name === "yearEntry"
-          ? new Date(value).toISOString().split("T")[0] // yyyy-MM-dd
+          ? new Date(value).toISOString().split("T")[0]
           : name === "careerId" || name === "countryId"
             ? parseInt(value)
             : value,
@@ -304,8 +424,23 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleAddStudent = async () => {
-    const fetchedStudents = await UserService.fetchAllStudents();
-    setStudents(fetchedStudents.students);
+    setCurrentPage(1);
+    setSearchTerm("");
+
+    const data = await UserService.fetchStudentsByRole({
+      search: "",
+      currentPage: 1,
+      resultsPerPage: 7,
+      orderBy,
+    });
+
+    if (data.students) {
+      setStudents(data.students);
+      setTotalStudents(data.totalCount);
+    } else {
+      setStudents(data.data);
+      setTotalStudents(data.total);
+    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -317,120 +452,88 @@ const Estudiantes: React.FC = () => {
             (student) => student.user.id !== selectedStudent.user.id,
           ) || [],
         );
-        toast({
-          title: "Estudiante eliminado.",
-          description: "El tutor ha sido eliminado correctamente.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
         closeDeleteModal();
       } catch (err) {
         console.error("Error al eliminar:", err);
-        toast({
-          title: "Error al eliminar tutor.",
-          description: "Hubo un error al intentar eliminar al tutor.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
       }
     }
   };
 
-  const handleImport = (data: any) => {
-    console.log("imported data", data);
+  const handleImport = async (_data?: any) => {
+    setCurrentPage(1);
+    setSearchTerm("");
+
+    const data = await UserService.fetchStudentsByRole({
+      search: "",
+      currentPage: 1,
+      resultsPerPage: 7,
+      orderBy,
+    });
+
+    if (data.students) {
+      setStudents(data.students);
+      setTotalStudents(data.totalCount);
+    } else {
+      setStudents(data.data);
+      setTotalStudents(data.total);
+    }
   };
 
   const handleCreateClick = () => {
+    setStudentData((prev) => ({
+      ...prev,
+      name: "",
+      lastName: "",
+      dni: "",
+      email: "",
+      telephone: "",
+      birthdate: new Date().toISOString().split("T")[0],
+      yearEntry: new Date().toISOString().split("T")[0],
+      address: "",
+      observations: "",
+      countryId: countries[0]?.id ?? 0,
+      careerId: careers[0]?.id ?? 0,
+    }));
+
     openCreateModal();
   };
 
-  const handleCreateCareerClick = () => {
-    if (selectedStudent?.id) {
-      setCareerData({
-        careerId: 0,
-        studentId: selectedStudent.id,
-        yearOfAdmission: new Date().getFullYear(),
-      });
-      openCreateCareerModal();
-    }
-  };
+  const handleStudentUpdate = async () => {
+    if (!selectedStudent) return;
 
-  const handleViewClick = (student: Student) => {
-    if (student && student.user) {
-      const formattedStudent: UpdateStudentDto = {
-        name: student.user.name || "",
-        lastName: student.user.lastName || "",
-        email: student.user.email || "",
-        telephone: student.telephone || "",
-        observations: student.observations || "",
-        careers: student.careers || [],
-        dni: student.dni || "",
-        birthdate: student.birthdate || "",
-        address: student.address || "",
-        year: student.yearEntry || "",
-        countryId: student.countryId || 1,
+    try {
+      const payload: any = {
+        name: formData.name,
+        lastName: formData.lastName,
+        email: formData.email,
+        telephone: formData.telephone,
+        dni: formData.dni,
+        address: formData.address,
+        birthdate: formData.birthdate,
+        yearEntry: formData.yearEntry,
+        countryId: formData.countryId,
       };
 
-      setSelectedStudent(student);
-      setFormData(formattedStudent);
-      openViewModal();
-    } else {
-      console.error("Student data is incomplete:", student);
-    }
-  };
-
-  const handleStudentUpdate = async () => {
-    if (selectedStudent) {
-      try {
-        const newObservationStudent = await UserService.updateStudentModal(
-          selectedStudent.id,
-          formData.lastName,
-          formData.name,
-          formData.email,
-          formData.telephone,
-          formData.observations,
-        );
-        setFormData(newObservationStudent);
-
-        setStudents((prevStudents) =>
-          prevStudents.map((student) =>
-            student.id === selectedStudent.id
-              ? {
-                  ...student,
-                  user: {
-                    ...student.user,
-                    name: formData.name,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                  },
-                  telephone: formData.telephone,
-                  observations: formData.observations,
-                }
-              : student,
-          ),
-        );
-
-        toast({
-          title: "Alumno actualizado.",
-          description: "El alumno ha sido actualizado.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-
-        closeEditModal();
-      } catch (error) {
-        console.error("Error al editar estudiante:", error);
-        toast({
-          title: "Error",
-          description: "No se pudo editar el estudiante. Intenta de nuevo.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+      if (role === 2) {
+        payload.observations = formData.observations;
       }
+
+      await UserService.updateStudent(selectedStudent.id, payload);
+
+      const updatedStudent = await loadStudentById(selectedStudent.id);
+      if (!updatedStudent) return;
+
+      setStudents((previousStudents) =>
+        previousStudents.map((student) =>
+          getStudentId(student) === updatedStudent.id
+            ? updatedStudent
+            : student,
+        ),
+      );
+
+      closeEditModal();
+    } catch (error) {
+      console.error("Error al editar estudiante:", error);
     }
   };
 
@@ -438,11 +541,6 @@ const Estudiantes: React.FC = () => {
     setSelectedCareerState(career.active);
 
     if (!selectedStudent?.id || !career?.careerId) {
-      toast({
-        title: "Error",
-        description: "Faltan datos del estudiante o de la carrera",
-        status: "error",
-      });
       return;
     }
 
@@ -451,19 +549,15 @@ const Estudiantes: React.FC = () => {
       setSelectedCareer(careerSelected);
 
       const allSubjects = await UserService.fetchStudentSubject(
-        selectedStudent?.id,
+        selectedStudent.id,
         careerSelected.id,
       );
       setSubjects(allSubjects);
 
-      openSujectModal();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo obtener las materias de la carrera",
-        status: "error",
-      });
-    }
+      setTimeout(() => {
+        openSujectModal();
+      }, 0);
+    } catch (error) {}
   };
 
   const handleEditSubject = async () => {
@@ -485,42 +579,165 @@ const Estudiantes: React.FC = () => {
           );
         }
 
-        setSubjects((prevSubject) =>
-          prevSubject.map((subject) => {
-            const newState = editedSubjects[subject.subjectId];
-            if (newState) {
+        setSubjects((previousSubjects) =>
+          previousSubjects.map((subject) => {
+            const updatedState = editedSubjects[subject.subjectId];
+
+            if (updatedState) {
               return {
                 ...subject,
-                subjectState: newState,
+                subjectState: updatedState,
                 updateAt: new Date(),
               };
             }
+
             return subject;
           }),
         );
 
         setEditedSubjects({});
-
-        toast({
-          title:
-            "Los estados de las materias del alumno, han sido actualizadas.",
-          description: "Las materias ya tienen el nuevo estado.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
       } catch (error) {
         console.error("Error al editar el estado de la materia:", error);
-        toast({
-          title: "Error",
-          description:
-            "No se pudo editar el estado de la materia. Intenta de nuevo.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
       }
     }
+  };
+
+  const getCareerStudentId = (career: StudentCareer): number => career.id;
+
+  const normalizeCareersArray = (careers: unknown): CareerLike[] =>
+    Array.isArray(careers) ? (careers as CareerLike[]) : [];
+
+  const toStudentCareer = (rawCareer: CareerLike): StudentCareer | null => {
+    const relationId =
+      rawCareer.id ?? rawCareer.careerStudentId ?? rawCareer.career_student_id;
+
+    const careerId =
+      rawCareer.careerId ??
+      rawCareer.career?.id ??
+      rawCareer.career_id ??
+      rawCareer.idCareer;
+
+    const careerName =
+      rawCareer.name ?? rawCareer.career?.name ?? rawCareer.name_career;
+
+    if (!relationId || !careerId || !careerName) return null;
+
+    return {
+      id: relationId,
+      careerId,
+      name: careerName,
+      yearEntry: rawCareer.yearEntry ?? 0,
+      yearOfThePlan: rawCareer.yearOfThePlan ?? 0,
+      active: rawCareer.active ?? false,
+    };
+  };
+
+  const removeCareerFromArray = (
+    careers: unknown,
+    relId: number,
+    careerId: number,
+    careerName?: string,
+  ): StudentCareer[] => {
+    const targetName = careerName?.trim().toLowerCase();
+
+    return normalizeCareersArray(careers)
+      .filter((careerItem) => {
+        const relationIdCandidate = Number(
+          careerItem.id ??
+            careerItem.careerStudentId ??
+            careerItem.career_student_id,
+        );
+
+        const careerIdCandidate = Number(
+          careerItem.careerId ??
+            careerItem.career?.id ??
+            careerItem.career_id ??
+            careerItem.idCareer,
+        );
+
+        const normalizedCareerName = (
+          careerItem.name ??
+          careerItem.career?.name ??
+          careerItem.name_career ??
+          ""
+        )
+          .toString()
+          .trim()
+          .toLowerCase();
+
+        if (relId && !Number.isNaN(relId) && relationIdCandidate === relId)
+          return false;
+        if (
+          careerId &&
+          !Number.isNaN(careerId) &&
+          careerIdCandidate === careerId
+        )
+          return false;
+        if (targetName && normalizedCareerName === targetName) return false;
+
+        return true;
+      })
+      .map(toStudentCareer)
+      .filter(
+        (studentCareer): studentCareer is StudentCareer =>
+          studentCareer !== null,
+      );
+  };
+
+  const onDeleteCareer = async (career: StudentCareer) => {
+    if (!selectedStudent) return;
+
+    const relId = getCareerStudentId(career);
+    const studentId = selectedStudent.id;
+    const careerId = career.careerId;
+
+    if (!relId || Number.isNaN(relId)) {
+      console.error("No hay CareerStudent.id en el objeto career:", career);
+      return;
+    }
+
+    try {
+      await UserService.deleteCareerStudent([relId]);
+      setFormData((prev) => ({
+        ...prev,
+        careers: removeCareerFromArray(
+          prev.careers ?? [],
+          relId,
+          careerId,
+          career.name,
+        ),
+      }));
+
+      setSelectedStudent((prev: Student | null) =>
+        prev
+          ? {
+              ...prev,
+              careers: removeCareerFromArray(
+                prev.careers as any,
+                relId,
+                careerId,
+                career.name,
+              ),
+            }
+          : prev,
+      );
+      setStudents((previousStudents) =>
+        previousStudents.map((student: Student) => {
+          const studentIdValue = getStudentId(student);
+          if (studentIdValue !== studentId) return student;
+
+          return {
+            ...student,
+            careers: removeCareerFromArray(
+              (student as any).careers,
+              relId,
+              careerId,
+              career.name,
+            ),
+          };
+        }),
+      );
+    } catch (error) {}
   };
 
   const handleEditSubjectClick = async (subjectId: number) => {
@@ -547,20 +764,22 @@ const Estudiantes: React.FC = () => {
   };
 
   const handleChangeCreateCareer = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
 
     if (name === "careerId") {
-      const career = careers.find((c) => c.id === parseInt(value));
-      setSelectedCareer(career || null);
+      const selectedCareerItem = careers.find(
+        (careerItem) => careerItem.id === parseInt(value),
+      );
+      setSelectedCareer(selectedCareerItem || null);
     }
 
-    setCareerData((prev) => ({
-      ...prev,
+    setCareerData((previousCareerData) => ({
+      ...previousCareerData,
       [name]:
         name === "yearOfAdmission"
-          ? parseInt(e.target.value)
+          ? parseInt(value)
           : name === "careerId"
             ? parseInt(value)
             : value,
@@ -572,32 +791,23 @@ const Estudiantes: React.FC = () => {
       try {
         await UserService.createCareer(careerData);
 
-        const updatedStudent = await UserService.fetchStudent(
-          selectedStudent.id,
+        const updatedStudent = await loadStudentById(selectedStudent.id);
+        if (!updatedStudent) return;
+
+        setStudents((prev) =>
+          prev.map((student) => {
+            const studentId = getStudentId(student);
+            if (studentId !== updatedStudent.id) return student;
+
+            return {
+              ...student,
+              careers: updatedStudent.careers,
+            };
+          }),
         );
-
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          careers: updatedStudent.careers,
-        }));
-
-        toast({
-          title: "Carrera creada",
-          description: "La carrera fue creada con exito",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-
         closeCreateCareerModal();
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Error en la creacion de la carrera",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+        console.error("Error creando carrera:", error);
       }
     }
   };
@@ -607,78 +817,72 @@ const Estudiantes: React.FC = () => {
     closeSubjectModal();
   };
 
-  const renderStudentRow = (student: Student) => (
-    <Tr key={student.id}>
-      <Td>{student.user?.name}</Td>
-      <Td>{student.user?.lastName}</Td>
-      <Td>{student.telephone}</Td>
-      <Td>{student.user?.email}</Td>
-      <Td>
-        {student.careers && student.careers.length > 0
-          ? student.careers[0]?.name
-          : "No name available"}
-      </Td>
-      {role !== 2 ? (
+  const actionBtnProps = {
+    backgroundColor: "white",
+    _hover: {
+      borderRadius: 15,
+      backgroundColor: "#318AE4",
+      color: "White",
+    },
+  } as const;
+
+  const dangerBtnProps = {
+    backgroundColor: "white",
+    _hover: {
+      borderRadius: 15,
+      backgroundColor: "#E53E3E",
+      color: "White",
+    },
+  } as const;
+
+  const renderStudentRow = (student: Student) => {
+    const { names, full, short } = getCareerLabel(student.careers);
+    const canDelete = role !== 2;
+
+    return (
+      <Tr key={student.id}>
+        <Td>{student.user?.name}</Td>
+        <Td>{student.user?.lastName}</Td>
+        <Td>{student.telephone}</Td>
+        <Td>{student.user?.email}</Td>
+
+        <Td>
+          {names.length > 1 ? (
+            <Tooltip label={full} hasArrow>
+              <span>{short}</span>
+            </Tooltip>
+          ) : (
+            short
+          )}
+        </Td>
+
         <Td>
           <IconButton
+            {...actionBtnProps}
             icon={<ViewIcon boxSize={5} />}
             aria-label="View"
-            backgroundColor="white"
             mr={5}
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleViewClick(student)}
+            onClick={() => openStudent(student, "view")}
           />
           <IconButton
+            {...actionBtnProps}
             icon={<EditIcon boxSize={5} />}
             aria-label="Edit"
             mr={5}
-            backgroundColor="white"
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleEditClick(student)}
+            onClick={() => openStudent(student, "edit")}
           />
-          <IconButton
-            icon={<DeleteIcon boxSize={5} />}
-            aria-label="Delete"
-            backgroundColor="white"
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleDeleteClick(student)}
-          />
+          {canDelete && (
+            <IconButton
+              {...dangerBtnProps}
+              icon={<DeleteIcon boxSize={5} />}
+              aria-label="Delete"
+              onClick={() => handleDeleteClick(student)}
+            />
+          )}
         </Td>
-      ) : (
-        <Td>
-          <IconButton
-            icon={<ViewIcon boxSize={5} />}
-            aria-label="View"
-            backgroundColor="white"
-            mr={5}
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleViewClick(student)}
-          />
-          <IconButton
-            aria-label="Seleccionar fecha"
-            icon={<FaRegCalendarAlt />}
-            variant="ghost"
-          />
-        </Td>
-      )}
-    </Tr>
-  );
+      </Tr>
+    );
+  };
 
   const renderCareerRow = (career: StudentCareer) => (
     <Tr key={career.careerId}>
@@ -686,74 +890,62 @@ const Estudiantes: React.FC = () => {
       <Td>{career.active ? "Activa" : "Inactiva"}</Td>
       <Td>{career.yearEntry}</Td>
       <Td>
-        {role === 2 ? (
+        <IconButton
+          {...actionBtnProps}
+          icon={<ViewIcon boxSize={5} />}
+          aria-label="View"
+          mr={5}
+          onClick={() => handleAllSubject(career)}
+        />
+
+        <IconButton
+          {...actionBtnProps}
+          icon={<EditIcon boxSize={5} />}
+          aria-label="Edit"
+          mr={5}
+          onClick={() => handleAllSubject(career)}
+        />
+
+        {role === 1 ? (
           <IconButton
-            icon={<ViewIcon boxSize={5} />}
-            aria-label="View"
-            backgroundColor="white"
-            mr={5}
-            _hover={{
-              borderRadius: 15,
-              backgroundColor: "#318AE4",
-              color: "White",
-            }}
-            onClick={() => handleAllSubject(career)}
+            {...dangerBtnProps}
+            icon={<DeleteIcon boxSize={5} />}
+            aria-label="Delete"
+            onClick={() => onDeleteCareer(career)}
           />
-        ) : (
-          <>
-            <IconButton
-              icon={<ViewIcon boxSize={5} />}
-              aria-label="View"
-              backgroundColor="white"
-              mr={5}
-              _hover={{
-                borderRadius: 15,
-                backgroundColor: "#318AE4",
-                color: "White",
-              }}
-              // onClick={() => handleViewClick(student)}
-            />
-            <IconButton
-              icon={<EditIcon boxSize={5} />}
-              aria-label="Edit"
-              mr={5}
-              backgroundColor="white"
-              _hover={{
-                borderRadius: 15,
-                backgroundColor: "#318AE4",
-                color: "White",
-              }}
-              onClick={() => handleAllSubject(career)}
-            />
-            <IconButton
-              icon={<DeleteIcon boxSize={5} />}
-              aria-label="Delete"
-              backgroundColor="white"
-              _hover={{
-                borderRadius: 15,
-                backgroundColor: "#318AE4",
-                color: "White",
-              }}
-              // onClick={() => handleDeleteClick(student)}
-            />
-          </>
-        )}
+        ) : null}
       </Td>
     </Tr>
   );
 
-  const renderSubjectRow = (subject: SubjectCareerWithState) => (
-    <Tr key={subject.subjectId}>
+  const renderSubjectRowView = (
+    subject: SubjectCareerWithState,
+    index: number,
+  ) => (
+    <Tr key={subject.subjectId ?? index}>
+      <Td>{subject.subjectName}</Td>
+      <Td>{subject.year}</Td>
+      <Td>{SubjectState[subject.subjectState as keyof typeof SubjectState]}</Td>
+      <Td>
+        {subject.updateAt
+          ? new Date(subject.updateAt).toLocaleDateString()
+          : "-"}
+      </Td>
+    </Tr>
+  );
+
+  const renderSubjectRow = (subject: SubjectCareerWithState, index: number) => (
+    <Tr key={subject.subjectId ?? index}>
       <Td>{subject.subjectName}</Td>
       <Td>{subject.year}</Td>
       <Td>
         {editedSubjects[subject.subjectId] !== undefined ? (
           <Select
             value={editedSubjects[subject.subjectId] ?? subject.subjectState}
-            onChange={(e) =>
-              setEditedSubjects((prev) => ({
-                ...prev,
-                [subject.subjectId]: e.target.value,
+            onChange={(selectChangeEvent) =>
+              setEditedSubjects((previousEditedSubjects) => ({
+                ...previousEditedSubjects,
+                [subject.subjectId]: selectChangeEvent.target.value,
               }))
             }
           >
@@ -776,7 +968,7 @@ const Estudiantes: React.FC = () => {
           : "-"}
       </Td>
       <Td>
-        {role === 2 ? null : (
+        {role === 1 || role === 2 ? (
           <IconButton
             icon={<EditIcon boxSize={5} />}
             aria-label="Edit"
@@ -798,7 +990,7 @@ const Estudiantes: React.FC = () => {
               handleEditSubjectClick(subject.subjectId);
             }}
           />
-        )}
+        ) : null}
       </Td>
     </Tr>
   );
@@ -827,55 +1019,50 @@ const Estudiantes: React.FC = () => {
 
       {error && role !== 2 && <p>{error}</p>}
 
-      <EditModal
+      <StudentModal
+        onAddCareer={handleOpenCreateCareerModal}
+        onDeleteCareer={onDeleteCareer}
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         onConfirm={handleStudentUpdate}
-        formData={formData}
+        formData={{ ...formData, id: selectedStudent?.id }}
         onInputChange={handleChange}
-        title="Ver Alumno"
-        entityName="Alumno"
-        renderCareerNow={renderCareerRow}
-        createOpen={handleCreateCareerClick}
-        showButtonCancelSave={true}
-        fieldLabels={{
-          lastName: "Apellido/s",
-          name: "Nombre",
-          mail: "Correo",
-          telephone: "Nro. De telefono",
-          observations: "Observaciones",
-          careersId: "Carrera/s",
-        }}
+        isViewMode={false}
         role={role}
+        renderSubjectNow={(subjectItem, index) =>
+          renderSubjectRow(subjectItem, index)
+        }
+        renderSubjectNowView={(subjectItem, index) =>
+          renderSubjectRowView(subjectItem, index)
+        }
+        onConfirmEditSubject={handleEditSubject}
+        countries={countries}
       />
 
-      {role === 2 ? (
-        <SubjectModal
-          isOpen={isSubjectModalOpen}
-          onClose={handleCloseModalSubject}
-          onConfirm={handleEditSubject}
-          subjects={subjects}
-          renderSubjectNow={renderSubjectRow}
-          titleCareer={selectedCareer?.name}
-          entityName="Materias"
-          state={selectedCareerState}
-          role={role}
-          showButtonCancelSave={false}
-        />
-      ) : (
-        <SubjectModal
-          isOpen={isSubjectModalOpen}
-          onClose={handleCloseModalSubject}
-          onConfirm={handleEditSubject}
-          subjects={subjects}
-          renderSubjectNow={renderSubjectRow}
-          titleCareer={selectedCareer?.name}
-          entityName="Materias"
-          state={selectedCareerState}
-          role={role}
-          showButtonCancelSave={true}
-        />
-      )}
+      <StudentModal
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        formData={{ ...formData, id: selectedStudent?.id }}
+        isViewMode={true}
+        role={role}
+        renderSubjectNowView={(subjectItem, index) =>
+          renderSubjectRowView(subjectItem, index)
+        }
+        countries={countries}
+      />
+
+      <SubjectModal
+        isOpen={isSubjectModalOpen}
+        onClose={handleCloseModalSubject}
+        onConfirm={handleEditSubject}
+        subjects={subjects}
+        renderSubjectNow={(subject, index) => renderSubjectRow(subject, index)}
+        titleCareer={selectedCareer?.name}
+        entityName="Materias"
+        state={selectedCareerState}
+        role={role}
+        showButtonCancelSave={role !== 2}
+      />
 
       <CareerModal
         isOpen={isCreateCareerModalOpen}
@@ -891,35 +1078,6 @@ const Estudiantes: React.FC = () => {
           isOpen={isImportModalOpen}
           onClose={closeImportModal}
           onImport={handleImport}
-        />
-      )}
-
-      {role === 2 ? (
-        <EditModal
-          isOpen={isViewModalOpen}
-          onClose={closeViewModal}
-          onConfirm={handleStudentUpdate}
-          formData={formData}
-          onInputChange={handleChange}
-          caption="Ver Alumno"
-          renderCareerNow={renderCareerRow}
-          createOpen={handleCreateCareerClick}
-          forTutor={true}
-          isViewModal={true}
-          fieldLabels={{
-            lastName: "Apellido/s",
-            name: "Nombre",
-            mail: "Correo",
-            telephone: "Nro. De telefono",
-            observations: "Observaciones",
-          }}
-          showButtonCancelSave={false}
-        />
-      ) : (
-        <ViewStudentModal
-          isOpen={isViewModalOpen}
-          onClose={closeViewModal}
-          student={selectedStudent}
         />
       )}
 
