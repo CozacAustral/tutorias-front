@@ -17,6 +17,7 @@ import DeleteModal from "../../common/components/modals/detele.modal";
 import { UserService } from "../../services/admin-service";
 import { useSidebar } from "../contexts/SidebarContext";
 import EditAdminTutores from "../tutores/modals/edit-admin-tutores.modal";
+import { AdministradoresToastMessages } from "./enums/toast-messages.enum";
 import { User } from "./interfaces/user.interface";
 import GenericCreateModal from "./modals/create-modal-admin";
 
@@ -134,8 +135,8 @@ const Administradores: React.FC = () => {
     } catch (error) {
       console.error("❌ Error al obtener el usuario por ID:", error);
       toast({
-        title: "Error al obtener los datos",
-        description: "No se pudo obtener el administrador para editar.",
+        title: AdministradoresToastMessages.ERROR_GETTING_DATA_TITLE,
+        description: AdministradoresToastMessages.ERROR_GETTING_DATA_DESC,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -157,7 +158,7 @@ const Administradores: React.FC = () => {
         password: formData.password || undefined,
       });
       toast({
-        title: "Administrador actualizado",
+        title: AdministradoresToastMessages.UPDATE_SUCCESS_TITLE,
         status: "success",
         duration: 4000,
         isClosable: true,
@@ -167,8 +168,8 @@ const Administradores: React.FC = () => {
       resetForm();
     } catch (err) {
       toast({
-        title: "Error",
-        description: "Operación de edición fallida",
+        title: AdministradoresToastMessages.UPDATE_ERROR_TITLE,
+        description: AdministradoresToastMessages.UPDATE_ERROR_DESC,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -185,14 +186,14 @@ const Administradores: React.FC = () => {
   const handleConfirmDelete = async () => {
     if (!adminToDelete) return;
     const password = window.prompt(
-      "Ingresá tu contraseña para confirmar la eliminación:"
+      "Ingresá tu contraseña para confirmar la eliminación:",
     );
     if (!password) return;
 
     try {
       await UserService.deleteUser(adminToDelete.id, password);
       toast({
-        title: "Administrador eliminado",
+        title: AdministradoresToastMessages.DELETE_SUCCESS_TITLE,
         status: "success",
         duration: 4000,
         isClosable: true,
@@ -201,8 +202,8 @@ const Administradores: React.FC = () => {
     } catch (err) {
       console.error(err);
       toast({
-        title: "Error",
-        description: "No se pudo eliminar al administrador.",
+        title: AdministradoresToastMessages.DELETE_ERROR_TITLE,
+        description: AdministradoresToastMessages.DELETE_ERROR_DESC,
         status: "error",
         duration: 4000,
         isClosable: true,

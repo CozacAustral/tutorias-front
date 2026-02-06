@@ -25,8 +25,10 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { toastSuccess } from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
 import { CreateReportDto } from "../dto/create-report.dto";
+import { ReunionestoastMessages } from "../enums/toast-messages.enum";
 import ConfirmDialog from "./confirm-dialog-modal";
 import { UiCareer } from "./type/ui-career.type";
 
@@ -56,6 +58,8 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
+
+  const [reportSaved, setReportSaved] = useState(false);
 
   const fetchCareers = useCallback(async () => {
     if (!meetingId) return;
@@ -98,7 +102,7 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
     () =>
       activeCareers.find((c) => String(c.id) === String(selectedCareerId)) ??
       null,
-    [activeCareers, selectedCareerId]
+    [activeCareers, selectedCareerId],
   );
 
   const openConfirm = useCallback(() => {
@@ -126,12 +130,24 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
     try {
       await UserService.createReport(meetingId, dto);
       setIsConfirmOpen(false);
-      onClose();
+      setReportSaved(true);
+
+      toastSuccess({
+        title: ReunionestoastMessages.CREATE_REPORT_SUCCESS_TITLE,
+        description: ReunionestoastMessages.CREATE_REPORT_SUCCESS_DESC,
+      });
+
       onCreated?.();
     } finally {
       setSubmitting(false);
     }
   }, [meetingId, selectedCareerId, topicos, comments, onClose, onCreated]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setReportSaved(false);
+    }
+  }, [isOpen, meetingId]);
 
   return (
     <>
@@ -220,10 +236,12 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
             >
               Cancelar
             </Button>
+
             <Button
               colorScheme="blue"
               onClick={openConfirm}
               isLoading={submitting}
+              isDisabled={reportSaved}
             >
               Guardar reporte
             </Button>
@@ -244,7 +262,7 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
             podrá editarse. ¿Deseás continuar?
           </>
         }
-        confirmText="Confirmar y enviar"
+        confirmText="Confirmar y crear"
         cancelText="Cancelar"
         confirmColorScheme="blue"
       />

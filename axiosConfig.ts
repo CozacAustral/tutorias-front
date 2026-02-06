@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
-import { toastError, toastSuccess } from "./common/feedback/toast-standalone";
+import { toastError } from "./common/feedback/toast-standalone";
 
 function getCookie(name: string): string | undefined {
   const value = `; ${document.cookie}`;
@@ -80,17 +80,12 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     const { config } = response;
-    if (!config?.meta?.silent && shouldAutoSuccessToast(config)) {
-      const msg =
-        config.meta?.successMessage ?? defaultSuccessMessage(config.method);
-      if (msg) toastSuccess({ title: msg });
-    }
     return response;
   },
   (error: AxiosError) => {
@@ -103,7 +98,7 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;
