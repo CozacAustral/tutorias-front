@@ -12,8 +12,13 @@ import {
   ListItem,
   useToast,
 } from "@chakra-ui/react";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import {
+  toastError,
+  toastSuccess,
+} from "../../common/feedback/toast-standalone";
 import { UserService } from "../../services/admin-service";
 
 const CambiarContraseña = () => {
@@ -66,7 +71,7 @@ const CambiarContraseña = () => {
     e.preventDefault();
 
     const validatePassoword = Object.values(requirements).some(
-      (value) => value === false
+      (value) => value === false,
     );
 
     if (validatePassoword) {
@@ -74,12 +79,9 @@ const CambiarContraseña = () => {
         ...prevBool,
         errorRequirements: true,
       }));
-      toast({
+      toastError({
         title: "Error!",
         description: "No se cumplen los requerimientos!",
-        duration: 3000,
-        isClosable: true,
-        status: "error",
       });
       return;
     }
@@ -89,33 +91,35 @@ const CambiarContraseña = () => {
         ...prevBool,
         errorMatch: true,
       }));
-      toast({
+      toastError({
         title: "Error!",
         description: "Las contraseñas son distintas!",
-        duration: 3000,
-        isClosable: true,
-        status: "error",
       });
       return;
     }
 
     try {
-      await UserService.changePassword(currentPassword, newPassword);
-      toast({
+      await UserService.changePassword(
+        currentPassword,
+        newPassword,
+        confirmNewPassword,
+      );
+      toastSuccess({
         title: "Contraseña cambiada!",
         description: "La contraseña fue cambiada con exito!",
-        duration: 3000,
-        isClosable: true,
-        status: "success",
       });
-      router.push("/Profile");
+      router.push("/profile");
     } catch (err: any) {
-      toast({
+      const description = axios.isAxiosError(err)
+        ? (err.response?.data?.message?.[0] ??
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          err.message)
+        : "Ocurrió un error inesperado";
+
+      toastError({
         title: "Error!",
-        description: err.message,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
+        description,
       });
     }
   };

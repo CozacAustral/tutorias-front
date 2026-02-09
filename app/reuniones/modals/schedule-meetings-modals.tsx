@@ -16,12 +16,16 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  toastError,
+  toastSuccess,
+} from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
+import { ReunionestoastMessages } from "../enums/toast-messages.enum";
 import { Props } from "../type/props.type";
 import { StudentOption } from "../type/student-option.type";
 
 export default function ScheduleMeetingModal({
-
   isOpen,
   onClose,
   students,
@@ -40,7 +44,7 @@ export default function ScheduleMeetingModal({
 
   const locationRegex = useMemo(
     () => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .,_\-\/()#:]+$/,
-    []
+    [],
   );
   const isLocationValid =
     locationValue.trim().length > 0 && locationRegex.test(locationValue.trim());
@@ -109,10 +113,18 @@ export default function ScheduleMeetingModal({
       setLoading(true);
       const resp = await UserService.schedule(body);
       onCreated?.(resp);
+      toastSuccess({
+        title: ReunionestoastMessages.SCHEDULE_SUCCESS_TITLE,
+        description: ReunionestoastMessages.SCHEDULE_SUCCESS_DESC,
+      });
       onClose();
       resetForm();
     } catch (e) {
       console.error(e);
+      toastError({
+        title: ReunionestoastMessages.SCHEDULE_ERROR_TITLE,
+        description: ReunionestoastMessages.SCHEDULE_ERROR_DESC,
+      });
     } finally {
       setLoading(false);
     }

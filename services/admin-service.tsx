@@ -431,11 +431,9 @@ export const UserService = {
   ): Promise<void> {
     try {
       await axiosInstance.patch(`${urlTutors}/${id_tutor}`, {
-        user: {
-          name: updatedTutor.name,
-          lastName: updatedTutor.lastName,
-          telephone: updatedTutor.telephone,
-        },
+        name: updatedTutor.name,
+        lastName: updatedTutor.lastName,
+        telephone: updatedTutor.telephone,
         departmentId: updatedTutor.departmentId,
       });
     } catch (error: any) {
@@ -518,7 +516,11 @@ export const UserService = {
     }
   },
 
-  async changePassword(currentPassword: string, newPassword: string) {
+  async changePassword(
+    currentPassword: string,
+    newPassword: string,
+    confirmNewPassword: string,
+  ) {
     try {
       const response = await axiosInstance.patch(
         `${urlUsers}/change-password`,
@@ -527,9 +529,10 @@ export const UserService = {
           newPassword: newPassword,
         },
       );
+
       return response.data;
-    } catch (error) {
-      throw new Error(`No se pudo actualizar la contraseña. ${error}`);
+    } catch (err: any) {
+      throw err;
     }
   },
 
