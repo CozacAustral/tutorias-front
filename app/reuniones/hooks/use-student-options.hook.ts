@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { StudentOption } from "../type/student-option.type";
 import { studentlike } from "../type/student-like.type";
-import { UserService } from '../../../services/admin-service';
-import { extractStudentsFromResponse, studentLabel } from '../utils/students.utils';
+import { UserService } from "../../../services/admin-service";
+import {
+  extractStudentsFromResponse,
+  studentLabel,
+} from "../utils/students.utils";
 
 export function useStudentOptions(params: {
   isTutor: boolean;
@@ -37,23 +40,25 @@ export function useStudentOptions(params: {
           studentsList = studentsByTutorResponse?.data ?? [];
         }
 
-        const studentOptions: StudentOption[] = studentsList
-          .map((student: studentlike) => ({
-            id: student.id,
-            label: studentLabel(student),
-          }))
-          .filter(
-            (option): option is StudentOption =>
-              Boolean(option.id) && option.label.length > 0,
-          )
-          .reduce<StudentOption[]>((uniqueOptions, currentOption) => {
-            const alreadyExists = uniqueOptions.some(
-              (existingOption) => existingOption.id === currentOption.id,
-            );
-            if (!alreadyExists) uniqueOptions.push(currentOption);
-            return uniqueOptions;
-          }, [])
-          .sort((left, right) => left.label.localeCompare(right.label, "es"));
+        const seenIds = new Set<number>();
+        const studentOptions: StudentOption[] = [];
+
+        for (const student of studentsList) {
+          const id = student?.id;
+
+          if (!id) continue;
+          if (seenIds.has(id)) continue;
+
+          const label = studentLabel(student);
+          if (!label || label.length === 0) continue;
+
+          seenIds.add(id);
+          studentOptions.push({ id, label });
+        }
+
+        studentOptions.sort((left, right) =>
+          left.label.localeCompare(right.label, "es"),
+        );
 
         setStudentsOptions(studentOptions);
       } catch {

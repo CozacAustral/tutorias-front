@@ -146,6 +146,7 @@ export default function MyTutorPage() {
                       borderWidth="3px"
                       borderRadius="15px"
                       h="50px"
+                      w="90%"
                     />
                   </FormControl>
                 </VStack>

@@ -24,7 +24,6 @@ export const AuthService = {
         error.message || error
       );
 
-      // Si el backend devuelve 401, limpiamos cookie y redirigimos al login
       if (error.response?.status === 401) {
         Cookies.remove("authTokens");
         if (typeof window !== "undefined") {
