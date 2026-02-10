@@ -19,6 +19,7 @@ import TutorCreateModal from "./modals/tutor-create-modal.modal";
 import { useRouter } from "next/navigation";
 
 import { FaUser } from "react-icons/fa";
+import { TutoresToastMessages } from "./enums/toast-messages.enum";
 
 const Tutores: React.FC = () => {
   const [tutors, setTutors] = useState<Tutors[] | null>(null);
@@ -98,8 +99,8 @@ const Tutores: React.FC = () => {
     } catch (err) {
       console.error("❌ Error al obtener tutor por id:", err);
       toast({
-        title: "Error al cargar datos",
-        description: "No se pudieron cargar los datos del tutor.",
+        title: TutoresToastMessages.ERROR_LOADING_DATA_TITLE,
+        description: TutoresToastMessages.ERROR_LOADING_DATA_DESC,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -116,8 +117,8 @@ const Tutores: React.FC = () => {
       await loadTutors();
 
       toast({
-        title: "Tutor actualizado.",
-        description: "El tutor ha sido actualizado con éxito.",
+        title: TutoresToastMessages.UPDATE_SUCCESS_TITLE,
+        description: TutoresToastMessages.UPDATE_SUCCESS_DESC,
         status: "success",
         duration: 5000,
         isClosable: true,
@@ -126,8 +127,8 @@ const Tutores: React.FC = () => {
       closeEditModal();
     } catch {
       toast({
-        title: "Error al actualizar tutor.",
-        description: "Hubo un error al intentar actualizar al tutor.",
+        title: TutoresToastMessages.UPDATE_ERROR_TITLE,
+        description: TutoresToastMessages.UPDATE_ERROR_DESC,
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -166,13 +167,14 @@ const Tutores: React.FC = () => {
       await UserService.deleteTutor(selectedTutor.user.id);
 
       setTutors(
-        (prev) => prev?.filter((u) => u.user.id !== selectedTutor.user.id) || []
+        (prev) =>
+          prev?.filter((u) => u.user.id !== selectedTutor.user.id) || [],
       );
       await loadTutors();
 
       toast({
-        title: "Tutor eliminado.",
-        description: "El tutor ha sido eliminado correctamente.",
+        title: TutoresToastMessages.DELETE_SUCCESS_TITLE,
+        description: TutoresToastMessages.DELETE_SUCCESS_DESC,
         status: "success",
         duration: 5000,
         isClosable: true,
@@ -181,8 +183,8 @@ const Tutores: React.FC = () => {
       closeDeleteModal();
     } catch {
       toast({
-        title: "Error al eliminar tutor.",
-        description: "Hubo un error al intentar eliminar al tutor.",
+        title: TutoresToastMessages.DELETE_ERROR_TITLE,
+        description: TutoresToastMessages.DELETE_ERROR_DESC,
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -220,7 +222,7 @@ const Tutores: React.FC = () => {
             }}
             onClick={() => {
               router.push(
-                `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=1`
+                `/alumnos-asignados?tutorId=${tutor.user.id}&fromPage=1`,
               );
             }}
           />

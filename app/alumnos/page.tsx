@@ -8,6 +8,7 @@ import {
   Tr,
   useDisclosure,
 } from "@chakra-ui/react";
+import Cookies from "js-cookie";
 import React, { useEffect, useState } from "react";
 import DeleteModal from "../../common/components/modals/detele.modal";
 import ImportModal from "../../common/components/modals/import.modal";
@@ -250,6 +251,19 @@ const Estudiantes: React.FC = () => {
         setLoadingStudents(false);
       }
     };
+
+    const token = Cookies.get("authTokens");
+    if (!token) {
+      return;
+    }
+
+    try {
+      const jwt = require("jsonwebtoken");
+      const decodedToken = jwt.decode(token);
+      setRole(decodedToken?.role);
+    } catch (error) {
+      console.error("Error decoding token: ", error);
+    }
 
     loadStudents();
   }, [currentPage, searchTerm, orderBy]);

@@ -18,7 +18,12 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { HiEye, HiEyeOff } from "react-icons/hi";
+import {
+  toastError,
+  toastSuccess,
+} from "../../common/feedback/toast-standalone";
 import { login, sendRecoveryEmail } from "./api";
+import { LoginToastMessages } from "./enums/toast-messages.enum";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -38,11 +43,18 @@ const Login = () => {
     setIsLoading(true);
     try {
       const data = await login(email, password);
-      Cookies.set("authTokens", data.accessToken);
+      toastSuccess({
+        title: LoginToastMessages.LOGIN_SUCCESS_TITLE,
+        description: LoginToastMessages.LOGIN_SUCCESS_DESC,
+      });
+      Cookies.set("authTokens", data.accessToken, { expires: 7 });
       setError("");
       router.replace("/profile");
     } catch {
-      setError("Error en la autenticación");
+      toastError({
+        title: LoginToastMessages.LOGIN_ERROR_TITLE,
+        description: LoginToastMessages.LOGIN_ERROR_DESC,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +64,7 @@ const Login = () => {
     try {
       await sendRecoveryEmail(email);
       setRecoveryMessage(
-        "Si el correo existe, se ha enviado un mail para restablecer la contraseña."
+        "Si el correo existe, se ha enviado un mail para restablecer la contraseña.",
       );
     } catch {
       setRecoveryMessage("Hubo un error al enviar el correo.");
