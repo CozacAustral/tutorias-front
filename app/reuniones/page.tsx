@@ -43,8 +43,6 @@ import { StudentOption } from "./type/student-option.type";
 import { statusBadge } from "./utils/status-badge.utils";
 import { subjectStateValueForSelect } from "./utils/subjects.utils";
 
-type MeUser = any;
-
 function toMeetingRow(row: Row): MeetingRow {
   return {
     ...row,
