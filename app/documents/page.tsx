@@ -119,7 +119,7 @@ const DocumentsPage: React.FC = () => {
       toast({ title: "Error al eliminar documento", status: "error" });
     }
   };
-
+//para donde vas?
   const renderDocumentRow = (doc: any) => (
     <Tr key={doc.id}>
       <Td fontWeight="medium">{doc.name}</Td>
@@ -215,7 +215,7 @@ const DocumentsPage: React.FC = () => {
                   <MenuButton
                     as={Button}
                     rightIcon={<SmallAddIcon />}
-                    backgroundColor="gray.200" 
+                    backgroundColor="gray.200"
                     color="gray.700"
                     borderRadius="10px"
                     px={6}
