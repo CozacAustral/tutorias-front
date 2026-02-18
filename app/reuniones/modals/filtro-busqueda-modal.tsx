@@ -17,10 +17,9 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AsyncSelect from "react-select/async";
-import { UserService } from "../../../services/admin-service";
-import { StudentOption } from '../type/student-option.type';
-import { Filters } from '../type/filters.type';
-import { Option } from '../../alumnos/type/option.type';
+import { Option } from "../../alumnos/type/option.type";
+import { Filters } from "../type/filters.type";
+import { StudentOption } from "../type/student-option.type";
 
 type Props = {
   isOpen: boolean;
@@ -72,7 +71,7 @@ export default function FilterMeetingsModal({
       (students ?? [])
         .filter((s, idx, arr) => arr.findIndex((x) => x.id === s.id) === idx)
         .map(toOption),
-    [students]
+    [students],
   );
 
   const selectedOption = useMemo<Option | null>(() => {
@@ -242,7 +241,7 @@ export default function FilterMeetingsModal({
                       if (k === "status" && v === "all") return false;
                       if (k === "order" && v === "desc") return false;
                       return true;
-                    })
+                    }),
                   ) as Filters;
 
                 onApply(clean(local));

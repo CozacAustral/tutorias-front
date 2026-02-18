@@ -157,7 +157,7 @@ const AlumnosAsignados: React.FC = () => {
 
       <GenericTable<Student>
         caption={`Alumnos asignados a ${tutorName || "—"}`}
-        data={students} 
+        data={students}
         TableHeader={TableHeader}
         renderRow={(student: Student, index: number) => (
           <Tr key={student.id}>
@@ -179,12 +179,10 @@ const AlumnosAsignados: React.FC = () => {
             </Td>
           </Tr>
         )}
-        /* paginado (server mode) */
         currentPage={page}
         itemsPerPage={resultsPerPage}
         totalItems={total}
         onPageChange={onPageChange}
-        /* búsqueda / orden */
         searchTerm={searchTerm}
         onSearch={(t) => {
           setSearchTerm(t);
