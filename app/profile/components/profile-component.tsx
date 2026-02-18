@@ -147,12 +147,11 @@ const ProfileComponent = () => {
         setIsEditing(false);
       }
       if (decodedToken.role === 1) {
-        await UserService.updateStudentMe(
-          userData.id,
-          userData.name,
-          userData.lastName,
-          userData.telephone,
-        );
+        await UserService.updateUser(userData.id, {
+          name: userData.name,
+          lastName: userData.lastName,
+          telephone: userData.telephone,
+        });
         setSuccess(true);
         toastSuccess({
           title: ProfileToastMessages.EDIT_STUDENT_SUCCESS_TITLE,
