@@ -134,6 +134,13 @@ export const UserService = {
     return res.data;
   },
 
+  async sendReportToStudent(meetingId: number) {
+    const res = await axiosInstance.post(
+      `/reports/meetings/${meetingId}/report/send-to-student`,
+    );
+    return res.data;
+  },
+
   async updateMeeting(id: number, body: any) {
     const res = await axiosInstance.patch(`/meetings/${id}`, body);
     return res.data;
@@ -527,6 +534,7 @@ export const UserService = {
         {
           currentPassword: currentPassword,
           newPassword: newPassword,
+          confirmNewPassword: confirmNewPassword,
         },
       );
 
