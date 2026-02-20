@@ -49,7 +49,7 @@ const Login = () => {
       });
       Cookies.set("authTokens", data.accessToken, { expires: 7 });
       setError("");
-      router.replace("/profile");
+      router.replace("/home");
     } catch {
       toastError({
         title: LoginToastMessages.LOGIN_ERROR_TITLE,
