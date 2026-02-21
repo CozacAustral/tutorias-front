@@ -1,4 +1,4 @@
-// app/layout.tsx
+
 "use client";
 import { ChakraProvider } from "@chakra-ui/react";
 import customTheme from "../styles/theme";

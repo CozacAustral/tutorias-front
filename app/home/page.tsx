@@ -1,4 +1,4 @@
-// app/home/page.tsx
+
 "use client";
 import { Container } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
