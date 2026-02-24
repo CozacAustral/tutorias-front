@@ -12,13 +12,13 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 
 import GenericTable from "../../common/components/generic-table";
-import DeleteModal from "../../common/components/modals/detele.modal";
 
 import { UserService } from "../../services/admin-service";
 import { useSidebar } from "../contexts/SidebarContext";
 import EditAdminTutores from "../tutores/modals/edit-admin-tutores.modal";
 import { AdministradoresToastMessages } from "./enums/toast-messages.enum";
 import { User } from "./interfaces/user.interface";
+import ConfirmDeletePasswordModal from "./modals/confirm-delete-password.modal";
 import GenericCreateModal from "./modals/create-modal-admin";
 
 const Administradores: React.FC = () => {
@@ -58,6 +58,7 @@ const Administradores: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(7);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const TableHeader = [
     "Nombre",
@@ -183,22 +184,23 @@ const Administradores: React.FC = () => {
     onDeleteOpen();
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = async (password: string) => {
     if (!adminToDelete) return;
-    const password = window.prompt(
-      "Ingresá tu contraseña para confirmar la eliminación:",
-    );
-    if (!password) return;
 
     try {
+      setIsDeleting(true);
       await UserService.deleteUser(adminToDelete.id, password);
+
       toast({
         title: AdministradoresToastMessages.DELETE_SUCCESS_TITLE,
         status: "success",
         duration: 4000,
         isClosable: true,
       });
-      fetchAdminUsers(currentPage, itemsPerPage);
+
+      await fetchAdminUsers(currentPage, itemsPerPage);
+      setAdminToDelete(null);
+      onDeleteClose();
     } catch (err) {
       console.error(err);
       toast({
@@ -209,8 +211,7 @@ const Administradores: React.FC = () => {
         isClosable: true,
       });
     } finally {
-      setAdminToDelete(null);
-      onDeleteClose();
+      setIsDeleting(false);
     }
   };
 
@@ -305,13 +306,17 @@ const Administradores: React.FC = () => {
         }}
         onInputChange={handleEditInputChange}
       />
-
-      <DeleteModal
+      
+      <ConfirmDeletePasswordModal
         isOpen={isDeleteOpen}
-        onClose={onDeleteClose}
-        onDelete={handleConfirmDelete}
+        onClose={() => {
+          setAdminToDelete(null);
+          onDeleteClose();
+        }}
         entityName="administrador"
-        entityDetails={`${adminToDelete?.name} ${adminToDelete?.lastName}`}
+        entityDetails={`${adminToDelete?.name ?? ""} ${adminToDelete?.lastName ?? ""}`.trim()}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
       />
     </>
   );
