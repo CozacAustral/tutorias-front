@@ -146,8 +146,6 @@ const validateYear = () => {
                     validateYear();
                   }}
                   onFocus={() => {
-                    // opcional: marcar como touched al tocar el campo
-                    // setTouchedYear(true);
                   }}
                 />
                 {touchedYear && error ? (

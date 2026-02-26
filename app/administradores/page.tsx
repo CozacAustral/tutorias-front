@@ -221,7 +221,6 @@ const Administradores: React.FC = () => {
       <Td>{admin.lastName}</Td>
       <Td>{admin.email}</Td>
       <Td>{(admin as any).telephone ?? (admin as any).phone ?? "-"}</Td>{" "}
-      {/* 👈 nueva celda */}
       <Td>
         <IconButton
           icon={<EditIcon boxSize={5} />}
@@ -306,7 +305,7 @@ const Administradores: React.FC = () => {
         }}
         onInputChange={handleEditInputChange}
       />
-      
+
       <ConfirmDeletePasswordModal
         isOpen={isDeleteOpen}
         onClose={() => {
