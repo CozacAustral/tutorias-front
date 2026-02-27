@@ -36,6 +36,7 @@ import CreateReportModal from "./modals/create-report-modal";
 import EditMeetingModal from "./modals/edit-meeting-modal";
 import FilterMeetingsModal from "./modals/filtro-busqueda-modal";
 import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
+import { Report } from "./modals/type/report.type";
 import ViewReportModal from "./modals/view-report-modal";
 import { Filters } from "./type/filters.type";
 import { GetMeetingsResp } from "./type/get-meeting-response.type";
@@ -229,6 +230,8 @@ const Reuniones: React.FC = () => {
 
   const [loadingStudents, setLoadingStudents] = useState(false);
 
+  const [report, setReport] = useState<Report | null>(null);
+
   const {
     isOpen: isReportOpen,
     onOpen: onReportOpen,
@@ -353,6 +356,20 @@ const Reuniones: React.FC = () => {
 
     loadCountries();
   }, []);
+
+  const loadReport = useCallback(async () => {
+    if (!viewMeetingId) return;
+    setLoading(true);
+    setReport(null);
+
+    try {
+      const res = await UserService.getReport(viewMeetingId);
+      setReport(res as any);
+    } catch {
+    } finally {
+      setLoading(false);
+    }
+  }, [viewMeetingId]);
 
   const SUBJECT_STATE_LABELS: Record<string, string> = {
     APPROVED: "Aprobada",
@@ -1045,6 +1062,9 @@ const Reuniones: React.FC = () => {
           setReportMeetingId(null);
           setReportStudentId(null);
         }}
+        onOpenSubjects={handleOpenSubjects}
+        loadReport={loadReport}
+        report={report}
       />
 
       <ViewReportModal
@@ -1063,6 +1083,8 @@ const Reuniones: React.FC = () => {
           loadMeetings(page);
         }}
         onOpenSubjects={handleOpenSubjects}
+        loadReport={loadReport}
+        report={report}
       />
 
       <SubjectModal
