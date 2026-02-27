@@ -28,8 +28,12 @@ import React, {
 import { toastSuccess } from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
 import { CreateReportDto } from "../dto/create-report.dto";
-import { ReunionestoastMessages } from "../enums/toast-messages.enum";
+import {
+  ReunionesCreateConfirmToastMessages,
+  ReunionestoastMessages,
+} from "../enums/toast-messages.enum";
 import ConfirmDialog from "./confirm-dialog-modal";
+import { Report } from "./type/report.type";
 import { UiCareer } from "./type/ui-career.type";
 
 export type CreateReportModalProps = {
@@ -38,6 +42,13 @@ export type CreateReportModalProps = {
   meetingId: number | null;
   studentId: number | null;
   onCreated?: () => void;
+  loadReport: () => Promise<void>;
+  onOpenSubjects: (args: {
+    studentId: number | null;
+    careerId: number | undefined;
+    careerName: string | undefined;
+  }) => void;
+  report: Report | null;
 };
 
 const CreateReportModal: React.FC<CreateReportModalProps> = ({
@@ -46,6 +57,9 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
   meetingId,
   studentId,
   onCreated,
+  onOpenSubjects,
+  loadReport,
+  report,
 }) => {
   const [loadingInfo, setLoadingInfo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -111,6 +125,14 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
     if (activeCareers.length >= 1 && !selectedCareerId) return;
     setIsConfirmOpen(true);
   }, [meetingId, topicos, activeCareers.length, selectedCareerId]);
+
+  const handleOpenSubjectsClick = useCallback(() => {
+    onOpenSubjects({
+      studentId: studentId ?? null,
+      careerId: report?.career?.id,
+      careerName: report?.career?.name,
+    });
+  }, [onOpenSubjects, studentId, report?.career?.id, report?.career?.name]);
 
   const handleCreate = useCallback(async () => {
     if (!meetingId) return;
@@ -229,6 +251,14 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
 
           <ModalFooter>
             <Button
+              variant="outline"
+              mr={3}
+              onClick={handleOpenSubjectsClick}
+              isDisabled={!report?.career?.id || !studentId}
+            >
+              Materias
+            </Button>
+            <Button
               variant="ghost"
               mr={3}
               onClick={onClose}
@@ -256,12 +286,7 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
         isLoading={submitting}
         leastDestructiveRef={cancelRef}
         title="Confirmar creación de reporte"
-        body={
-          <>
-            Esta acción es <b>permanente</b>. Una vez creado, el reporte no
-            podrá editarse. ¿Deseás continuar?
-          </>
-        }
+        body={ReunionesCreateConfirmToastMessages.CREATE_CONFIRM_REPORT}
         confirmText="Confirmar y crear"
         cancelText="Cancelar"
         confirmColorScheme="blue"

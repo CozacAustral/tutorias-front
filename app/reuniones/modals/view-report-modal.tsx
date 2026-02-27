@@ -17,19 +17,30 @@ import {
   SkeletonText,
   Textarea,
 } from "@chakra-ui/react";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   toastError,
   toastSuccess,
 } from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
-import { ReunionestoastMessages } from "../enums/toast-messages.enum";
+import {
+  ReunionesConfirmToastMessages,
+  ReunionestoastMessages,
+} from "../enums/toast-messages.enum";
+import ConfirmDialog from "./confirm-dialog-modal";
 import { Report } from "./type/report.type";
 
 type Props = {
   onDeleted?: () => void;
   isOpen: boolean;
   onClose: () => void;
+  loadReport: () => void;
   meetingId: number | null;
   studentId?: number | null;
   onOpenSubjects: (args: {
@@ -37,6 +48,7 @@ type Props = {
     careerId: number | undefined;
     careerName: string | undefined;
   }) => void;
+  report: Report | null;
 };
 
 const ViewReportModal: React.FC<Props> = ({
@@ -46,26 +58,17 @@ const ViewReportModal: React.FC<Props> = ({
   meetingId,
   studentId = null,
   onOpenSubjects,
+  loadReport,
+  report,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [report, setReport] = useState<Report | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [sendingReport, setSendingReport] = useState(false);
 
-  const loadReport = useCallback(async () => {
-    if (!meetingId) return;
-    setLoading(true);
-    setReport(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-    try {
-      const res = await UserService.getReport(meetingId);
-      setReport(res as any);
-    } catch {
-    } finally {
-      setLoading(false);
-    }
-  }, [meetingId]);
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -98,11 +101,18 @@ const ViewReportModal: React.FC<Props> = ({
     });
   }, [onOpenSubjects, studentId, report?.career?.id, report?.career?.name]);
 
-  const handleSendReport = useCallback(async () => {
+  const handleOpenConfirm = useCallback(() => {
+    if (!meetingId) return;
+    setIsConfirmOpen(true);
+  }, [meetingId]);
+
+  const handleConfirmSendReport = useCallback(async () => {
     if (!meetingId) return;
 
+    setIsConfirmOpen(false);
+    setSendingReport(true);
+
     try {
-      setSendingReport(true);
       await UserService.sendReportToStudent(meetingId);
 
       toastSuccess({
@@ -182,14 +192,27 @@ const ViewReportModal: React.FC<Props> = ({
 
           <Button
             colorScheme="blue"
-            onClick={handleSendReport}
+            onClick={handleOpenConfirm}
+            isDisabled={!meetingId || sendingReport}
             isLoading={sendingReport}
-            isDisabled={submitting}
           >
             Enviar reporte
           </Button>
         </ModalFooter>
       </ModalContent>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmSendReport}
+        isLoading={sendingReport}
+        leastDestructiveRef={cancelRef}
+        title="Confirmar envio de reporte"
+        body={ReunionesConfirmToastMessages.CONFIRM_SEND_REPORT}
+        confirmText="Confirmar y enviar"
+        cancelText="Cancelar"
+        confirmColorScheme="blue"
+      />
     </Modal>
   );
 };

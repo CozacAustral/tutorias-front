@@ -24,6 +24,14 @@ export type GetMeetingsResp = {
       };
       studentId?: number;
       tutorId?: number;
+      tutor?: {
+        id: number;
+        user?: {
+          name?: string;
+          lastName?: string;
+          email?: string;
+        } | null;
+      };
     };
   }[];
 };

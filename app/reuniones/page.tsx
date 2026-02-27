@@ -30,18 +30,20 @@ import { SubjectCareerWithState } from "../alumnos/interfaces/subject-career-stu
 import SubjectModal from "../alumnos/modals/subject-student.modal";
 import StudentModal from "../alumnos/modals/view-student.modal";
 import { useSidebar } from "../contexts/SidebarContext";
+import { ResponseAllTutors } from "../tutores/interfaces/responseAll-tutors.interface";
 import ConfirmDialog from "./modals/confirm-dialog-modal";
 import CreateReportModal from "./modals/create-report-modal";
 import EditMeetingModal from "./modals/edit-meeting-modal";
 import FilterMeetingsModal from "./modals/filtro-busqueda-modal";
 import ScheduleMeetingModal from "./modals/schedule-meetings-modals";
+import { Report } from "./modals/type/report.type";
 import ViewReportModal from "./modals/view-report-modal";
 import { Filters } from "./type/filters.type";
 import { GetMeetingsResp } from "./type/get-meeting-response.type";
 import { MeetingRow } from "./type/meeting-row.type";
 import { MeetingStatus } from "./type/meetings-status.type";
 import { Row } from "./type/rows.type";
-import { StudentOption } from "./type/student-option.type";
+import { OptionItem } from "./type/student-option.type";
 
 type UserBasic = { name?: string; lastName?: string; email?: string };
 
@@ -222,8 +224,13 @@ const Reuniones: React.FC = () => {
     order: "desc",
   });
 
-  const [studentsOptions, setStudentsOptions] = useState<StudentOption[]>([]);
+  const [studentsOptions, setStudentsOptions] = useState<OptionItem[]>([]);
+
+  const [tutorsOptions, setTutorsOptions] = useState<OptionItem[]>([]);
+
   const [loadingStudents, setLoadingStudents] = useState(false);
+
+  const [report, setReport] = useState<Report | null>(null);
 
   const {
     isOpen: isReportOpen,
@@ -266,6 +273,11 @@ const Reuniones: React.FC = () => {
   } = useDisclosure();
 
   const [countries, setCountries] = useState<Country[]>([]);
+
+  const toTutorOption = (t: ResponseAllTutors): OptionItem => ({
+    id: t.user.id,
+    label: `${t.user.name} ${t.user.lastName}`.trim(),
+  });
 
   const isAdmin = useMemo(() => {
     if (!me?.role) return false;
@@ -344,6 +356,20 @@ const Reuniones: React.FC = () => {
 
     loadCountries();
   }, []);
+
+  const loadReport = useCallback(async () => {
+    if (!viewMeetingId) return;
+    setLoading(true);
+    setReport(null);
+
+    try {
+      const res = await UserService.getReport(viewMeetingId);
+      setReport(res as any);
+    } catch {
+    } finally {
+      setLoading(false);
+    }
+  }, [viewMeetingId]);
 
   const SUBJECT_STATE_LABELS: Record<string, string> = {
     APPROVED: "Aprobada",
@@ -561,17 +587,20 @@ const Reuniones: React.FC = () => {
 
       let foundTutorId: number | null = null;
 
-      const mappedRows: Row[] = (meetingsRes.data ?? []).map(
+      let mappedRows: Row[] = (meetingsRes.data ?? []).map(
         (meetingItem: GetMeetingsResp["data"][number]) => {
           const student = meetingItem?.tutorship?.student ?? null;
           const alumno = fullName(student?.user ?? null);
+          const tutorName = meetingItem?.tutorship?.tutor?.user
+            ? fullName(meetingItem.tutorship.tutor.user)
+            : "";
 
           const fecha = formatFecha(meetingItem.date);
           const hora = formatHora(meetingItem.date);
 
           const row: Row = {
             id: meetingItem.id,
-            tutor: "—",
+            tutor: tutorName || "—",
             alumno,
             fecha,
             hora,
@@ -590,6 +619,10 @@ const Reuniones: React.FC = () => {
 
       if (foundTutorId) setMyTutorId(foundTutorId);
 
+      if (filters.tutorId !== undefined && filters.tutorId !== null) {
+        mappedRows = mappedRows.filter((r) => r.tutorId === filters.tutorId);
+      }
+
       setRows(mappedRows);
       setTotal(meetingsRes.total ?? mappedRows.length);
     } catch {
@@ -600,6 +633,38 @@ const Reuniones: React.FC = () => {
       setLoading(false);
     }
   }
+
+  const tutorsCacheRef = useRef<OptionItem[] | null>(null);
+
+  const loadTutorsForFilter = useCallback(
+    async (search: string): Promise<OptionItem[]> => {
+      const q = (search ?? "").trim().toLowerCase();
+
+      try {
+        let list: OptionItem[];
+
+        if (tutorsCacheRef.current && q === "") {
+          list = tutorsCacheRef.current;
+        } else {
+          const tutorsRes = await UserService.getAllTutors();
+          list = tutorsRes.map(toTutorOption);
+          tutorsCacheRef.current = list;
+        }
+
+        const options = list
+          .filter((o) => o.label.toLowerCase().includes(q))
+          .sort((a, b) => a.label.localeCompare(b.label, "es"));
+
+        setTutorsOptions(options);
+        return options;
+      } catch (e) {
+        console.error(e);
+        setTutorsOptions([]);
+        return [];
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     loadMeetings(page);
@@ -658,16 +723,13 @@ const Reuniones: React.FC = () => {
             label: studentLabel(student),
           }))
           .filter((student) => student.id && student.label)
-          .reduce(
-            (uniqueOptions: StudentOption[], optionItem: StudentOption) => {
-              const alreadyExists = uniqueOptions.some(
-                (existingOption) => existingOption.id === optionItem.id,
-              );
-              if (!alreadyExists) uniqueOptions.push(optionItem);
-              return uniqueOptions;
-            },
-            [],
-          )
+          .reduce((uniqueOptions: OptionItem[], optionItem: OptionItem) => {
+            const alreadyExists = uniqueOptions.some(
+              (existingOption) => existingOption.id === optionItem.id,
+            );
+            if (!alreadyExists) uniqueOptions.push(optionItem);
+            return uniqueOptions;
+          }, [])
           .sort((leftOption, rightOption) =>
             leftOption.label.localeCompare(rightOption.label, "es"),
           );
@@ -694,7 +756,7 @@ const Reuniones: React.FC = () => {
 
   const loadStudentsForFilter = async (
     search: string,
-  ): Promise<StudentOption[]> => {
+  ): Promise<OptionItem[]> => {
     if (!me) return [];
 
     if (isAdmin) {
@@ -947,6 +1009,8 @@ const Reuniones: React.FC = () => {
         isOpen={isFilterOpen}
         onClose={onFilterClose}
         students={studentsOptions}
+        loadTutors={loadTutorsForFilter}
+        tutors={tutorsOptions}
         loadStudents={loadStudentsForFilter}
         current={filters}
         onApply={(appliedFilters: Filters) => {
@@ -998,6 +1062,9 @@ const Reuniones: React.FC = () => {
           setReportMeetingId(null);
           setReportStudentId(null);
         }}
+        onOpenSubjects={handleOpenSubjects}
+        loadReport={loadReport}
+        report={report}
       />
 
       <ViewReportModal
@@ -1016,6 +1083,8 @@ const Reuniones: React.FC = () => {
           loadMeetings(page);
         }}
         onOpenSubjects={handleOpenSubjects}
+        loadReport={loadReport}
+        report={report}
       />
 
       <SubjectModal
