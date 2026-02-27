@@ -14,3 +14,11 @@ export enum ReunionestoastMessages {
   CREATE_REPORT_SUCCESS_TITLE = "Reporte creado",
   CREATE_REPORT_SUCCESS_DESC = "El reporte ha sido creado correctamente.",
 }
+
+export enum ReunionesConfirmToastMessages {
+  CONFIRM_SEND_REPORT = "Esta acción enviará el contenido del reporte al alumno correspondiente. ¿Estas seguro que desea continuar?",
+}
+
+export enum ReunionesCreateConfirmToastMessages {
+  CREATE_CONFIRM_REPORT = "Esta acción es permanente. Una vez creado, el reporte nopodrá editarse. ¿Deseás continuar?",
+}

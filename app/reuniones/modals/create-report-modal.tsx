@@ -28,7 +28,10 @@ import React, {
 import { toastSuccess } from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
 import { CreateReportDto } from "../dto/create-report.dto";
-import { ReunionestoastMessages } from "../enums/toast-messages.enum";
+import {
+  ReunionesCreateConfirmToastMessages,
+  ReunionestoastMessages,
+} from "../enums/toast-messages.enum";
 import ConfirmDialog from "./confirm-dialog-modal";
 import { Report } from "./type/report.type";
 import { UiCareer } from "./type/ui-career.type";
@@ -283,12 +286,7 @@ const CreateReportModal: React.FC<CreateReportModalProps> = ({
         isLoading={submitting}
         leastDestructiveRef={cancelRef}
         title="Confirmar creación de reporte"
-        body={
-          <>
-            Esta acción es <b>permanente</b>. Una vez creado, el reporte no
-            podrá editarse. ¿Deseás continuar?
-          </>
-        }
+        body={ReunionesCreateConfirmToastMessages.CREATE_CONFIRM_REPORT}
         confirmText="Confirmar y crear"
         cancelText="Cancelar"
         confirmColorScheme="blue"

@@ -29,7 +29,10 @@ import {
   toastSuccess,
 } from "../../../common/feedback/toast-standalone";
 import { UserService } from "../../../services/admin-service";
-import { ReunionestoastMessages } from "../enums/toast-messages.enum";
+import {
+  ReunionesConfirmToastMessages,
+  ReunionestoastMessages,
+} from "../enums/toast-messages.enum";
 import ConfirmDialog from "./confirm-dialog-modal";
 import { Report } from "./type/report.type";
 
@@ -205,12 +208,7 @@ const ViewReportModal: React.FC<Props> = ({
         isLoading={sendingReport}
         leastDestructiveRef={cancelRef}
         title="Confirmar envio de reporte"
-        body={
-          <>
-            Esta acción es <b>permanente</b>. Una vez enviado, el reporte no
-            podrá editarse. ¿Deseás continuar?
-          </>
-        }
+        body={ReunionesConfirmToastMessages.CONFIRM_SEND_REPORT}
         confirmText="Confirmar y enviar"
         cancelText="Cancelar"
         confirmColorScheme="blue"
